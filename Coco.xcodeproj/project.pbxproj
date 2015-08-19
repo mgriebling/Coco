@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2FED1DC51B84A81400001383 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DC41B84A81400001383 /* Scanner.swift */; };
+		2FED1DC71B84A83D00001383 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DC61B84A83D00001383 /* Parser.swift */; };
+		2FED1DC91B84CF9100001383 /* String+Char.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DC81B84CF9100001383 /* String+Char.swift */; };
 		476C34541B848C8300EE75C6 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 476C34531B848C8300EE75C6 /* main.swift */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +26,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2FED1DC41B84A81400001383 /* Scanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
+		2FED1DC61B84A83D00001383 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
+		2FED1DC81B84CF9100001383 /* String+Char.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Char.swift"; sourceTree = "<group>"; };
 		476C34501B848C8300EE75C6 /* Coco */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Coco; sourceTree = BUILT_PRODUCTS_DIR; };
 		476C34531B848C8300EE75C6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		476C345A1B848CA500EE75C6 /* Coco.atg */ = {isa = PBXFileReference; lastKnownFileType = text; path = Coco.atg; sourceTree = "<group>"; };
@@ -67,6 +73,9 @@
 			isa = PBXGroup;
 			children = (
 				476C34531B848C8300EE75C6 /* main.swift */,
+				2FED1DC41B84A81400001383 /* Scanner.swift */,
+				2FED1DC81B84CF9100001383 /* String+Char.swift */,
+				2FED1DC61B84A83D00001383 /* Parser.swift */,
 				476C345A1B848CA500EE75C6 /* Coco.atg */,
 				476C345B1B848CA500EE75C6 /* Coco.cs */,
 				476C345C1B848CA500EE75C6 /* DFA.cs */,
@@ -136,7 +145,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2FED1DC91B84CF9100001383 /* String+Char.swift in Sources */,
+				2FED1DC51B84A81400001383 /* Scanner.swift in Sources */,
 				476C34541B848C8300EE75C6 /* main.swift in Sources */,
+				2FED1DC71B84A83D00001383 /* Parser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,6 +266,7 @@
 				476C34591B848C8300EE75C6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

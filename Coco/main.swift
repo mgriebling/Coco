@@ -45,94 +45,93 @@ in the attributed grammar or as a command-line option
 import Foundation
 
 extension String {
-    
-    func Trim() -> String {
-        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-    }
-    
+	
+	func Trim() -> String {
+		return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+	}
+	
 }
 
 public class Coco {
-    
-    public static func Main (arg: [String]) -> Int {
-        print("Coco/R (Aug 19, 2015)")
-        var srcName = ""
-        var nsName = ""
-        var frameDir = ""
-        var ddtString = ""
-        var traceFileName = ""
-        var outDir = ""
-        var emitLines = false
-        var retVal = 1
-        var i = 0
-        while i < arg.count {
-            if (arg[i] == "-namespace" && i < arg.count - 1) { nsName = arg[++i].Trim() }
-            else if (arg[i] == "-frames" && i < arg.count - 1) { frameDir = arg[++i].Trim() }
-            else if (arg[i] == "-trace" && i < arg.count - 1) { ddtString = arg[++i].Trim() }
-            else if (arg[i] == "-o" && i < arg.count - 1) { outDir = arg[++i].Trim() }
-            else if (arg[i] == "-lines") { emitLines = true }
-            else { srcName = arg[i] }
-            i++
-        
-        if arg.count > 1 && !srcName.isEmpty {
-            do {
-                let srcDir = /* Path.GetDirectoryName */ (srcName as! NSString)
-                
-//                let scanner = Scanner(srcName)
-//                let parser = Parser(scanner)
-//                
-//                traceFileName = Path.Combine(srcDir, "trace.txt")
-//                parser.trace = StreamWriter(new FileStream(traceFileName, FileMode.Create))
-//                parser.tab = Tab(parser)
-//                parser.dfa = DFA(parser)
-//                parser.pgen = ParserGen(parser)
-//                
-//                parser.tab.srcName = srcName;
-//                parser.tab.srcDir = srcDir;
-//                parser.tab.nsName = nsName;
-//                parser.tab.frameDir = frameDir;
-//                parser.tab.outDir = !outDir.isEmpty ? outDir : srcDir
-//                parser.tab.emitLines = emitLines
-//                if !ddtString.isEmpty { parser.tab.SetDDT(ddtString) }
-//                
-//                parser.Parse()
-//                
-//                parser.trace.Close()
-//                let f = FileInfo(traceFileName)
-//                if (f.Length == 0) { f.Delete() }
-//                else { print("trace output is in " + traceFileName) }
-//                print("\(parser.errors.count) errors detected")
-//                if (parser.errors.count == 0) { retVal = 0 }
-//            } catch (IOException) {
-//                print("-- could not open " + traceFileName)
-//            } catch (FatalError e) {
-//                print("-- " + e.Message)
-            }
-        } else {
-            print("Usage: Coco Grammar.ATG {{Option}}\n"
-                + "Options:\n"
-                + "  -namespace <namespaceName>\n"
-                + "  -frames    <frameFilesDirectory>\n"
-                + "  -trace     <traceString>\n"
-                + "  -o         <outputDirectory>\n"
-                + "  -lines\n"
-                + "Valid characters in the trace string:\n"
-                + "  A  trace automaton\n"
-                + "  F  list first/follow sets\n"
-                + "  G  print syntax graph\n"
-                + "  I  trace computation of first sets\n"
-                + "  J  list ANY and SYNC sets\n"
-                + "  P  print statistics\n"
-                + "  S  list symbol table\n"
-                + "  X  list cross reference table\n"
-                + "Scanner.frame and Parser.frame files needed in ATG directory\n"
-                + "or in a directory specified in the -frames option.")
-        }
-        return retVal
-    }
-    
+	
+	public static func Main (arg: [String]) {
+		print("Coco/R (Aug 19, 2015)")
+		var srcName : NSString = ""
+		var nsName = ""
+		var frameDir = ""
+		var ddtString = ""
+		var traceFileName = ""
+		var outDir = ""
+		var emitLines = false
+		var retVal = 1
+		var i = 0
+		while i < arg.count {
+			if (arg[i] == "-namespace" && i < arg.count - 1) { nsName = arg[++i].Trim() }
+			else if (arg[i] == "-frames" && i < arg.count - 1) { frameDir = arg[++i].Trim() }
+			else if (arg[i] == "-trace" && i < arg.count - 1) { ddtString = arg[++i].Trim() }
+			else if (arg[i] == "-o" && i < arg.count - 1) { outDir = arg[++i].Trim() }
+			else if (arg[i] == "-lines") { emitLines = true }
+			else { srcName = arg[i] }
+			i++
+		}
+		
+		if arg.count > 1 && srcName.length != 0 {
+			do {
+				let srcDir = srcName.stringByDeletingLastPathComponent
+				
+				let scanner = Scanner(fileName: String(srcName))
+				let parser = Parser(scanner)
+				
+				//                traceFileName = Path.Combine(srcDir, "trace.txt")
+				//                parser.trace = StreamWriter(new FileStream(traceFileName, FileMode.Create))
+				//                parser.tab = Tab(parser)
+				//                parser.dfa = DFA(parser)
+				//                parser.pgen = ParserGen(parser)
+				//
+				//                parser.tab.srcName = srcName;
+				//                parser.tab.srcDir = srcDir;
+				//                parser.tab.nsName = nsName;
+				//                parser.tab.frameDir = frameDir;
+				//                parser.tab.outDir = !outDir.isEmpty ? outDir : srcDir
+				//                parser.tab.emitLines = emitLines
+				//                if !ddtString.isEmpty { parser.tab.SetDDT(ddtString) }
+				//
+				//                parser.Parse()
+				//
+				//                parser.trace.Close()
+				//                let f = FileInfo(traceFileName)
+				//                if (f.Length == 0) { f.Delete() }
+				//                else { print("trace output is in " + traceFileName) }
+				//                print("\(parser.errors.count) errors detected")
+				//                if (parser.errors.count == 0) { retVal = 0 }
+				//            } catch (IOException) {
+				//                print("-- could not open " + traceFileName)
+				//            } catch (FatalError e) {
+				//                print("-- " + e.Message)
+			}
+		} else {
+			print("Usage: Coco Grammar.ATG {{Option}}\n"
+				+ "Options:\n"
+				+ "  -namespace <namespaceName>\n"
+				+ "  -frames    <frameFilesDirectory>\n"
+				+ "  -trace     <traceString>\n"
+				+ "  -o         <outputDirectory>\n"
+				+ "  -lines\n"
+				+ "Valid characters in the trace string:\n"
+				+ "  A  trace automaton\n"
+				+ "  F  list first/follow sets\n"
+				+ "  G  print syntax graph\n"
+				+ "  I  trace computation of first sets\n"
+				+ "  J  list ANY and SYNC sets\n"
+				+ "  P  print statistics\n"
+				+ "  S  list symbol table\n"
+				+ "  X  list cross reference table\n"
+				+ "Scanner.frame and Parser.frame files needed in ATG directory\n"
+				+ "or in a directory specified in the -frames option.")
+		}
+	}
+	
 } // end Coco
 
 Coco.Main(Process.arguments)
-
 
