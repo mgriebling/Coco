@@ -25,6 +25,15 @@
 /* Begin PBXFileReference section */
 		476C34501B848C8300EE75C6 /* Coco */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Coco; sourceTree = BUILT_PRODUCTS_DIR; };
 		476C34531B848C8300EE75C6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		476C345A1B848CA500EE75C6 /* Coco.atg */ = {isa = PBXFileReference; lastKnownFileType = text; path = Coco.atg; sourceTree = "<group>"; };
+		476C345B1B848CA500EE75C6 /* Coco.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Coco.cs; sourceTree = "<group>"; };
+		476C345C1B848CA500EE75C6 /* DFA.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = DFA.cs; sourceTree = "<group>"; };
+		476C345D1B848CA500EE75C6 /* Parser.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Parser.cs; sourceTree = "<group>"; };
+		476C345E1B848CA500EE75C6 /* Parser.frame */ = {isa = PBXFileReference; lastKnownFileType = text; path = Parser.frame; sourceTree = "<group>"; };
+		476C345F1B848CA500EE75C6 /* ParserGen.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = ParserGen.cs; sourceTree = "<group>"; };
+		476C34601B848CA500EE75C6 /* Scanner.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Scanner.cs; sourceTree = "<group>"; };
+		476C34611B848CA500EE75C6 /* Scanner.frame */ = {isa = PBXFileReference; lastKnownFileType = text; path = Scanner.frame; sourceTree = "<group>"; };
+		476C34621B848CA500EE75C6 /* Tab.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Tab.cs; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +67,15 @@
 			isa = PBXGroup;
 			children = (
 				476C34531B848C8300EE75C6 /* main.swift */,
+				476C345A1B848CA500EE75C6 /* Coco.atg */,
+				476C345B1B848CA500EE75C6 /* Coco.cs */,
+				476C345C1B848CA500EE75C6 /* DFA.cs */,
+				476C345D1B848CA500EE75C6 /* Parser.cs */,
+				476C345E1B848CA500EE75C6 /* Parser.frame */,
+				476C345F1B848CA500EE75C6 /* ParserGen.cs */,
+				476C34601B848CA500EE75C6 /* Scanner.cs */,
+				476C34611B848CA500EE75C6 /* Scanner.frame */,
+				476C34621B848CA500EE75C6 /* Tab.cs */,
 			);
 			path = Coco;
 			sourceTree = "<group>";
