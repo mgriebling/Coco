@@ -67,6 +67,7 @@ public extension Character {
 
 func + (c: Character, inc: Int) -> Character { return c.add(inc) }
 func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
+func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
 func += (inout c: Character, inc: Int) { c = c + inc }
 func -= (inout c: Character, inc: Int) { c = c - inc }
 postfix func -- (c: Character) -> Character { return c - 1 }

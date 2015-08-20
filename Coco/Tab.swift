@@ -184,8 +184,8 @@ public struct BitArray : CollectionType {
     public var startIndex: Int { return 0 }
     public var endIndex: Int { return array.count }
     
-    public init(size: Int) {
-        array = [Bool](count: size, repeatedValue: false)
+	public init(size: Int, value: Bool = false) {
+        array = [Bool](count: size, repeatedValue: value)
     }
     
     public var count: Int { return array.count }
@@ -764,7 +764,7 @@ public class Tab {
             if (DelNode(p)) {
                 a = LeadingAny(np.next);
                 if (a != nil) {
-                    var q = (np.typ == Node.nt) ? np.sym!.graph : np.sub
+                    let q = (np.typ == Node.nt) ? np.sym!.graph : np.sub
                     Sets.Subtract(&a!.set, b:First(q))
                 }
             }
@@ -790,56 +790,60 @@ public class Tab {
         else { return Expected(p, curSy: curSy) }
     }
 	
-    func CompSync(p: Node?) {
-		while (p != nil && !visited[p.n]) {
-			visited[p.n] = true;
-			if (p.typ == Node.sync) {
-				BitArray s = Expected(p.next, curSy);
-				s[eofSy.n] = true;
-				allSyncSets.Or(s);
-				p.set = s;
-			} else if (p.typ == Node.alt) {
-				CompSync(p.sub); CompSync(p.down);
-			} else if (p.typ == Node.opt || p.typ == Node.iter)
-			CompSync(p.sub);
-			p = p.next;
+	func CompSync(var p: Node?) {
+		while let pn = p where !visited[pn.n] {
+			visited[pn.n] = true
+			if (pn.typ == Node.sync) {
+				var s = Expected(pn.next!, curSy: curSy)
+				s[eofSy.n] = true
+				allSyncSets.or(s)
+				pn.set = s
+			} else if pn.typ == Node.alt {
+				CompSync(pn.sub); CompSync(pn.down)
+			} else if pn.typ == Node.opt || pn.typ == Node.iter {
+				CompSync(pn.sub)
+			}
+			p = pn.next
 		}
 	}
 	
 	func CompSyncSets() {
-		allSyncSets = new BitArray(terminals.Count);
-		allSyncSets[eofSy.n] = true;
-		visited = new BitArray(nodes.Count);
-		foreach (Symbol sym in nonterminals) {
-			curSy = sym;
-			CompSync(curSy.graph);
+		allSyncSets = BitArray(size: Tab.terminals.count)
+		allSyncSets[eofSy.n] = true
+		visited = BitArray(size: Tab.nodes.count)
+		for sym in Tab.nonterminals {
+			curSy = sym
+			CompSync(curSy.graph)
 		}
 	}
 	
 	public func SetupAnys() {
-		foreach (Node p in nodes)
-		if (p.typ == Node.any) {
-			p.set = new BitArray(terminals.Count, true);
-			p.set[eofSy.n] = false;
+		for p in Tab.nodes {
+			if p.typ == Node.any {
+				p.set = BitArray(size: Tab.terminals.count, value:true)
+				p.set[eofSy.n] = false
+			}
 		}
 	}
 	
 	public func CompDeletableSymbols() {
-		bool changed;
-		do {
-			changed = false;
-			foreach (Symbol sym in nonterminals)
-			if (!sym.deletable && sym.graph != nil && DelGraph(sym.graph)) {
-				sym.deletable = true; changed = true;
+		var changed: Bool
+		repeat {
+			changed = false
+			for sym in Tab.nonterminals {
+				if !sym.deletable && sym.graph != nil && DelGraph(sym.graph) {
+					sym.deletable = true; changed = true
+				}
 			}
-		} while (changed);
-		foreach (Symbol sym in nonterminals)
-		if (sym.deletable) errors.Warning("  " + sym.name + " deletable");
+		} while changed
+		for sym in Tab.nonterminals {
+			if sym.deletable { errors.Warning("  " + sym.name + " deletable") }
+		}
 	}
 	
 	public func RenumberPragmas() {
-		int n = terminals.Count;
-		foreach (Symbol sym in pragmas) sym.n = n++;
+		var n = Tab.terminals.count
+		for sym in Tab.pragmas { sym.n = n++ }
 	}
 	
 	public func CompSymbolSets() {
@@ -848,25 +852,26 @@ public class Tab {
 		CompAnySets();
 		CompFollowSets();
 		CompSyncSets();
-		if (ddt[1]) {
+		if ddt[1] {
 			trace.WriteLine();
 			trace.WriteLine("First & follow symbols:");
 			trace.WriteLine("----------------------"); trace.WriteLine();
-			foreach (Symbol sym in nonterminals) {
-				trace.WriteLine(sym.name);
-				trace.Write("first:   "); PrintSet(sym.first, 10);
-				trace.Write("follow:  "); PrintSet(sym.follow, 10);
-				trace.WriteLine();
+			for sym in Tab.nonterminals {
+				trace.WriteLine(sym.name)
+				trace.Write("first:   "); PrintSet(sym.first, indent: 10);
+				trace.Write("follow:  "); PrintSet(sym.follow, indent: 10);
+				trace.WriteLine()
 			}
 		}
-		if (ddt[4]) {
+		if ddt[4] {
 			trace.WriteLine();
 			trace.WriteLine("ANY and SYNC sets:");
 			trace.WriteLine("-----------------");
-			foreach (Node p in nodes)
-			if (p.typ == Node.any || p.typ == Node.sync) {
-				trace.Write("{0,4} {1,4}: ", p.n, nTyp[p.typ]);
-				PrintSet(p.set, 11);
+			for p in Tab.nodes {
+				if p.typ == Node.any || p.typ == Node.sync {
+					trace.Write("\(p.n) \(Tab.nTyp[p.typ]): ")
+					PrintSet(p.set, indent: 11)
+				}
 			}
 		}
 	}
@@ -876,23 +881,23 @@ public class Tab {
 	//---------------------------------------------------------------------
 	
 	func Hex2Char(s: String) -> Character {
-	int val = 0;
-	for (int i = 0; i < s.Length; i++) {
-	char ch = s[i];
-	if ("0" <= ch && ch <= "9") val = 16 * val + (ch - "0");
-	else if ("a" <= ch && ch <= "f") val = 16 * val + (10 + ch - "a");
-	else if ("A" <= ch && ch <= "F") val = 16 * val + (10 + ch - "A");
-	else parser.SemErr("bad escape sequence in string or character");
-	}
-	if (val > char.MaxValue) /* pdt */
-	parser.SemErr("bad escape sequence in string or character");
-	return (char)val;
+		var val = 0
+		for i in 0..<s.count() {
+			let ch = s[i]
+			if "0" <= ch && ch <= "9" { val = 16 * val + (ch - Character("0")) }
+			else if "a" <= ch && ch <= "f" { val = 16 * val + (10 + (ch - Character("a"))) }
+			else if "A" <= ch && ch <= "F" { val = 16 * val + (10 + (ch - Character("A"))) }
+			else { parser.SemErr("bad escape sequence in string or character") }
+		}
+		if val > Int(UniChar.max) { /* pdt */
+			parser.SemErr("bad escape sequence in string or character")
+		}
+		return Character(val)
 	}
 	
-	func Char2Hex(ch: Character)  -> String {
-	StringWriter w = new StringWriter();
-	w.Write("\\u{0:x4}", (int)ch);
-	return w.ToString();
+	func Char2Hex(ch: Character) -> String {
+		let s = String(format: "\\u%04x", ch.unicodeValue())
+		return s
 	}
 	
 	public func Unescape (s: String) -> String {
@@ -915,7 +920,8 @@ public class Tab {
 				case "v": buf += "\u{0b}"; i += 2
 				case "u", "x":
 					if i+6 <= s.count() {
-						buf.append(Hex2Char(s.Substring(i+2, 4))); i += 6
+						let sn : NSString = s
+						buf.append(Hex2Char(sn.substringWithRange(NSMakeRange(i+2, 4)))); i += 6
 					} else {
 						parser.SemErr("bad escape sequence in string or character"); i = s.count()
 					}
@@ -947,91 +953,91 @@ public class Tab {
 		return buf
 	}
 
-//---------------------------------------------------------------------
-//  Grammar checks
-//---------------------------------------------------------------------
-
-public bool GrammarOk() {
-	bool ok = NtsComplete()
-		&& AllNtReached()
-		&& NoCircularProductions()
-		&& AllNtToTerm();
-	if (ok) { CheckResolvers(); CheckLL1(); }
-	return ok;
-}
-
-//--------------- check for circular productions ----------------------
-
-class CNode {	// node of list for finding circular productions
-	public Symbol left, right;
+	//---------------------------------------------------------------------
+	//  Grammar checks
+	//---------------------------------------------------------------------
 	
-	public CNode (Symbol l, Symbol r) {
-	left = l; right = r;
+	public func GrammarOk() -> Bool {
+		let ok = NtsComplete() && AllNtReached() && NoCircularProductions() && AllNtToTerm()
+		if ok { CheckResolvers(); CheckLL1() }
+		return ok
 	}
-}
 
-func GetSingles(Node p, ArrayList singles) {
-	if (p == nil) return;  // end of graph
-	if (p.typ == Node.nt) {
-		if (p.up || DelGraph(p.next)) singles.Add(p.sym);
-	} else if (p.typ == Node.alt || p.typ == Node.iter || p.typ == Node.opt) {
-		if (p.up || DelGraph(p.next)) {
-			GetSingles(p.sub, singles);
-			if (p.typ == Node.alt) GetSingles(p.down, singles);
+	//--------------- check for circular productions ----------------------
+	
+	class CNode {	// node of list for finding circular productions
+		var left: Symbol?
+		var right: Symbol?
+		
+		init (l: Symbol?, r: Symbol?) {
+			left = l; right = r
 		}
 	}
-	if (!p.up && DelNode(p)) GetSingles(p.next, singles);
-}
 
-public bool NoCircularProductions() {
-	bool ok, changed, onLeftSide, onRightSide;
-	ArrayList list = new ArrayList();
-	foreach (Symbol sym in nonterminals) {
-		ArrayList singles = new ArrayList();
-		GetSingles(sym.graph, singles); // get nonterminals s such that sym-->s
-		foreach (Symbol s in singles) list.Add(new CNode(sym, s));
-	}
-	do {
-		changed = false;
-		for (int i = 0; i < list.Count; i++) {
-			CNode n = (CNode)list[i];
-			onLeftSide = false; onRightSide = false;
-			foreach (CNode m in list) {
-				if (n.left == m.right) onRightSide = true;
-				if (n.right == m.left) onLeftSide = true;
-			}
-			if (!onLeftSide || !onRightSide) {
-				list.Remove(n); i--; changed = true;
+	func GetSingles(p: Node?, inout singles: [Symbol]) {
+		guard let np = p else { return }  // end of graph
+		if np.typ == Node.nt {
+			if np.up || DelGraph(np.next) { singles.append(np.sym!) }
+		} else if np.typ == Node.alt || np.typ == Node.iter || np.typ == Node.opt {
+			if np.up || DelGraph(np.next) {
+				GetSingles(np.sub, singles: &singles)
+				if np.typ == Node.alt { GetSingles(np.down, singles: &singles) }
 			}
 		}
-	} while(changed);
-	ok = true;
-	foreach (CNode n in list) {
-		ok = false;
-		errors.SemErr("  " + n.left.name + " --> " + n.right.name);
+		if !np.up && DelNode(np) { GetSingles(np.next, singles: &singles) }
 	}
-	return ok;
-}
-
-//--------------- check for LL(1) errors ----------------------
-
-func LL1Error(int cond, Symbol sym) {
-	String s = "  LL1 warning in " + curSy.name + ": ";
-	if (sym != nil) s += sym.name + " is ";
-	switch (cond) {
-	case 1: s += "start of several alternatives"; break;
-	case 2: s += "start & successor of deletable structure"; break;
-	case 3: s += "an ANY node that matches no symbol"; break;
-	case 4: s += "contents of [...] or {...} must not be deletable"; break;
+	
+	public func NoCircularProductions() -> Bool {
+		var list = [CNode]()
+		for sym in Tab.nonterminals {
+			var singles = [Symbol]()
+			GetSingles(sym.graph, singles: &singles) // get nonterminals s such that sym-->s
+			for s in singles { list.append(CNode(l: sym, r: s)) }
+		}
+		var onLeftSide: Bool
+		var onRightSide: Bool
+		var changed: Bool
+		repeat {
+			changed = false
+			for var i=0; i<list.count; i++ {
+				var n = list[i]
+				onLeftSide = false; onRightSide = false
+				for m in list {
+					if n.left === m.right { onRightSide = true }
+					if n.right === m.left { onLeftSide = true }
+				}
+				if !onLeftSide || !onRightSide {
+					list.Remove(n); i--; changed = true
+				}
+			}
+		} while changed
+		var ok = true
+		for n in list {
+			ok = false
+			errors.SemErr("  " + n.left.name + " --> " + n.right.name);
+		}
+		return ok
 	}
-	errors.Warning(s);
-}
 
-func CheckOverlap(BitArray s1, BitArray s2, int cond) {
-	foreach (Symbol sym in terminals) {
-		if (s1[sym.n] && s2[sym.n]) LL1Error(cond, sym);
+	//--------------- check for LL(1) errors ----------------------
+	
+	func LL1Error(int cond, Symbol sym) {
+		String s = "  LL1 warning in " + curSy.name + ": ";
+		if (sym != nil) s += sym.name + " is ";
+		switch (cond) {
+		case 1: s += "start of several alternatives"; break;
+		case 2: s += "start & successor of deletable structure"; break;
+		case 3: s += "an ANY node that matches no symbol"; break;
+		case 4: s += "contents of [...] or {...} must not be deletable"; break;
+		}
+		errors.Warning(s);
 	}
-}
+	
+	func CheckOverlap(BitArray s1, BitArray s2, int cond) {
+		foreach (Symbol sym in terminals) {
+			if (s1[sym.n] && s2[sym.n]) LL1Error(cond, sym);
+		}
+	}
 
 func CheckAlts(Node p) {
 	BitArray s1, s2;
