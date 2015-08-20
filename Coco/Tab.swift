@@ -64,7 +64,7 @@ public class Symbol {
 	public var firstReady: Bool  // nt: true if terminal start symbols have already been computed
 	public var first: BitArray   // nt: terminal start symbols
 	public var follow: BitArray  // nt: terminal followers
-	public var nts: BitArray     // nt: nonterminals whose followers have to be added to this sym
+	public var nts: BitArray     // nt: Tab.nonterminals whose followers have to be added to this sym
 	public var line: Int         // source text line number of item in this node
 	public var attrPos: Position? // nt: position of attributes in source text (or nil)
 	public var semPos: Position  // pr: pos of semantic action in source text (or nil)
@@ -711,7 +711,7 @@ public class Tab {
 		}
 		gramSy.follow[eofSy.n] = true;
         visited = BitArray(size:Tab.nodes.count)
-		for sym in Tab.nonterminals { // get direct successors of nonterminals
+		for sym in Tab.nonterminals { // get direct successors of Tab.nonterminals
 			curSy = sym;
 			CompFollow(sym.graph)
 		}
@@ -991,7 +991,7 @@ public class Tab {
 		var list = [CNode]()
 		for sym in Tab.nonterminals {
 			var singles = [Symbol]()
-			GetSingles(sym.graph, singles: &singles) // get nonterminals s such that sym-->s
+			GetSingles(sym.graph, singles: &singles) // get Tab.nonterminals s such that sym-->s
 			for s in singles { list.append(CNode(l: sym, r: s)) }
 		}
 		var onLeftSide: Bool
@@ -1021,262 +1021,266 @@ public class Tab {
 
 	//--------------- check for LL(1) errors ----------------------
 	
-	func LL1Error(int cond, Symbol sym) {
-		String s = "  LL1 warning in " + curSy.name + ": ";
-		if (sym != nil) s += sym.name + " is ";
+	func LL1Error(cond: Int, sym: Symbol?) {
+		var s = "  LL1 warning in " + curSy.name + ": ";
+		if sym != nil { s += sym!.name + " is " }
 		switch (cond) {
-		case 1: s += "start of several alternatives"; break;
-		case 2: s += "start & successor of deletable structure"; break;
-		case 3: s += "an ANY node that matches no symbol"; break;
-		case 4: s += "contents of [...] or {...} must not be deletable"; break;
+		case 1: s += "start of several alternatives"
+		case 2: s += "start & successor of deletable structure"
+		case 3: s += "an ANY node that matches no symbol"
+		case 4: s += "contents of [...] or {...} must not be deletable"
+		default: break
 		}
-		errors.Warning(s);
+		errors.Warning(s)
 	}
 	
-	func CheckOverlap(BitArray s1, BitArray s2, int cond) {
-		foreach (Symbol sym in terminals) {
-			if (s1[sym.n] && s2[sym.n]) LL1Error(cond, sym);
+	func CheckOverlap(s1: BitArray, s2: BitArray, cond: Int) {
+		for sym in Tab.terminals {
+			if s1[sym.n] && s2[sym.n] { LL1Error(cond, sym: sym) }
 		}
 	}
 
-func CheckAlts(Node p) {
-	BitArray s1, s2;
-	while (p != nil) {
-		if (p.typ == Node.alt) {
-			Node q = p;
-			s1 = new BitArray(terminals.Count);
-			while (q != nil) { // for all alternatives
-				s2 = Expected0(q.sub, curSy);
-				CheckOverlap(s1, s2, 1);
-				s1.Or(s2);
-				CheckAlts(q.sub);
-				q = q.down;
+	func CheckAlts(var p: Node?) {
+		var s1: BitArray
+		var s2: BitArray
+		while let np = p {
+			if np.typ == Node.alt {
+				var q: Node? = np
+				s1 = BitArray(size:Tab.terminals.count)
+				while let nq = q { // for all alternatives
+					s2 = Expected0(nq.sub!, curSy: curSy)
+					CheckOverlap(s1, s2: s2, cond: 1)
+					s1.or(s2)
+					CheckAlts(nq.sub)
+					q = nq.down
+				}
+			} else if (np.typ == Node.opt || np.typ == Node.iter) {
+				if (DelSubGraph(np.sub)) { LL1Error(4, sym: nil) } // e.g. [[...]]
+				else {
+					s1 = Expected0(np.sub!, curSy: curSy);
+					s2 = Expected(np.next!, curSy: curSy);
+					CheckOverlap(s1, s2: s2, cond: 2);
+				}
+				CheckAlts(np.sub)
+			} else if (np.typ == Node.any) {
+				if Sets.Elements(np.set) == 0 { LL1Error(3, sym: nil) }
+				// e.g. {ANY} ANY or [ANY] ANY or ( ANY | ANY )
 			}
-		} else if (p.typ == Node.opt || p.typ == Node.iter) {
-			if (DelSubGraph(p.sub)) LL1Error(4, nil); // e.g. [[...]]
-			else {
-				s1 = Expected0(p.sub, curSy);
-				s2 = Expected(p.next, curSy);
-				CheckOverlap(s1, s2, 2);
+			if np.up { break }
+			p = np.next
+		}
+	}
+
+	public func CheckLL1() {
+		for sym in Tab.nonterminals {
+			curSy = sym
+			CheckAlts(curSy.graph)
+		}
+	}
+
+	//------------- check if resolvers are legal  --------------------
+	
+	func ResErr(p:Node, msg: String) {
+		errors.Warning(p.line, p.pos.col, msg)
+	}
+
+	func CheckRes(var p: Node?, var rslvAllowed: Bool) {
+		while let np = p {
+			switch np.typ {
+			case Node.alt:
+				let expected = BitArray(size: Tab.terminals.count)
+				for var q: Node? = np; q != nil; q = q!.down {
+					expected.or(Expected0(q!.sub!, curSy: curSy))
+				}
+				let soFar = BitArray(size: Tab.terminals.count)
+				for var q: Node? = np; q != nil; q = q!.down {
+					if q!.sub!.typ == Node.rslv {
+						let fs = Expected(q!.sub!.next!, curSy: curSy)
+						if Sets.Intersect(fs, b: soFar) {
+							ResErr(q!.sub!, msg: "Warning: Resolver will never be evaluated. " +
+								"Place it at previous conflicting alternative.")
+						}
+						if (!Sets.Intersect(fs, b: expected)) {
+							ResErr(q!.sub!, msg: "Warning: Misplaced resolver: no LL(1) conflict.")
+						}
+					} else { soFar.or(Expected(q!.sub!, curSy: curSy)) }
+					CheckRes(q!.sub!, rslvAllowed: true)
+				}
+			case Node.iter, Node.opt:
+				if np.sub!.typ == Node.rslv {
+					let fs = First(np.sub!.next)
+					let fsNext = Expected(np.next!, curSy: curSy)
+					if !Sets.Intersect(fs, b: fsNext) {
+						ResErr(np.sub!, msg: "Warning: Misplaced resolver: no LL(1) conflict.")
+					}
+				}
+				CheckRes(np.sub, rslvAllowed: true)
+			case Node.rslv:
+				if (!rslvAllowed) {
+					ResErr(np, msg: "Warning: Misplaced resolver: no alternative.")
+				}
 			}
-			CheckAlts(p.sub);
-		} else if (p.typ == Node.any) {
-			if (Sets.Elements(p.set) == 0) LL1Error(3, nil);
-			// e.g. {ANY} ANY or [ANY] ANY or ( ANY | ANY )
+			if np.up { break }
+			p = np.next
+			rslvAllowed = false
 		}
-		if (p.up) break;
-		p = p.next;
 	}
-}
-
-public func CheckLL1() {
-	foreach (Symbol sym in nonterminals) {
-		curSy = sym;
-		CheckAlts(curSy.graph);
+	
+	public func CheckResolvers() {
+		for sym in Tab.nonterminals {
+			curSy = sym
+			CheckRes(curSy.graph, rslvAllowed: false)
+		}
 	}
-}
-
-//------------- check if resolvers are legal  --------------------
-
-func ResErr(Node p, String msg) {
-	errors.Warning(p.line, p.pos.col, msg);
-}
-
-func CheckRes(Node p, bool rslvAllowed) {
-	while (p != nil) {
-		switch (p.typ) {
-		case Node.alt:
-			BitArray expected = new BitArray(terminals.Count);
-			for (Node q = p; q != nil; q = q.down)
-			expected.Or(Expected0(q.sub, curSy));
-			BitArray soFar = new BitArray(terminals.Count);
-			for (Node q = p; q != nil; q = q.down) {
-				if (q.sub.typ == Node.rslv) {
-					BitArray fs = Expected(q.sub.next, curSy);
-					if (Sets.Intersect(fs, soFar))
-					ResErr(q.sub, "Warning: Resolver will never be evaluated. " +
-					"Place it at previous conflicting alternative.");
-					if (!Sets.Intersect(fs, expected))
-					ResErr(q.sub, "Warning: Misplaced resolver: no LL(1) conflict.");
-				} else soFar.Or(Expected(q.sub, curSy));
-				CheckRes(q.sub, true);
+	
+	//------------- check if every nts has a production --------------------
+	
+	public func NtsComplete() -> Bool {
+		var complete = true
+		for sym in Tab.nonterminals {
+			if sym.graph == nil {
+				complete = false
+				errors.SemErr("  No production for " + sym.name)
 			}
-			break;
-		case Node.iter: case Node.opt:
-			if (p.sub.typ == Node.rslv) {
-				BitArray fs = First(p.sub.next);
-				BitArray fsNext = Expected(p.next, curSy);
-				if (!Sets.Intersect(fs, fsNext))
-				ResErr(p.sub, "Warning: Misplaced resolver: no LL(1) conflict.");
+		}
+		return complete
+	}
+
+	//-------------- check if every nts can be reached  -----------------
+	
+	func MarkReachedNts(var p: Node?) {
+		while let np = p {
+			if np.typ == Node.nt && !visited[np.sym!.n] { // new nt reached
+				visited[np.sym!.n] = true
+				MarkReachedNts(np.sym!.graph)
+			} else if np.typ == Node.alt || np.typ == Node.iter || np.typ == Node.opt {
+				MarkReachedNts(np.sub)
+				if np.typ == Node.alt { MarkReachedNts(np.down) }
 			}
-			CheckRes(p.sub, true);
-			break;
-		case Node.rslv:
-			if (!rslvAllowed)
-			ResErr(p, "Warning: Misplaced resolver: no alternative.");
-			break;
-		}
-		if (p.up) break;
-		p = p.next;
-		rslvAllowed = false;
-	}
-}
-
-public func CheckResolvers() {
-	foreach (Symbol sym in nonterminals) {
-		curSy = sym;
-		CheckRes(curSy.graph, false);
-	}
-}
-
-//------------- check if every nts has a production --------------------
-
-public bool NtsComplete() {
-	bool complete = true;
-	foreach (Symbol sym in nonterminals) {
-		if (sym.graph == nil) {
-			complete = false;
-			errors.SemErr("  No production for " + sym.name);
+			if np.up { break }
+			p = np.next
 		}
 	}
-	return complete;
-}
 
-//-------------- check if every nts can be reached  -----------------
-
-func MarkReachedNts(Node p) {
-	while (p != nil) {
-		if (p.typ == Node.nt && !visited[p.sym.n]) { // new nt reached
-			visited[p.sym.n] = true;
-			MarkReachedNts(p.sym.graph);
-		} else if (p.typ == Node.alt || p.typ == Node.iter || p.typ == Node.opt) {
-			MarkReachedNts(p.sub);
-			if (p.typ == Node.alt) MarkReachedNts(p.down);
+	public func AllNtReached() -> Bool {
+		var ok = true
+		var visited = BitArray(size: Tab.nonterminals.count)
+		visited[gramSy.n] = true
+		MarkReachedNts(gramSy.graph)
+		for sym in Tab.nonterminals {
+			if !visited[sym.n] {
+				ok = false
+				errors.Warning("  " + sym.name + " cannot be reached")
+			}
 		}
-		if (p.up) break;
-		p = p.next;
+		return ok;
 	}
-}
 
-public bool AllNtReached() {
-	bool ok = true;
-	visited = new BitArray(nonterminals.Count);
-	visited[gramSy.n] = true;
-	MarkReachedNts(gramSy.graph);
-	foreach (Symbol sym in nonterminals) {
-		if (!visited[sym.n]) {
+	//--------- check if every nts can be derived to terminals  ------------
+	
+	func IsTerm(p: Node?, mark:BitArray) -> Bool { // true if graph can be derived to terminals
+		while (p != nil) {
+			if (p.typ == Node.nt && !mark[p.sym.n]) return false;
+			if (p.typ == Node.alt && !IsTerm(p.sub, mark)
+			&& (p.down == nil || !IsTerm(p.down, mark))) return false;
+			if (p.up) break;
+			p = p.next;
+		}
+		return true;
+	}
+	
+	public func AllNtToTerm() -> Bool {
+		bool changed, ok = true;
+		BitArray mark = new BitArray(nonterminals.Count);
+		// a nonterminal is marked if it can be derived to terminal symbols
+		repeat {
+			changed = false;
+			foreach (Symbol sym in Tab.nonterminals)
+			if (!mark[sym.n] && IsTerm(sym.graph, mark)) {
+				mark[sym.n] = true; changed = true;
+			}
+		} while (changed);
+		foreach (Symbol sym in Tab.nonterminals)
+		if (!mark[sym.n]) {
 			ok = false;
-			errors.Warning("  " + sym.name + " cannot be reached");
+			errors.SemErr("  " + sym.name + " cannot be derived to terminals");
 		}
+		return ok;
 	}
-	return ok;
-}
 
-//--------- check if every nts can be derived to terminals  ------------
-
-bool IsTerm(Node p, BitArray mark) { // true if graph can be derived to terminals
-	while (p != nil) {
-		if (p.typ == Node.nt && !mark[p.sym.n]) return false;
-		if (p.typ == Node.alt && !IsTerm(p.sub, mark)
-		&& (p.down == nil || !IsTerm(p.down, mark))) return false;
-		if (p.up) break;
-		p = p.next;
-	}
-	return true;
-}
-
-public bool AllNtToTerm() {
-	bool changed, ok = true;
-	BitArray mark = new BitArray(nonterminals.Count);
-	// a nonterminal is marked if it can be derived to terminal symbols
-	do {
-		changed = false;
-		foreach (Symbol sym in nonterminals)
-		if (!mark[sym.n] && IsTerm(sym.graph, mark)) {
-			mark[sym.n] = true; changed = true;
+	//---------------------------------------------------------------------
+	//  Cross reference list
+	//---------------------------------------------------------------------
+	
+	public func XRef() {
+		SortedList xref = new SortedList(new SymbolComp());
+		// collect lines where symbols have been defined
+		foreach (Symbol sym in Tab.nonterminals) {
+			ArrayList list = (ArrayList)xref[sym];
+			if (list == nil) {list = new ArrayList(); xref[sym] = list;}
+			list.Add(- sym.line);
 		}
-	} while (changed);
-	foreach (Symbol sym in nonterminals)
-	if (!mark[sym.n]) {
-		ok = false;
-		errors.SemErr("  " + sym.name + " cannot be derived to terminals");
-	}
-	return ok;
-}
-
-//---------------------------------------------------------------------
-//  Cross reference list
-//---------------------------------------------------------------------
-
-public func XRef() {
-	SortedList xref = new SortedList(new SymbolComp());
-	// collect lines where symbols have been defined
-	foreach (Symbol sym in nonterminals) {
-		ArrayList list = (ArrayList)xref[sym];
-		if (list == nil) {list = new ArrayList(); xref[sym] = list;}
-		list.Add(- sym.line);
-	}
-	// collect lines where symbols have been referenced
-	foreach (Node n in nodes) {
-		if (n.typ == Node.t || n.typ == Node.wt || n.typ == Node.nt) {
-			ArrayList list = (ArrayList)xref[n.sym];
-			if (list == nil) {list = new ArrayList(); xref[n.sym] = list;}
-			list.Add(n.line);
-		}
-	}
-	// print cross reference list
-	trace.WriteLine();
-	trace.WriteLine("Cross reference list:");
-	trace.WriteLine("--------------------"); trace.WriteLine();
-	foreach (Symbol sym in xref.Keys) {
-		trace.Write("  {0,-12}", Name(sym.name));
-		ArrayList list = (ArrayList)xref[sym];
-		int col = 14;
-		foreach (int line in list) {
-			if (col + 5 > 80) {
-				trace.WriteLine();
-				for (col = 1; col <= 14; col++) trace.Write(" ");
+		// collect lines where symbols have been referenced
+		foreach (Node n in nodes) {
+			if (n.typ == Node.t || n.typ == Node.wt || n.typ == Node.nt) {
+				ArrayList list = (ArrayList)xref[n.sym];
+				if (list == nil) {list = new ArrayList(); xref[n.sym] = list;}
+				list.Add(n.line);
 			}
-			trace.Write("{0,5}", line); col += 5;
 		}
+		// print cross reference list
 		trace.WriteLine();
+		trace.WriteLine("Cross reference list:");
+		trace.WriteLine("--------------------"); trace.WriteLine();
+		foreach (Symbol sym in xref.Keys) {
+			trace.Write("  {0,-12}", Name(sym.name));
+			ArrayList list = (ArrayList)xref[sym];
+			int col = 14;
+			foreach (int line in list) {
+				if (col + 5 > 80) {
+					trace.WriteLine();
+					for (col = 1; col <= 14; col++) trace.Write(" ");
+				}
+				trace.Write("{0,5}", line); col += 5;
+			}
+			trace.WriteLine();
+		}
+		trace.WriteLine(); trace.WriteLine();
 	}
-	trace.WriteLine(); trace.WriteLine();
-}
-
-public func SetDDT(String s) {
-	s = s.ToUpper();
-	foreach (char ch in s) {
-		if ("0" <= ch && ch <= "9") ddt[ch - "0"] = true;
-		else switch (ch) {
-		case "A" : ddt[0] = true; break; // trace automaton
-		case "F" : ddt[1] = true; break; // list first/follow sets
-		case "G" : ddt[2] = true; break; // print syntax graph
-		case "I" : ddt[3] = true; break; // trace computation of first sets
-		case "J" : ddt[4] = true; break; // print ANY and SYNC sets
-		case "P" : ddt[8] = true; break; // print statistics
-		case "S" : ddt[6] = true; break; // list symbol table
-		case "X" : ddt[7] = true; break; // list cross reference table
-		default : break;
+	
+	public func SetDDT(String s) {
+		s = s.ToUpper();
+		foreach (char ch in s) {
+			if ("0" <= ch && ch <= "9") ddt[ch - "0"] = true;
+			else switch (ch) {
+			case "A" : ddt[0] = true; break; // trace automaton
+			case "F" : ddt[1] = true; break; // list first/follow sets
+			case "G" : ddt[2] = true; break; // print syntax graph
+			case "I" : ddt[3] = true; break; // trace computation of first sets
+			case "J" : ddt[4] = true; break; // print ANY and SYNC sets
+			case "P" : ddt[8] = true; break; // print statistics
+			case "S" : ddt[6] = true; break; // list symbol table
+			case "X" : ddt[7] = true; break; // list cross reference table
+			default : break;
+			}
 		}
 	}
-}
-
-public func SetOption(String s) {
-	String[] option = s.Split(new char[] {"="}, 2);
-	String name = option[0], value = option[1];
-	if ("$namespace".Equals(name)) {
-		if (nsName == nil) nsName = value;
-	} else if ("$checkEOF".Equals(name)) {
-		checkEOF = "true".Equals(value);
+	
+	public func SetOption(String s) {
+		String[] option = s.Split(new char[] {"="}, 2);
+		String name = option[0], value = option[1];
+		if ("$namespace".Equals(name)) {
+			if (nsName == nil) nsName = value;
+		} else if ("$checkEOF".Equals(name)) {
+			checkEOF = "true".Equals(value);
+		}
 	}
-}
-
-class SymbolComp : IComparer {
-	public int Compare(Object x, Object y)  {
-	return ((Symbol) x).name.CompareTo(((Symbol) y).name);
+	
+	class SymbolComp : IComparer {
+		public int Compare(Object x, Object y)  {
+		return ((Symbol) x).name.CompareTo(((Symbol) y).name);
+		}
 	}
-}
 
 } // end Tab
 
