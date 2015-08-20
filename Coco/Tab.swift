@@ -40,7 +40,7 @@ public struct Position {  // position of source code stretch (e.g. semantic acti
 	}
 }
 
-public typealias BitArray = [Bool]
+//public typealias BitArray = [Bool]
 public typealias CharSet = Set<Character>
 
 //=====================================================================
@@ -158,11 +158,7 @@ public class Sets {
 	}
 	
 	public static func Equals(a: BitArray, b: BitArray) -> Bool {
-		let max = a.count
-		for i in 0..<max {
-			if a[i] != b[i] { return false }
-		}
-		return true
+		return a.equals(b)
 	}
 	
 	public static func Intersect(a: BitArray, b: BitArray) -> Bool { // a * b != {}
@@ -174,12 +170,62 @@ public class Sets {
 	}
 	
 	public static func Subtract(inout a: BitArray, b: BitArray) { // a = a - b
-		let max = a.count
-		for i in 0..<max {
-			a[i] = a[i] && !b[i]
-		}
+        a = a.and(b.not())
 	}
 	
+}
+
+public struct BitArray : CollectionType {
+    
+    var array: [Bool]
+    
+    // CollectionType protocol conformance
+    public typealias Type = Int
+    public var startIndex: Int { return 0 }
+    public var endIndex: Int { return array.count }
+    
+    public init(size: Int) {
+        array = [Bool](count: size, repeatedValue: false)
+    }
+    
+    public var count: Int { return array.count }
+    
+    public subscript (index: Int) -> Bool {
+        get { return array[index] }
+        set { array[index] = newValue }
+    }
+    
+    public func and (b: BitArray) -> BitArray {
+        let max = array.count
+        var result = BitArray(size: max)
+        for i in 0..<max {
+            result[i] = array[i] && b[i]
+        }
+        return result
+    }
+    
+    public func or (b: BitArray) -> BitArray {
+        let max = array.count
+        var result = BitArray(size: max)
+        for i in 0..<max {
+            result[i] = array[i] || b[i]
+        }
+        return result
+    }
+    
+    public func not () -> BitArray {
+        let max = array.count
+        var result = BitArray(size: max)
+        for i in 0..<max {
+            result[i] = !array[i]
+        }
+        return result
+    }
+    
+    public func equals (b: BitArray) -> Bool {
+        return array == b.array
+    }
+    
 }
 
 //=====================================================================
@@ -231,12 +277,12 @@ public class Tab {
 	public var emitLines:Bool             // emit #line pragmas for semantic actions
 	//   in the generated parser
 	
-	var visited:BitArray                  // mark list for graph traversals
-	var curSy:Symbol                      // current symbol in computation of sets
+	var visited: BitArray                  // mark list for graph traversals
+	var curSy: Symbol                      // current symbol in computation of sets
 	
-	var parser:Parser                     // other Coco objects
-	var trace:NSOutputStream
-	var errors:Errors
+	var parser: Parser                     // other Coco objects
+	var trace: NSOutputStream
+	var errors: Errors
 	
 	public init(parser: Parser) {
 		self.parser = parser
@@ -453,15 +499,15 @@ public class Tab {
 	
 	//------------ graph deletability check -----------------
 	
-	public static func DelGraph(p: Node?) -> Bool {
+	public func DelGraph(p: Node?) -> Bool {
 		return p == nil || DelNode(p) && DelGraph(p!.next)
 	}
 	
-	public static func DelSubGraph(p: Node?) -> Bool {
+	public func DelSubGraph(p: Node?) -> Bool {
 		return p == nil || DelNode(p) && (p!.up || DelSubGraph(p!.next));
 	}
 	
-	public static func DelNode(p: Node?) -> Bool {
+	public func DelNode(p: Node?) -> Bool {
 		guard let p = p else { return false }
 		if (p.typ == Node.nt) { return p.sym!.deletable }
 		else if (p.typ == Node.alt) { return DelSubGraph(p.sub) || p.down != nil && DelSubGraph(p.down) }
@@ -498,22 +544,22 @@ public class Tab {
 				let c = Tab.classes[p.val]
 				trace.Write("\(Name(c.name)) ")
 			} else { trace.Write("             ") }
-			trace.Write("{0,5} ", Ptr(p.next, p.up));
+			trace.Write("\(Ptr(p.next, up: p.up)) ")
 			switch p.typ {
 			case Node.t, Node.nt, Node.wt:
-				trace.Write("             {0,5}", Pos(p.pos)); break;
+				trace.Write("             \(Pos(p.pos))")
 			case Node.chr:
-				trace.Write("{0,5} {1,5}       ", p.val, p.code); break;
+				trace.Write("\(p.val) \(p.code)       ")
 			case Node.clas:
-				trace.Write("      {0,5}       ", p.code); break;
+				trace.Write("      \(p.code)       ")
 			case Node.alt, Node.iter, Node.opt:
-				trace.Write("{0,5} {1,5}       ", Ptr(p.down, false), Ptr(p.sub, false)); break;
+				trace.Write("\(Ptr(p.down, up: false)) \(Ptr(p.sub, up: false))       ")
 			case Node.sem:
-				trace.Write("             {0,5}", Pos(p.pos)); break;
+				trace.Write("             \(Pos(p.pos))")
 			case Node.eps, Node.any, Node.sync:
-				trace.Write("                  "); break;
+				trace.Write("                  ")
 			}
-			trace.WriteLine("{0,5}", p.line)
+			trace.WriteLine("\(p.line)")
 		}
 		trace.WriteLine()
 	}
@@ -568,7 +614,7 @@ public class Tab {
 	
 	public func WriteCharClasses () {
 		for c in Tab.classes {
-			trace.Write("{0,-10}: ", c.name);
+			trace.Write("\(c.name): ")
 			WriteCharSet(c.set);
 			trace.WriteLine();
 		}
@@ -582,22 +628,22 @@ public class Tab {
 	
 	/* Computes the first set for the graph rooted at p */
 	func First0(var p: Node?, var mark: BitArray) -> BitArray {
-		var fs = BitArray(count: Tab.terminals.count, repeatedValue: false)
+		var fs = BitArray(size: Tab.terminals.count)
 		while p != nil && !mark[p!.n] {
 			mark[p!.n] = true
 			switch p!.typ {
 			case Node.nt:
-				if p!.sym.firstReady { fs.Or(p!.sym.first) }
-				else { fs.Or(First0(p!.sym.graph, mark)) }
+				if p!.sym!.firstReady { fs.or(p!.sym!.first) }
+				else { fs.or(First0(p!.sym!.graph, mark: mark)) }
 			case Node.t, Node.wt:
-				fs[p.sym.n] = true
+				fs[p!.sym!.n] = true
 			case Node.any:
-				fs.Or(p.set)
+				fs.or(p!.set)
 			case Node.alt:
-				fs.Or(First0(p.sub, mark))
-				fs.Or(First0(p.down, mark))
+				fs.or(First0(p!.sub, mark: mark))
+				fs.or(First0(p!.down, mark: mark))
 			case Node.iter, Node.opt:
-				fs.Or(First0(p.sub, mark))
+				fs.or(First0(p!.sub, mark: mark))
 			}
 			if !DelNode(p) { break }
 			p = p!.next
@@ -605,144 +651,146 @@ public class Tab {
 		return fs
 	}
 	
-	public BitArray First(Node p) {
-	BitArray fs = First0(p, new BitArray(nodes.Count));
-	if (ddt[3]) {
-	trace.WriteLine();
-	if (p != nil) trace.WriteLine("First: node = {0}", p.n);
-	else trace.WriteLine("First: node = nil");
-	PrintSet(fs, 0);
-	}
-	return fs;
-	}
+    public func First(p: Node?) -> BitArray {
+        let fs = First0(p, mark: BitArray(size: Tab.nodes.count))
+        if (ddt[3]) {
+            trace.WriteLine()
+            if p != nil { trace.WriteLine("First: node = \(p!.n)") }
+            else { trace.WriteLine("First: node = nil") }
+            PrintSet(fs, indent: 0)
+        }
+        return fs
+    }
 	
 	func CompFirstSets() {
-		foreach (Symbol sym in nonterminals) {
-			sym.first = new BitArray(terminals.Count);
-			sym.firstReady = false;
+		for sym in Tab.nonterminals {
+            sym.first = BitArray(size:Tab.terminals.count)
+			sym.firstReady = false
 		}
-		foreach (Symbol sym in nonterminals) {
-			sym.first = First(sym.graph);
-			sym.firstReady = true;
-		}
-	}
-	
-	func CompFollow(Node p) {
-		while (p != nil && !visited[p.n]) {
-			visited[p.n] = true;
-			if (p.typ == Node.nt) {
-				BitArray s = First(p.next);
-				p.sym.follow.Or(s);
-				if (DelGraph(p.next))
-				p.sym.nts[curSy.n] = true;
-			} else if (p.typ == Node.opt || p.typ == Node.iter) {
-				CompFollow(p.sub);
-			} else if (p.typ == Node.alt) {
-				CompFollow(p.sub); CompFollow(p.down);
-			}
-			p = p.next;
+		for sym in Tab.nonterminals {
+			sym.first = First(sym.graph)
+			sym.firstReady = true
 		}
 	}
 	
-	func Complete(Symbol sym) {
-		if (!visited[sym.n]) {
-			visited[sym.n] = true;
-			foreach (Symbol s in nonterminals) {
+    func CompFollow(var p: Node?) {
+        while let np = p where !visited[np.n] {
+            visited[np.n] = true
+            if np.typ == Node.nt {
+                let s = First(np.next)
+                np.sym!.follow.or(s)
+                if DelGraph(np.next) {
+                    np.sym!.nts[curSy.n] = true
+                }
+            } else if np.typ == Node.opt || np.typ == Node.iter {
+                CompFollow(np.sub)
+            } else if np.typ == Node.alt {
+                CompFollow(np.sub); CompFollow(np.down);
+            }
+            p = np.next
+        }
+    }
+	
+    func Complete(sym: Symbol) {
+		if !visited[sym.n] {
+			visited[sym.n] = true
+			for s in Tab.nonterminals {
 				if (sym.nts[s.n]) {
 					Complete(s);
-					sym.follow.Or(s.follow);
-					if (sym == curSy) sym.nts[s.n] = false;
+					sym.follow.or(s.follow)
+                    if sym === curSy { sym.nts[s.n] = false }
 				}
 			}
 		}
 	}
 	
 	func CompFollowSets() {
-		foreach (Symbol sym in nonterminals) {
-			sym.follow = new BitArray(terminals.Count);
-			sym.nts = new BitArray(nonterminals.Count);
+		for sym in Tab.nonterminals {
+			sym.follow = BitArray(size:Tab.terminals.count)
+			sym.nts = BitArray(size:Tab.nonterminals.count)
 		}
 		gramSy.follow[eofSy.n] = true;
-		visited = new BitArray(nodes.Count);
-		foreach (Symbol sym in nonterminals) { // get direct successors of nonterminals
+        visited = BitArray(size:Tab.nodes.count)
+		for sym in Tab.nonterminals { // get direct successors of nonterminals
 			curSy = sym;
-			CompFollow(sym.graph);
+			CompFollow(sym.graph)
 		}
-		foreach (Symbol sym in nonterminals) { // add indirect successors to followers
-			visited = new BitArray(nonterminals.Count);
-			curSy = sym;
-			Complete(sym);
+		for sym in Tab.nonterminals { // add indirect successors to followers
+			visited = BitArray(size:Tab.nonterminals.count)
+			curSy = sym
+			Complete(sym)
 		}
 	}
 	
-	Node LeadingAny(Node p) {
-	if (p == nil) return nil;
-	Node a = nil;
-	if (p.typ == Node.any) a = p;
-	else if (p.typ == Node.alt) {
-	a = LeadingAny(p.sub);
-	if (a == nil) a = LeadingAny(p.down);
-	}
-	else if (p.typ == Node.opt || p.typ == Node.iter) a = LeadingAny(p.sub);
-	if (a == nil && DelNode(p) && !p.up) a = LeadingAny(p.next);
-	return a;
-	}
-	
-	func FindAS(Node p) { // find ANY sets
-		Node a;
-		while (p != nil) {
-			if (p.typ == Node.opt || p.typ == Node.iter) {
-				FindAS(p.sub);
-				a = LeadingAny(p.sub);
-				if (a != nil) Sets.Subtract(a.set, First(p.next));
-			} else if (p.typ == Node.alt) {
-				BitArray s1 = new BitArray(terminals.Count);
-				Node q = p;
-				while (q != nil) {
-					FindAS(q.sub);
-					a = LeadingAny(q.sub);
-					if (a != nil)
-					Sets.Subtract(a.set, First(q.down).Or(s1));
-					else
-					s1.Or(First(q.sub));
-					q = q.down;
-				}
-			}
-			
-			// Remove alternative terminals before ANY, in the following
-			// examples a and b must be removed from the ANY set:
-			// [a] ANY, or {a|b} ANY, or [a][b] ANY, or (a|) ANY, or
-			// A = [a]. A ANY
-			if (DelNode(p)) {
-				a = LeadingAny(p.next);
-				if (a != nil) {
-					Node q = (p.typ == Node.nt) ? p.sym.graph : p.sub;
-					Sets.Subtract(a.set, First(q));
-				}
-			}
-			
-			if (p.up) break;
-			p = p.next;
-		}
-	}
+    func LeadingAny(p: Node?) -> Node? {
+        guard let p = p else { return nil }
+        var a: Node? = nil
+        if p.typ == Node.any { a = p }
+        else if p.typ == Node.alt {
+            a = LeadingAny(p.sub);
+            if a == nil { a = LeadingAny(p.down) }
+        }
+        else if (p.typ == Node.opt || p.typ == Node.iter) { a = LeadingAny(p.sub) }
+        if (a == nil && DelNode(p) && !p.up) { a = LeadingAny(p.next) }
+        return a
+    }
+    
+    func FindAS(var p: Node?) { // find ANY sets
+        var a: Node?
+        while let np = p {
+            if np.typ == Node.opt || np.typ == Node.iter {
+                FindAS(np.sub);
+                a = LeadingAny(np.sub);
+                if a != nil { Sets.Subtract(&a!.set, b:First(np.next)) }
+            } else if np.typ == Node.alt {
+                let s1 = BitArray(size: Tab.terminals.count)
+                var q: Node? = np
+                while let qp = q {
+                    FindAS(qp.sub);
+                    a = LeadingAny(qp.sub)
+                    if a != nil {
+                        Sets.Subtract(&a!.set, b:First(qp.down).or(s1))
+                    } else {
+                        s1.or(First(qp.sub))
+                    }
+                    q = qp.down
+                }
+            }
+            
+            // Remove alternative terminals before ANY, in the following
+            // examples a and b must be removed from the ANY set:
+            // [a] ANY, or {a|b} ANY, or [a][b] ANY, or (a|) ANY, or
+            // A = [a]. A ANY
+            if (DelNode(p)) {
+                a = LeadingAny(np.next);
+                if (a != nil) {
+                    var q = (np.typ == Node.nt) ? np.sym!.graph : np.sub
+                    Sets.Subtract(&a!.set, b:First(q))
+                }
+            }
+            
+            if np.up { break }
+            p = np.next
+        }
+    }
 	
 	func CompAnySets() {
-		foreach (Symbol sym in nonterminals) FindAS(sym.graph);
+        for sym in Tab.nonterminals { FindAS(sym.graph) }
 	}
 	
-	public BitArray Expected(Node p, Symbol curSy) {
-	BitArray s = First(p);
-	if (DelGraph(p)) s.Or(curSy.follow);
-	return s;
-	}
+    public func Expected(p: Node, curSy: Symbol) -> BitArray {
+        let s = First(p)
+        if DelGraph(p) { s.or(curSy.follow) }
+        return s
+    }
+    
+    // does not look behind resolvers; only called during LL(1) test and in CheckRes
+    public func Expected0 (p: Node, curSy: Symbol) -> BitArray {
+        if p.typ == Node.rslv { return BitArray(size:Tab.terminals.count) }
+        else { return Expected(p, curSy: curSy) }
+    }
 	
-	// does not look behind resolvers; only called during LL(1) test and in CheckRes
-	public BitArray Expected0(Node p, Symbol curSy) {
-	if (p.typ == Node.rslv) return new BitArray(terminals.Count);
-	else return Expected(p, curSy);
-	}
-	
-	func CompSync(Node p) {
+    func CompSync(p: Node?) {
 		while (p != nil && !visited[p.n]) {
 			visited[p.n] = true;
 			if (p.typ == Node.sync) {
