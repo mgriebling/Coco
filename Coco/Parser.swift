@@ -8,6 +8,13 @@
 
 import Foundation
 
-class Parser {
+public class Parser {
 	init(_ scanner: Scanner) {}
+    
+    func SemErr(error: String) {}
+}
+
+public class Errors {
+    func Warning(s: String) {}
+    func SemErr(s: String) {}
 }

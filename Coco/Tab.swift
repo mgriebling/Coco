@@ -43,6 +43,20 @@ public struct Position {  // position of source code stretch (e.g. semantic acti
 //public typealias BitArray = [Bool]
 public typealias CharSet = Set<Character>
 
+//extension Array {
+//    
+//    mutating func removeObject<U: Equatable>(object:U) -> Bool {
+//        for (idx, objectToCompare) in self.enumerate() {
+//            if let to = objectToCompare as? U where object == to {
+//                self.removeAtIndex(idx)
+//                return true
+//            }
+//        }
+//        return false
+//    }
+//    
+//}
+
 //=====================================================================
 // Symbol
 //=====================================================================
@@ -270,9 +284,9 @@ public class Tab {
 	public var srcName:String             // name of the atg file (including path)
 	public var srcDir:String              // directory path of the atg file
 	public var nsName:String              // namespace for generated files
-	public var frameDir:  String          // directory containing the frame files
+	public var frameDir:String            // directory containing the frame files
 	public var outDir:String              // directory for generated files
-	public var checkEOF = true      // should coco generate a check for EOF at
+	public var checkEOF = true            // should coco generate a check for EOF at
 	//   the end of Parser.Parse():
 	public var emitLines:Bool             // emit #line pragmas for semantic actions
 	//   in the generated parser
@@ -354,7 +368,7 @@ public class Tab {
 		trace.WriteLine("Literal Tokens:")
 		trace.WriteLine("--------------")
 		for e in literals {
-			trace.WriteLine("_" + Symbol(e.Value).name + " = " + e.Key + ".")
+			trace.WriteLine("_" + e.1.name + " = " + e.0 + ".")
 		}
 		trace.WriteLine()
 	}
@@ -600,17 +614,26 @@ public class Tab {
 	
 	//----------- character class printing
 	
-	func Ch(ch: Int) -> String {
-		if (Character(ch) < " " || ch >= 127 || Character(ch) == "'" || Character(ch) == "\\") { return String(ch) }
-		else { return "\(Character(ch))" }
+	func Ch(ch: Character) -> String {
+		if (ch < " " || ch.unicodeValue() >= 127 || ch == "'" || ch == "\\") { return String(ch) }
+		else { return "\(ch)" }
 	}
 	
-	func WriteCharSet(s: CharSet) {
-		for (var r = s.head; r != nil; r = r!.next) {
-			if (r!.from < r!.to) { trace.Write(Ch(r!.from) + ".." + Ch(r!.to) + " ") }
-			else { trace.Write(Ch(r!.from) + " ") }
-		}
-	}
+    func WriteCharSet(s: CharSet) {
+        let sOrdered = s.sort()
+        if var from = sOrdered.first {
+            var to = from
+            for r in sOrdered {
+                if r == to+1 { to = r }
+                else {
+                    // write the last run
+                    if from < to { trace.Write(Ch(from) + ".." + Ch(to) + " ") }
+                    else { trace.Write(Ch(from) + " ") }
+                    from = r; to = r
+                }
+            }
+        }
+    }
 	
 	public func WriteCharClasses () {
 		for c in Tab.classes {
@@ -965,13 +988,14 @@ public class Tab {
 
 	//--------------- check for circular productions ----------------------
 	
-	class CNode {	// node of list for finding circular productions
+    class CNode {	// node of list for finding circular productions
 		var left: Symbol?
 		var right: Symbol?
 		
 		init (l: Symbol?, r: Symbol?) {
 			left = l; right = r
 		}
+
 	}
 
 	func GetSingles(p: Node?, inout singles: [Symbol]) {
@@ -1000,21 +1024,22 @@ public class Tab {
 		repeat {
 			changed = false
 			for var i=0; i<list.count; i++ {
-				var n = list[i]
+				let n = list[i]
 				onLeftSide = false; onRightSide = false
 				for m in list {
 					if n.left === m.right { onRightSide = true }
 					if n.right === m.left { onLeftSide = true }
 				}
 				if !onLeftSide || !onRightSide {
-					list.Remove(n); i--; changed = true
+                    list = list.filter() { $0 !== n }  // remove n from list
+					i--; changed = true
 				}
 			}
 		} while changed
 		var ok = true
 		for n in list {
 			ok = false
-			errors.SemErr("  " + n.left.name + " --> " + n.right.name);
+			errors.SemErr("  " + n.left!.name + " --> " + n.right!.name)
 		}
 		return ok
 	}
@@ -1178,109 +1203,119 @@ public class Tab {
 
 	//--------- check if every nts can be derived to terminals  ------------
 	
-	func IsTerm(p: Node?, mark:BitArray) -> Bool { // true if graph can be derived to terminals
-		while (p != nil) {
-			if (p.typ == Node.nt && !mark[p.sym.n]) return false;
-			if (p.typ == Node.alt && !IsTerm(p.sub, mark)
-			&& (p.down == nil || !IsTerm(p.down, mark))) return false;
-			if (p.up) break;
-			p = p.next;
+	func IsTerm(var p: Node?, mark:BitArray) -> Bool { // true if graph can be derived to terminals
+		while let np = p {
+            if (np.typ == Node.nt && !mark[np.sym!.n]) { return false }
+			if (np.typ == Node.alt && !IsTerm(np.sub, mark: mark)
+                && (np.down == nil || !IsTerm(np.down, mark: mark))) { return false }
+            if np.up { break }
+			p = np.next
 		}
 		return true;
 	}
 	
-	public func AllNtToTerm() -> Bool {
-		bool changed, ok = true;
-		BitArray mark = new BitArray(nonterminals.Count);
-		// a nonterminal is marked if it can be derived to terminal symbols
-		repeat {
-			changed = false;
-			foreach (Symbol sym in Tab.nonterminals)
-			if (!mark[sym.n] && IsTerm(sym.graph, mark)) {
-				mark[sym.n] = true; changed = true;
-			}
-		} while (changed);
-		foreach (Symbol sym in Tab.nonterminals)
-		if (!mark[sym.n]) {
-			ok = false;
-			errors.SemErr("  " + sym.name + " cannot be derived to terminals");
-		}
-		return ok;
-	}
+    public func AllNtToTerm() -> Bool {
+        var changed = false
+        var ok = true
+        var mark = BitArray(size:Tab.nonterminals.count)
+        // a nonterminal is marked if it can be derived to terminal symbols
+        repeat {
+            changed = false;
+            for sym in Tab.nonterminals {
+                if (!mark[sym.n] && IsTerm(sym.graph, mark:mark)) {
+                    mark[sym.n] = true; changed = true
+                }
+            }
+        } while changed
+        for sym in Tab.nonterminals {
+            if (!mark[sym.n]) {
+                ok = false
+                errors.SemErr("  " + sym.name + " cannot be derived to terminals")
+            }
+        }
+        return ok
+    }
 
 	//---------------------------------------------------------------------
 	//  Cross reference list
 	//---------------------------------------------------------------------
 	
 	public func XRef() {
-		SortedList xref = new SortedList(new SymbolComp());
+        var xref = [String:NSMutableArray]()  // NSMutableArray allows an updatable object link to be used
+        var list : NSMutableArray?
+        
 		// collect lines where symbols have been defined
-		foreach (Symbol sym in Tab.nonterminals) {
-			ArrayList list = (ArrayList)xref[sym];
-			if (list == nil) {list = new ArrayList(); xref[sym] = list;}
-			list.Add(- sym.line);
+		for sym in Tab.nonterminals {
+            list = xref[sym.name]
+            if list == nil { list = NSMutableArray(); xref[sym.name] = list }
+			list?.addObject(-sym.line)
 		}
+        
 		// collect lines where symbols have been referenced
-		foreach (Node n in nodes) {
-			if (n.typ == Node.t || n.typ == Node.wt || n.typ == Node.nt) {
-				ArrayList list = (ArrayList)xref[n.sym];
-				if (list == nil) {list = new ArrayList(); xref[n.sym] = list;}
-				list.Add(n.line);
+		for n in Tab.nodes {
+			if n.typ == Node.t || n.typ == Node.wt || n.typ == Node.nt {
+                let name = n.sym!.name
+                list = xref[name]
+                if list == nil { list = NSMutableArray(); xref[name] = list }
+                list?.addObject(n.line)
 			}
 		}
+        
 		// print cross reference list
-		trace.WriteLine();
-		trace.WriteLine("Cross reference list:");
-		trace.WriteLine("--------------------"); trace.WriteLine();
-		foreach (Symbol sym in xref.Keys) {
-			trace.Write("  {0,-12}", Name(sym.name));
-			ArrayList list = (ArrayList)xref[sym];
-			int col = 14;
-			foreach (int line in list) {
-				if (col + 5 > 80) {
-					trace.WriteLine();
-					for (col = 1; col <= 14; col++) trace.Write(" ");
+		trace.WriteLine()
+		trace.WriteLine("Cross reference list:")
+		trace.WriteLine("--------------------"); trace.WriteLine()
+        for (name, list) in xref.sort({ $0.0 < $1.0 }) {
+			trace.Write("  \(Name(name))")
+			var col = 14
+			for line in list {
+				if col + 5 > 80 {
+					trace.WriteLine()
+                    for _ in 1...14 { trace.Write(" ") }
 				}
-				trace.Write("{0,5}", line); col += 5;
+				trace.Write("\(line)"); col += 5
 			}
-			trace.WriteLine();
+			trace.WriteLine()
 		}
-		trace.WriteLine(); trace.WriteLine();
+		trace.WriteLine(); trace.WriteLine()
 	}
 	
-	public func SetDDT(String s) {
-		s = s.ToUpper();
-		foreach (char ch in s) {
-			if ("0" <= ch && ch <= "9") ddt[ch - "0"] = true;
-			else switch (ch) {
-			case "A" : ddt[0] = true; break; // trace automaton
-			case "F" : ddt[1] = true; break; // list first/follow sets
-			case "G" : ddt[2] = true; break; // print syntax graph
-			case "I" : ddt[3] = true; break; // trace computation of first sets
-			case "J" : ddt[4] = true; break; // print ANY and SYNC sets
-			case "P" : ddt[8] = true; break; // print statistics
-			case "S" : ddt[6] = true; break; // list symbol table
-			case "X" : ddt[7] = true; break; // list cross reference table
-			default : break;
-			}
+    public func SetDDT(s: String) {
+        for ch in s.uppercaseString.characters {
+            if "0" <= ch && ch <= "9" {
+                ddt[ch - "0"] = true
+            } else {
+                switch (ch) {
+                case "A" : ddt[0] = true // trace automaton
+                case "F" : ddt[1] = true // list first/follow sets
+                case "G" : ddt[2] = true // print syntax graph
+                case "I" : ddt[3] = true // trace computation of first sets
+                case "J" : ddt[4] = true // print ANY and SYNC sets
+                case "P" : ddt[8] = true // print statistics
+                case "S" : ddt[6] = true // list symbol table
+                case "X" : ddt[7] = true // list cross reference table
+                default : break
+                }
+            }
+        }
+    }
+	
+    public func SetOption(s:String) {
+		let option = s.componentsSeparatedByString("=")   // Split(new char[] {"="}, 2);
+		let name = option[0]
+        let value = option[1]
+		if "$namespace" == name {
+            if nsName.isEmpty { nsName = value }
+		} else if "$checkEOF" == name {
+			checkEOF = "true" == value
 		}
 	}
 	
-	public func SetOption(String s) {
-		String[] option = s.Split(new char[] {"="}, 2);
-		String name = option[0], value = option[1];
-		if ("$namespace".Equals(name)) {
-			if (nsName == nil) nsName = value;
-		} else if ("$checkEOF".Equals(name)) {
-			checkEOF = "true".Equals(value);
-		}
-	}
-	
-	class SymbolComp : IComparer {
-		public int Compare(Object x, Object y)  {
-		return ((Symbol) x).name.CompareTo(((Symbol) y).name);
-		}
-	}
+//	class SymbolComp : IComparer {
+//		public int Compare(Object x, Object y)  {
+//		return ((Symbol) x).name.CompareTo(((Symbol) y).name);
+//		}
+//	}
 
 } // end Tab
 
