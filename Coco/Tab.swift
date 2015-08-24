@@ -277,7 +277,7 @@ public class Tab {
 	public var gramSy : Symbol?                 // root nonterminal: filled by ATG
 	public var eofSy = Symbol()                 // end of file symbol
 	public var noSym = Symbol()                 // used in case of an error
-	public var allSyncSets=BitArray( 0)    // union of all synchronisation sets
+	public var allSyncSets=BitArray( 0)			// union of all synchronisation sets
 	public var literals:[String: Symbol]        // symbols that are used as literals
 	
 	public var srcName = ""                     // name of the atg file (including path)
@@ -290,18 +290,18 @@ public class Tab {
 	public var emitLines=false                  // emit #line pragmas for semantic actions
 	//   in the generated parser
 	
-	var visited = BitArray( 0)             // mark list for graph traversals
+	var visited = BitArray( 0)					// mark list for graph traversals
 	var curSy = Symbol()                        // current symbol in computation of sets
 	
-	var parser: Parser?                          // other Coco objects
-	var trace = NSOutputStream()
+	var parser: Parser?                         // other Coco objects
+	var trace : NSOutputStream?
 	var errors: Errors?
 	
 	public init(parser: Parser?) {
         ddt = [Bool](count: 10, repeatedValue: false)
 		self.parser = parser
         if parser != nil {
-            trace = parser!.trace!
+            trace = parser!.trace
             errors = parser!.errors
         }
         literals = [:]
@@ -354,31 +354,31 @@ public class Tab {
 	}
 	
 	func PrintSym(sym: Symbol) {
-		trace.Write("\(sym.n) \(Name(sym.name)) \(Tab.nTyp[sym.typ])")
-		if (sym.attrPos == nil) { trace.Write(" false ") } else { trace.Write(" true  ") }
+		trace?.Write("\(sym.n) \(Name(sym.name)) \(Tab.nTyp[sym.typ])")
+		if (sym.attrPos == nil) { trace?.Write(" false ") } else { trace?.Write(" true  ") }
 		if (sym.typ == Node.nt) {
-			trace.Write("\(Num(sym.graph))")
-			if (sym.deletable) { trace.Write(" true  ") } else { trace.Write(" false ") }
+			trace?.Write("\(Num(sym.graph))")
+			if (sym.deletable) { trace?.Write(" true  ") } else { trace?.Write(" false ") }
 		} else {
-			trace.Write("            ")
+			trace?.Write("            ")
 		}
-		trace.WriteLine("\(sym.line) \(tKind[sym.tokenKind)")
+		trace?.WriteLine("\(sym.line) \(tKind[sym.tokenKind)")
 	}
 	
 	public func PrintSymbolTable() {
-		trace.WriteLine("Symbol Table:")
-		trace.WriteLine("------------"); trace.WriteLine()
-		trace.WriteLine(" nr name          typ  hasAt graph  del    line tokenKind")
+		trace?.WriteLine("Symbol Table:")
+		trace?.WriteLine("------------"); trace?.WriteLine()
+		trace?.WriteLine(" nr name          typ  hasAt graph  del    line tokenKind")
 		for sym in terminals { PrintSym(sym) }
 		for sym in pragmas { PrintSym(sym) }
 		for sym in nonterminals { PrintSym(sym) }
-		trace.WriteLine()
-		trace.WriteLine("Literal Tokens:")
-		trace.WriteLine("--------------")
+		trace?.WriteLine()
+		trace?.WriteLine("Literal Tokens:")
+		trace?.WriteLine("--------------")
 		for e in literals {
-			trace.WriteLine("_" + e.1.name + " = " + e.0 + ".")
+			trace?.WriteLine("_" + e.1.name + " = " + e.0 + ".")
 		}
-		trace.WriteLine()
+		trace?.WriteLine()
 	}
 	
 	public func PrintSet(s: BitArray, indent: Int) {
@@ -388,15 +388,15 @@ public class Tab {
 			if s[sym.n] {
 				len = sym.name.count()
 				if col + len >= 80 {
-					trace.WriteLine();
-					for _ in 1..<indent { trace.Write(" ") }
+					trace?.WriteLine();
+					for _ in 1..<indent { trace?.Write(" ") }
 				}
-				trace.Write(sym.name + " ")
+				trace?.Write(sym.name + " ")
 				col += len + 1
 			}
 		}
-		if col == indent { trace.Write("-- empty set --") }
-		trace.WriteLine()
+		if col == indent { trace?.Write("-- empty set --") }
+		trace?.WriteLine()
 	}
 	
 	//---------------------------------------------------------------------
@@ -553,38 +553,38 @@ public class Tab {
 	}
 	
 	public func PrintNodes() {
-		trace.WriteLine("Graph nodes:");
-		trace.WriteLine("----------------------------------------------------");
-		trace.WriteLine("   n type name          next  down   sub   pos  line");
-		trace.WriteLine("                               val  code");
-		trace.WriteLine("----------------------------------------------------");
+		trace?.WriteLine("Graph nodes:");
+		trace?.WriteLine("----------------------------------------------------");
+		trace?.WriteLine("   n type name          next  down   sub   pos  line");
+		trace?.WriteLine("                               val  code");
+		trace?.WriteLine("----------------------------------------------------");
 		for p in nodes {
-			trace.Write("\(p.n) \(Tab.nTyp[p.typ]) ")
+			trace?.Write("\(p.n) \(Tab.nTyp[p.typ]) ")
 			if p.sym != nil {
-				trace.Write("\(Name(p.sym!.name)) ")
+				trace?.Write("\(Name(p.sym!.name)) ")
 			} else if (p.typ == Node.clas) {
 				let c = classes[p.val]
-				trace.Write("\(Name(c.name)) ")
-			} else { trace.Write("             ") }
-			trace.Write("\(Ptr(p.next, up: p.up)) ")
+				trace?.Write("\(Name(c.name)) ")
+			} else { trace?.Write("             ") }
+			trace?.Write("\(Ptr(p.next, up: p.up)) ")
 			switch p.typ {
 			case Node.t, Node.nt, Node.wt:
-				trace.Write("             \(Pos(p.pos))")
+				trace?.Write("             \(Pos(p.pos))")
 			case Node.chr:
-				trace.Write("\(p.val) \(p.code)       ")
+				trace?.Write("\(p.val) \(p.code)       ")
 			case Node.clas:
-				trace.Write("      \(p.code)       ")
+				trace?.Write("      \(p.code)       ")
 			case Node.alt, Node.iter, Node.opt:
-				trace.Write("\(Ptr(p.down, up: false)) \(Ptr(p.sub, up: false))       ")
+				trace?.Write("\(Ptr(p.down, up: false)) \(Ptr(p.sub, up: false))       ")
 			case Node.sem:
-				trace.Write("             \(Pos(p.pos))")
+				trace?.Write("             \(Pos(p.pos))")
 			case Node.eps, Node.any, Node.sync:
-				trace.Write("                  ")
+				trace?.Write("                  ")
             default: break
 			}
-			trace.WriteLine("\(p.line)")
+			trace?.WriteLine("\(p.line)")
 		}
-		trace.WriteLine()
+		trace?.WriteLine()
 	}
 	
 	
@@ -631,18 +631,18 @@ public class Tab {
 	
     func WriteCharSet(s: CharSet) {
         for var r = s.head; r != nil; r = r!.next {
-            if r!.from < r!.to { trace.Write(Ch(r!.from) + ".." + Ch(r!.to) + " ") }
-            else { trace.Write(Ch(r!.from) + " ") }
+            if r!.from < r!.to { trace?.Write(Ch(r!.from) + ".." + Ch(r!.to) + " ") }
+            else { trace?.Write(Ch(r!.from) + " ") }
         }
     }
 	
 	public func WriteCharClasses () {
 		for c in classes {
-			trace.Write("\(c.name): ")
+			trace?.Write("\(c.name): ")
 			WriteCharSet(c.set);
-			trace.WriteLine();
+			trace?.WriteLine();
 		}
-		trace.WriteLine();
+		trace?.WriteLine();
 	}
 	
 	
@@ -679,9 +679,9 @@ public class Tab {
     public func First(p: Node?) -> BitArray {
         let fs = First0(p, mark: BitArray( nodes.count))
         if (ddt[3]) {
-            trace.WriteLine()
-            if p != nil { trace.WriteLine("First: node = \(p!.n)") }
-            else { trace.WriteLine("First: node = nil") }
+            trace?.WriteLine()
+            if p != nil { trace?.WriteLine("First: node = \(p!.n)") }
+            else { trace?.WriteLine("First: node = nil") }
             PrintSet(fs, indent: 0)
         }
         return fs
@@ -878,23 +878,23 @@ public class Tab {
 		CompFollowSets();
 		CompSyncSets();
 		if ddt[1] {
-			trace.WriteLine();
-			trace.WriteLine("First & follow symbols:");
-			trace.WriteLine("----------------------"); trace.WriteLine();
+			trace?.WriteLine();
+			trace?.WriteLine("First & follow symbols:");
+			trace?.WriteLine("----------------------"); trace?.WriteLine();
 			for sym in nonterminals {
-				trace.WriteLine(sym.name)
-				trace.Write("first:   "); PrintSet(sym.first, indent: 10);
-				trace.Write("follow:  "); PrintSet(sym.follow, indent: 10);
-				trace.WriteLine()
+				trace?.WriteLine(sym.name)
+				trace?.Write("first:   "); PrintSet(sym.first, indent: 10);
+				trace?.Write("follow:  "); PrintSet(sym.follow, indent: 10);
+				trace?.WriteLine()
 			}
 		}
 		if ddt[4] {
-			trace.WriteLine();
-			trace.WriteLine("ANY and SYNC sets:");
-			trace.WriteLine("-----------------");
+			trace?.WriteLine();
+			trace?.WriteLine("ANY and SYNC sets:");
+			trace?.WriteLine("-----------------");
 			for p in nodes {
 				if p.typ == Node.any || p.typ == Node.sync {
-					trace.Write("\(p.n) \(Tab.nTyp[p.typ]): ")
+					trace?.Write("\(p.n) \(Tab.nTyp[p.typ]): ")
 					PrintSet(p.set, indent: 11)
 				}
 			}
@@ -1265,22 +1265,22 @@ public class Tab {
 		}
         
 		// print cross reference list
-		trace.WriteLine()
-		trace.WriteLine("Cross reference list:")
-		trace.WriteLine("--------------------"); trace.WriteLine()
+		trace?.WriteLine()
+		trace?.WriteLine("Cross reference list:")
+		trace?.WriteLine("--------------------"); trace?.WriteLine()
         for (name, list) in xref.sort({ $0.0 < $1.0 }) {
-			trace.Write("  \(Name(name))")
+			trace?.Write("  \(Name(name))")
 			var col = 14
 			for line in list {
 				if col + 5 > 80 {
-					trace.WriteLine()
-                    for _ in 1...14 { trace.Write(" ") }
+					trace?.WriteLine()
+                    for _ in 1...14 { trace?.Write(" ") }
 				}
-				trace.Write("\(line)"); col += 5
+				trace?.Write("\(line)"); col += 5
 			}
-			trace.WriteLine()
+			trace?.WriteLine()
 		}
-		trace.WriteLine(); trace.WriteLine()
+		trace?.WriteLine(); trace?.WriteLine()
 	}
 	
     public func SetDDT(s: String) {

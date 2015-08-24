@@ -77,21 +77,22 @@ public class Coco {
 		
 		if arg.count > 1 && srcName.length != 0 {
 			do {
-				let srcDir = srcName.stringByDeletingLastPathComponent
+				var srcDir = srcName.stringByDeletingLastPathComponent
 				
 				let scanner = Scanner(fileName: String(srcName))
 				let parser = Parser(scanner: scanner)
 				
                 traceFileName = (srcDir as NSString).stringByAppendingPathComponent("trace.txt")
                 parser.trace = NSOutputStream(toFileAtPath: traceFileName, append: false)
+				parser.trace?.open()
                 parser.tab = Tab(parser: parser)
                 parser.dfa = DFA(parser: parser)
                 parser.pgen = ParserGen(parser: parser)
                 
-                parser.tab.srcName = srcName as String;
-                parser.tab.srcDir = srcDir;
-                parser.tab.nsName = nsName;
-                parser.tab.frameDir = frameDir;
+                parser.tab.srcName = srcName as String
+                parser.tab.srcDir = srcDir
+                parser.tab.nsName = nsName
+                parser.tab.frameDir = frameDir
                 parser.tab.outDir = !outDir.isEmpty ? outDir : srcDir
                 parser.tab.emitLines = emitLines
                 if !ddtString.isEmpty { parser.tab.SetDDT(ddtString) }
@@ -100,8 +101,8 @@ public class Coco {
                 
                 parser.trace?.close()
                 let fs = NSFileManager.defaultManager()
-                let f = try fs.attributesOfFileSystemForPath(traceFileName)
-                if f.count == 0 { try fs.removeItemAtPath(traceFileName) }
+                let f = try fs.attributesOfItemAtPath(traceFileName)
+                if f["NSFileSize"] as? NSNumber == 0 { try fs.removeItemAtPath(traceFileName) }
                 else { print("trace output is in " + traceFileName) }
                 print("\(parser.errors.count) errors detected")
                 if parser.errors.count == 0 { retVal = 0 }

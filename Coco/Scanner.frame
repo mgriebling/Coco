@@ -318,8 +318,7 @@ public class Scanner {
 		var state = Scanner.start[ch.unicodeValue()] ?? 0
 		tlen = 0; AddCh()
 		
-		loop:
-		repeat {
+		loop: repeat {
 			switch state {
 			case -1: t.kind = eofSym; break loop // NextCh already done
 			case 0:
@@ -366,7 +365,7 @@ public class Scanner {
 	}
 	
 	// make sure that peeking starts at the current scan position
-	public func ResetPeek () { pt = tokens; }
+	public func ResetPeek () { pt = tokens }
 
 } // end Scanner
 

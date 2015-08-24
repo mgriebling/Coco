@@ -78,28 +78,27 @@ public class Buffer {
 		buf = [UInt8](count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH, repeatedValue: 0)
 		if (fileLen > 0) { Pos = 0 } // setup buffer to position 0 (start)
 		else { bufPos = 0 } // index 0 is already after the file, thus Pos = 0 is invalid
-//		if (bufLen == fileLen && stream.CanSeek) { Close() }
 	}
 	
 	private init (b: Buffer) { // called in UTF8Buffer constructor
 		buf = b.buf;
-		bufStart = b.bufStart;
-		bufLen = b.bufLen;
-		fileLen = b.fileLen;
-		bufPos = b.bufPos;
-		stream = b.stream;
+		bufStart = b.bufStart
+		bufLen = b.bufLen
+		fileLen = b.fileLen
+		bufPos = b.bufPos
+		stream = b.stream
 		// keep destructor from closing the stream
 		//		b.stream = null;
-		isUserStream = b.isUserStream;
+		isUserStream = b.isUserStream
 	}
 	
 	public func Read () -> Int {
-		if (bufPos < bufLen) {
+		if bufPos < bufLen {
 			return Int(buf[bufPos++])
-		} else if (Pos < fileLen) {
+		} else if Pos < fileLen {
 			//			Pos = Pos; // shift buffer start to Pos
 			return Int(buf[bufPos++])
-		} else if (!stream.CanSeek && ReadNextStreamChunk() > 0) {
+		} else if !stream.CanSeek && ReadNextStreamChunk() > 0 {
 			return Int(buf[bufPos++])
 		} else {
 			return Buffer.EOF
@@ -157,7 +156,8 @@ public class Buffer {
 	// if needed and updates the fields fileLen and bufLen.
 	// Returns the number of bytes read.
 	private func ReadNextStreamChunk() -> Int {
-		var free = buf.count - bufLen
+		let free = buf.count - bufLen
+		var read = 0
 		if free == 0 {
 			// in the case of a growing input stream
 			// we can neither seek in the stream, nor can we
@@ -165,10 +165,12 @@ public class Buffer {
 			// the buffer size on demand.
 			var newBuf = [UInt8](count:bufLen * 2, repeatedValue: 0)  // [bufLen * 2];
 			newBuf[0..<bufLen] = buf[0..<bufLen]
+			read = stream.read(&buf, maxLength:bufLen)
+			newBuf[bufLen..<bufLen*2] = buf[0..<bufLen]
 			buf = newBuf
-			free = bufLen
+		} else {
+			read = stream.read(&buf, maxLength:free)
 		}
-		let read = stream.read(&buf, maxLength:free)
 		if read > 0 {
 			bufLen = (bufLen + read); fileLen = bufLen
 			return read
@@ -264,7 +266,12 @@ public class Scanner {
 	
 	public init(fileName: String) {
 		if let stream = NSInputStream(fileAtPath: fileName) {
-			buffer = Buffer(s: stream, isUserStream: false)
+			stream.open()
+			if stream.hasBytesAvailable {
+				buffer = Buffer(s: stream, isUserStream: false)
+			} else {
+				assert(false, "Cannot open file " + fileName)
+			}
 		} else {
 			assert(false, "Cannot open file " + fileName)
 		}
@@ -353,16 +360,16 @@ public class Scanner {
 			NextCh()
 			for (;;) {
 				if ch == "*" {
-					NextCh();
+					NextCh()
 					if ch == "/" {
 						level--;
-						if (level == 0) { oldEols = line - line0; NextCh(); return true; }
-						NextCh();
+						if level == 0 { oldEols = line - line0; NextCh(); return true }
+						NextCh()
 					}
 				} else if ch == "/" {
-					NextCh();
+					NextCh()
 					if ch == "*" {
-						level++; NextCh();
+						level++; NextCh()
 					}
 				} else if ch.unicodeValue() == Buffer.EOF {
 					return false
