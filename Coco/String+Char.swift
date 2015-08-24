@@ -36,6 +36,16 @@ public extension String {
 		}
 		return ""
 	}
+    
+    public func substring (from: Int, _ length: Int) -> String {
+        let str : NSString = self
+        return str.substringWithRange(NSMakeRange(from, length))
+    }
+    
+    public func contains (s: String) -> Bool {
+        let str : NSString = self
+        return str.containsString(s)
+    }
 	
 }
 
@@ -47,6 +57,16 @@ public extension Character {
 		}
 		return 0
 	}
+    
+    public func isLetter() -> Bool {
+        let cSet = NSCharacterSet.letterCharacterSet()
+        return cSet.characterIsMember(self.toUnichar())
+    }
+    
+    public var lowercase : Character {
+        let s = String(self)
+        return s.lowercaseString.characters.first!
+    }
 	
 	init(_ int: Int) {
 		let s = String(UnicodeScalar(int))
@@ -65,6 +85,8 @@ public extension Character {
 	
 }
 
+func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue() }
+func == (l: Character, r: Int) -> Bool { return l.unicodeValue() == r }
 func + (c: Character, inc: Int) -> Character { return c.add(inc) }
 func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
 func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }

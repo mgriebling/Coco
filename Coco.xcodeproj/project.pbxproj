@@ -11,7 +11,9 @@
 		2FED1DC71B84A83D00001383 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DC61B84A83D00001383 /* Parser.swift */; };
 		2FED1DC91B84CF9100001383 /* String+Char.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DC81B84CF9100001383 /* String+Char.swift */; };
 		2FED1DCB1B84E21A00001383 /* Tab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DCA1B84E21A00001383 /* Tab.swift */; };
+		47425F9E1B89E450002D9963 /* ParserGen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47425F9D1B89E450002D9963 /* ParserGen.swift */; };
 		476C34541B848C8300EE75C6 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 476C34531B848C8300EE75C6 /* main.swift */; };
+		47CF4B471B8886BF00D55BC0 /* DFA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CF4B461B8886BF00D55BC0 /* DFA.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,17 +33,13 @@
 		2FED1DC61B84A83D00001383 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
 		2FED1DC81B84CF9100001383 /* String+Char.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Char.swift"; sourceTree = "<group>"; };
 		2FED1DCA1B84E21A00001383 /* Tab.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tab.swift; sourceTree = "<group>"; };
+		47425F9D1B89E450002D9963 /* ParserGen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParserGen.swift; sourceTree = "<group>"; };
 		476C34501B848C8300EE75C6 /* Coco */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Coco; sourceTree = BUILT_PRODUCTS_DIR; };
 		476C34531B848C8300EE75C6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		476C345A1B848CA500EE75C6 /* Coco.atg */ = {isa = PBXFileReference; lastKnownFileType = text; path = Coco.atg; sourceTree = "<group>"; };
-		476C345B1B848CA500EE75C6 /* Coco.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Coco.cs; sourceTree = "<group>"; };
-		476C345C1B848CA500EE75C6 /* DFA.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = DFA.cs; sourceTree = "<group>"; };
-		476C345D1B848CA500EE75C6 /* Parser.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Parser.cs; sourceTree = "<group>"; };
 		476C345E1B848CA500EE75C6 /* Parser.frame */ = {isa = PBXFileReference; lastKnownFileType = text; path = Parser.frame; sourceTree = "<group>"; };
-		476C345F1B848CA500EE75C6 /* ParserGen.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = ParserGen.cs; sourceTree = "<group>"; };
-		476C34601B848CA500EE75C6 /* Scanner.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Scanner.cs; sourceTree = "<group>"; };
 		476C34611B848CA500EE75C6 /* Scanner.frame */ = {isa = PBXFileReference; lastKnownFileType = text; path = Scanner.frame; sourceTree = "<group>"; };
-		476C34621B848CA500EE75C6 /* Tab.cs */ = {isa = PBXFileReference; lastKnownFileType = text; path = Tab.cs; sourceTree = "<group>"; };
+		47CF4B461B8886BF00D55BC0 /* DFA.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DFA.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,17 +74,13 @@
 			children = (
 				476C34531B848C8300EE75C6 /* main.swift */,
 				2FED1DC41B84A81400001383 /* Scanner.swift */,
-				2FED1DC81B84CF9100001383 /* String+Char.swift */,
 				2FED1DC61B84A83D00001383 /* Parser.swift */,
-				476C345A1B848CA500EE75C6 /* Coco.atg */,
-				476C345B1B848CA500EE75C6 /* Coco.cs */,
-				476C345C1B848CA500EE75C6 /* DFA.cs */,
-				476C345D1B848CA500EE75C6 /* Parser.cs */,
+				47CF4B461B8886BF00D55BC0 /* DFA.swift */,
+				47425F9D1B89E450002D9963 /* ParserGen.swift */,
 				476C345E1B848CA500EE75C6 /* Parser.frame */,
-				476C345F1B848CA500EE75C6 /* ParserGen.cs */,
-				476C34601B848CA500EE75C6 /* Scanner.cs */,
 				476C34611B848CA500EE75C6 /* Scanner.frame */,
-				476C34621B848CA500EE75C6 /* Tab.cs */,
+				476C345A1B848CA500EE75C6 /* Coco.atg */,
+				2FED1DC81B84CF9100001383 /* String+Char.swift */,
 				2FED1DCA1B84E21A00001383 /* Tab.swift */,
 			);
 			path = Coco;
@@ -149,8 +143,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				2FED1DC91B84CF9100001383 /* String+Char.swift in Sources */,
+				47425F9E1B89E450002D9963 /* ParserGen.swift in Sources */,
 				2FED1DC51B84A81400001383 /* Scanner.swift in Sources */,
 				2FED1DCB1B84E21A00001383 /* Tab.swift in Sources */,
+				47CF4B471B8886BF00D55BC0 /* DFA.swift in Sources */,
 				476C34541B848C8300EE75C6 /* main.swift in Sources */,
 				2FED1DC71B84A83D00001383 /* Parser.swift in Sources */,
 			);
