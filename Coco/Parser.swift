@@ -407,7 +407,7 @@ public class Parser {
         var g2: Graph?
         Term(&g);
         var first = true;
-        while (WeakSeparator(28,syFol: 15,repFol: 16) ) {
+        while WeakSeparator(28, syFol: 15, repFol: 16) {
             Term(&g2);
             if (first) { tab.MakeFirstAlt(g!); first = false; }
             tab.MakeAlternative(g!, g2: g2!);
@@ -419,12 +419,12 @@ public class Parser {
         s = CharSet()
         if (la.kind == 1) {
             Get();
-            let c = tab.FindCharClass(t.val);
+            let c = tab.FindCharClass(t.val)
             if (c == nil) { SemErr("undefined name") } else { s.Or(c!.set) }
             
         } else if (la.kind == 3) {
             Get();
-            var name = t.val;
+            var name = t.val
             name = tab.Unescape(name.substring(1, name.count()-2))
             for ch in name.characters {
                 if (dfa!.ignoreCase) { s.Set(ch.lowercase.unicodeValue()) }
@@ -475,7 +475,8 @@ public class Parser {
     }
     
     func Term(inout g: Graph?) {
-        var g2: Graph?; var rslv : Node? = nil; var g : Graph? = nil
+        var g2: Graph?; var rslv : Node? = nil // ; var g : Graph? = nil
+		g = nil
         if (StartOf(17)) {
             if (la.kind == 37) {
                 rslv = tab.NewNode(Node.rslv, nil, la.line);
@@ -493,7 +494,7 @@ public class Parser {
         } else if (StartOf(19)) {
             g = Graph(tab.NewNode(Node.eps, nil, 0))
         } else { SynErr(48) }
-        if (g == nil) { // invalid start of Term
+        if g == nil { // invalid start of Term
             g = Graph(tab.NewNode(Node.eps, nil, 0))
         }
     }

@@ -415,7 +415,7 @@ public class Scanner {
 		t = Token()
 		t.pos = pos; t.col = col; t.line = line; t.charPos = charPos
 		var state = Scanner.start[ch.unicodeValue()] ?? 0
-		tlen = 0; AddCh()
+		tval = ""; AddCh()
 		
 		loop:
 		repeat {
@@ -432,8 +432,8 @@ public class Scanner {
 				recEnd = pos; recKind = 1
 				if ch >= "0" && ch <= "9" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z" { AddCh(); state = 1 }
 				else {
-					t.kind = 1;
-					t.val = tval.substringToIndex(advance(tval.startIndex, tlen))
+					t.kind = 1
+					t.val = tval  //.substringToIndex(advance(tval.startIndex, tlen))
 					CheckLiteral(); return t
 				}
 			case 2:
@@ -451,24 +451,24 @@ public class Scanner {
 				else { state = 0 }
 			case 6:
 				if ch.unicodeValue() == 39 { AddCh(); state = 9 }
-				else {state = 0 }
+				else { state = 0 }
 			case 7:
 				if ch >= " " && ch <= "~" { AddCh(); state = 8 }
-				else {state = 0 }
+				else { state = 0 }
 			case 8:
 				if ch >= "0" && ch <= "9" || ch >= "a" && ch <= "f" {AddCh(); state = 8 }
 				else if ch.unicodeValue() == 39 { AddCh(); state = 9 }
-				else {state = 0 }
+				else { state = 0 }
 			case 9:
 				t.kind = 5; break loop
 			case 10:
 				recEnd = pos; recKind = 42;
 				if (ch >= "0" && ch <= "9" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") {AddCh(); state = 10 }
-				else {t.kind = 42; break loop }
+				else { t.kind = 42; break loop }
 			case 11:
 				recEnd = pos; recKind = 43;
 				if (ch >= "-" && ch <= "." || ch >= "0" && ch <= ":" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") {AddCh(); state = 11 }
-				else {t.kind = 43; break loop }
+				else { t.kind = 43; break loop }
 			case 12:
 				if (ch.unicodeValue() <= 9 || ch.unicodeValue() >= 11 && ch.unicodeValue() <= 12 || ch.unicodeValue() >= 14 &&
 					ch <= "!" || ch >= "#" && ch <= "[" || ch >= "]" && ch.unicodeValue() <= 65535) { AddCh(); state = 12 }
@@ -538,7 +538,7 @@ public class Scanner {
 				
 			}
 		} while (true)
-		t.val = tval.substringToIndex(advance(tval.startIndex, tlen))
+		t.val = tval  //.substringToIndex(advance(tval.startIndex, tlen))
 		return t
 	}
 	

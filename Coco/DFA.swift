@@ -117,7 +117,7 @@ public class Action {			// action of finite automaton
             typ = Node.chr; sym = s.First()
         } else {
             var c = tab.FindCharClass(s)
-            if c != nil { c = tab.NewCharClass("#", s: s) } // class with dummy name
+            if c == nil { c = tab.NewCharClass("#", s: s) } // class with dummy name
             typ = Node.clas; sym = c!.n
         }
     }
