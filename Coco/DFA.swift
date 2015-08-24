@@ -507,7 +507,7 @@ public class DFA {
     
     func DeleteRedundantStates() {
         var newState = [State](count: lastStateNr+1, repeatedValue: State())
-        var used = BitArray(size: lastStateNr + 1)
+        var used = BitArray(lastStateNr + 1)
         FindUsedStates(firstState!, used: &used)
         // combine equal final states
         for var s1 = firstState!.next; s1 != nil; s1 = s1!.next { // firstState cannot be final
@@ -559,7 +559,7 @@ public class DFA {
             if p.next != nil && !stepped[p.next!.n] { Step(from, p:p.next, stepped:stepped) }
             Step(from, p:p.sub, stepped: stepped)
             if p.state !== from {
-                stepped = BitArray(size: tab.nodes.count)
+                stepped = BitArray( tab.nodes.count)
                 Step(p.state!, p:p, stepped:stepped)
             }
         case Node.opt:
@@ -604,7 +604,7 @@ public class DFA {
         if marked[p.n] { return }
         marked[p.n] = true
         if start {
-            Step(p.state!, p: p, stepped: BitArray(size: tab.nodes.count)) // start of group of equally numbered nodes
+            Step(p.state!, p: p, stepped: BitArray( tab.nodes.count)) // start of group of equally numbered nodes
         }
         switch p.typ {
         case Node.clas, Node.chr:
@@ -626,9 +626,9 @@ public class DFA {
             return
         }
         NumberNodes(p, state: firstState, renumIter: true)
-        FindTrans(p, start: true, marked: BitArray(size:tab.nodes.count))
+        FindTrans(p, start: true, marked: BitArray(tab.nodes.count))
         if p.typ == Node.iter {
-            Step(firstState!, p: p, stepped: BitArray(size:tab.nodes.count))
+            Step(firstState!, p: p, stepped: BitArray(tab.nodes.count))
         }
     }
     
@@ -805,7 +805,7 @@ public class DFA {
     
     public func GetTargetStates(a: Action, inout targets: BitArray, inout endOf: Symbol?, inout ctx: Bool) {
         // compute the set of target states
-        targets = BitArray(size:maxStates); endOf = nil
+        targets = BitArray(maxStates); endOf = nil
         ctx = false
         for var t = a.target; t != nil; t = t!.next {
             let stateNr = t!.state.nr

@@ -35,12 +35,12 @@ public struct Position {  // position of source code stretch (e.g. semantic acti
 	public let col: Int      // column number of start position
 	public let line: Int     // line number of start position
 	
-	public init(beg: Int, end: Int, col: Int, line: Int) {
+	public init(_ beg: Int, _ end: Int, _ col: Int, _ line: Int) {
 		self.beg = beg; self.end = end; self.col = col; self.line = line
 	}
     
     init() {
-        self.init(beg:0, end: 0, col: 0, line: 0)
+        self.init(0, 0, 0, 0)
     }
 }
 
@@ -71,12 +71,12 @@ public class Symbol {
 	public var semPos = Position()  // pr: pos of semantic action in source text (or nil)
 	// nt: pos of local declarations in source text (or nil)
 	
-	public init(typ: Int, name: String, line: Int) {
+	public init(_ typ: Int, _ name: String, _ line: Int) {
 		self.typ = typ; self.name = name; self.line = line
 	}
     
     convenience init() {
-        self.init(typ: 0, name: "", line: 0)
+        self.init(0, "", 0)
     }
 }
 
@@ -122,7 +122,7 @@ public class Node {
 	public var state: State?    	// DFA state corresponding to this node
 	// (only used in DFA.ConvertToStates)
 	
-	public init(typ: Int, sym: Symbol?, line: Int) {
+	public init(_ typ: Int, _ sym: Symbol?, _ line: Int) {
 		self.typ = typ; self.sym = sym; self.line = line
 	}
 }
@@ -143,7 +143,7 @@ public class Graph {
 		l = left; r = right
 	}
 	
-	public init(p: Node?) {
+	public init(_ p: Node?) {
 		l = p; r = p
 	}
 }
@@ -189,7 +189,7 @@ public struct BitArray : CollectionType {
     public var startIndex: Int { return 0 }
     public var endIndex: Int { return array.count }
     
-	public init(size: Int, value: Bool = false) {
+	public init(_ size: Int, value: Bool = false) {
         array = [Bool](count: size, repeatedValue: value)
     }
     
@@ -206,7 +206,7 @@ public struct BitArray : CollectionType {
     
     public func and (b: BitArray) -> BitArray {
         let max = array.count
-        var result = BitArray(size: max)
+        var result = BitArray(max)
         for i in 0..<max {
             result[i] = array[i] && b[i]
         }
@@ -215,7 +215,7 @@ public struct BitArray : CollectionType {
     
     public func or (b: BitArray) -> BitArray {
         let max = array.count
-        var result = BitArray(size: max)
+        var result = BitArray(max)
         for i in 0..<max {
             result[i] = array[i] || b[i]
         }
@@ -224,7 +224,7 @@ public struct BitArray : CollectionType {
     
     public func not () -> BitArray {
         let max = array.count
-        var result = BitArray(size: max)
+        var result = BitArray(max)
         for i in 0..<max {
             result[i] = !array[i]
         }
@@ -277,7 +277,7 @@ public class Tab {
 	public var gramSy : Symbol?                 // root nonterminal: filled by ATG
 	public var eofSy = Symbol()                 // end of file symbol
 	public var noSym = Symbol()                 // used in case of an error
-	public var allSyncSets=BitArray(size: 0)    // union of all synchronisation sets
+	public var allSyncSets=BitArray( 0)    // union of all synchronisation sets
 	public var literals:[String: Symbol]        // symbols that are used as literals
 	
 	public var srcName = ""                     // name of the atg file (including path)
@@ -290,7 +290,7 @@ public class Tab {
 	public var emitLines=false                  // emit #line pragmas for semantic actions
 	//   in the generated parser
 	
-	var visited = BitArray(size: 0)             // mark list for graph traversals
+	var visited = BitArray( 0)             // mark list for graph traversals
 	var curSy = Symbol()                        // current symbol in computation of sets
 	
 	var parser: Parser?                          // other Coco objects
@@ -305,9 +305,9 @@ public class Tab {
             errors = parser!.errors
         }
         literals = [:]
-        dummyNode = Node(typ: 0, sym: nil, line: 0)     // compiler complains about init without this
-		dummyNode = NewNode(Node.eps, sym: nil, line: 0)
-		eofSy = NewSym(Node.t, name: "EOF", line: 0)
+        dummyNode = Node(0, nil, 0)     // compiler complains about init without this
+		dummyNode = NewNode(Node.eps, nil, 0)
+		eofSy = NewSym(Node.t, "EOF", 0)
 	}
     
     convenience init () {
@@ -324,11 +324,11 @@ public class Tab {
 	
 	let tKind = ["fixedToken", "classToken", "litToken", "classLitToken"]
 	
-	public func NewSym(typ: Int, var name: String, line: Int) -> Symbol {
+	public func NewSym(typ: Int, var _ name: String, _ line: Int) -> Symbol {
 		if name.count() == 2 && name[0] == "\"" {
 			parser!.SemErr("empty token not allowed"); name = "???"
 		}
-		let sym = Symbol(typ: typ, name: name, line: line)
+		let sym = Symbol(typ, name, line)
 		switch typ {
 		case Node.t:  sym.n = terminals.count; terminals.append(sym)
 		case Node.pr: pragmas.append(sym)
@@ -408,21 +408,21 @@ public class Tab {
 		"sync", "sem ", "alt ", "iter", "opt ", "rslv"]
 	var dummyNode: Node
 	
-	public func NewNode(typ: Int, sym: Symbol?, line: Int) -> Node {
-		let node = Node(typ: typ, sym: sym, line: line)
+	public func NewNode(typ: Int, _ sym: Symbol?, _ line: Int) -> Node {
+		let node = Node(typ, sym, line)
 		node.n = nodes.count
 		nodes.append(node)
 		return node
 	}
 	
 	public func NewNode(typ: Int, sub: Node) -> Node {
-		let node = NewNode(typ, sym: nil, line: 0)
+		let node = NewNode(typ, nil, 0)
 		node.sub = sub
 		return node
 	}
 	
 	public func NewNode(typ: Int, val: Int, line: Int) -> Node {
-		let node = NewNode(typ, sym: nil, line: line)
+		let node = NewNode(typ, nil, line)
 		node.val = val
 		return node
 	}
@@ -486,7 +486,7 @@ public class Tab {
 	
 	public func DeleteNodes() {
 		nodes = [Node]()
-		dummyNode = NewNode(Node.eps, sym: nil, line: 0)
+		dummyNode = NewNode(Node.eps, nil, 0)
 	}
 	
 	public func StrToGraph(str: String) -> Graph {
@@ -652,7 +652,7 @@ public class Tab {
 	
 	/* Computes the first set for the graph rooted at p */
 	func First0(var p: Node?, var mark: BitArray) -> BitArray {
-		var fs = BitArray(size: terminals.count)
+		var fs = BitArray( terminals.count)
 		while p != nil && !mark[p!.n] {
 			mark[p!.n] = true
 			switch p!.typ {
@@ -677,7 +677,7 @@ public class Tab {
 	}
 	
     public func First(p: Node?) -> BitArray {
-        let fs = First0(p, mark: BitArray(size: nodes.count))
+        let fs = First0(p, mark: BitArray( nodes.count))
         if (ddt[3]) {
             trace.WriteLine()
             if p != nil { trace.WriteLine("First: node = \(p!.n)") }
@@ -689,7 +689,7 @@ public class Tab {
 	
 	func CompFirstSets() {
 		for sym in nonterminals {
-            sym.first = BitArray(size:terminals.count)
+            sym.first = BitArray(terminals.count)
 			sym.firstReady = false
 		}
 		for sym in nonterminals {
@@ -731,17 +731,17 @@ public class Tab {
 	
 	func CompFollowSets() {
 		for sym in nonterminals {
-			sym.follow = BitArray(size:terminals.count)
-			sym.nts = BitArray(size:nonterminals.count)
+			sym.follow = BitArray(terminals.count)
+			sym.nts = BitArray(nonterminals.count)
 		}
 		gramSy!.follow[eofSy.n] = true;
-        visited = BitArray(size:nodes.count)
+        visited = BitArray(nodes.count)
 		for sym in nonterminals { // get direct successors of Tab.nonterminals
 			curSy = sym;
 			CompFollow(sym.graph)
 		}
 		for sym in nonterminals { // add indirect successors to followers
-			visited = BitArray(size:nonterminals.count)
+			visited = BitArray(nonterminals.count)
 			curSy = sym
 			Complete(sym)
 		}
@@ -768,7 +768,7 @@ public class Tab {
                 a = LeadingAny(np.sub);
                 if a != nil { Sets.Subtract(&a!.set, b:First(np.next)) }
             } else if np.typ == Node.alt {
-                let s1 = BitArray(size: terminals.count)
+                let s1 = BitArray( terminals.count)
                 var q: Node? = np
                 while let qp = q {
                     FindAS(qp.sub);
@@ -811,7 +811,7 @@ public class Tab {
     
     // does not look behind resolvers; only called during LL(1) test and in CheckRes
     public func Expected0 (p: Node, curSy: Symbol) -> BitArray {
-        if p.typ == Node.rslv { return BitArray(size:terminals.count) }
+        if p.typ == Node.rslv { return BitArray(terminals.count) }
         else { return Expected(p, curSy: curSy) }
     }
 	
@@ -833,9 +833,9 @@ public class Tab {
 	}
 	
 	func CompSyncSets() {
-		allSyncSets = BitArray(size: terminals.count)
+		allSyncSets = BitArray( terminals.count)
 		allSyncSets[eofSy.n] = true
-		visited = BitArray(size: nodes.count)
+		visited = BitArray( nodes.count)
 		for sym in nonterminals {
 			curSy = sym
 			CompSync(curSy.graph)
@@ -845,7 +845,7 @@ public class Tab {
 	public func SetupAnys() {
 		for p in nodes {
 			if p.typ == Node.any {
-				p.set = BitArray(size: terminals.count, value:true)
+				p.set = BitArray( terminals.count, value:true)
 				p.set[eofSy.n] = false
 			}
 		}
@@ -1073,7 +1073,7 @@ public class Tab {
 		while let np = p {
 			if np.typ == Node.alt {
 				var q: Node? = np
-				s1 = BitArray(size:terminals.count)
+				s1 = BitArray(terminals.count)
 				while let nq = q { // for all alternatives
 					s2 = Expected0(nq.sub!, curSy: curSy)
 					CheckOverlap(s1, s2: s2, cond: 1)
@@ -1115,11 +1115,11 @@ public class Tab {
 		while let np = p {
 			switch np.typ {
 			case Node.alt:
-				let expected = BitArray(size: terminals.count)
+				let expected = BitArray( terminals.count)
 				for var q: Node? = np; q != nil; q = q!.down {
 					expected.or(Expected0(q!.sub!, curSy: curSy))
 				}
-				let soFar = BitArray(size: terminals.count)
+				let soFar = BitArray( terminals.count)
 				for var q: Node? = np; q != nil; q = q!.down {
 					if q!.sub!.typ == Node.rslv {
 						let fs = Expected(q!.sub!.next!, curSy: curSy)
@@ -1192,7 +1192,7 @@ public class Tab {
 
 	public func AllNtReached() -> Bool {
 		var ok = true
-		var visited = BitArray(size: nonterminals.count)
+		var visited = BitArray(nonterminals.count)
 		visited[gramSy!.n] = true
 		MarkReachedNts(gramSy!.graph)
 		for sym in nonterminals {
@@ -1220,7 +1220,7 @@ public class Tab {
     public func AllNtToTerm() -> Bool {
         var changed = false
         var ok = true
-        var mark = BitArray(size:nonterminals.count)
+        var mark = BitArray(nonterminals.count)
         // a nonterminal is marked if it can be derived to terminal symbols
         repeat {
             changed = false;

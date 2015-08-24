@@ -84,7 +84,7 @@ public class ParserGen {
         var s1, s2: BitArray
         if p!.typ != Node.alt { return false }
         var nAlts = 0
-        s1 = BitArray(size:tab.terminals.count)
+        s1 = BitArray(tab.terminals.count)
         while let pn = p {
             s2 = tab.Expected0(pn.sub!, curSy: curSy)
             // must not optimize with switch statement, if there are ll1 warnings
@@ -257,7 +257,7 @@ public class ParserGen {
                     s1 = tab.Expected(p2!.next!, curSy: curSy)
                     s2 = tab.Expected(pn.next!, curSy: curSy)
                     gen.Write("WeakSeparator(\(p2!.sym!.n),\(NewCondSet(s1)),\(NewCondSet(s2))) ")
-                    s1 = BitArray(size:tab.terminals.count)  // for inner structure
+                    s1 = BitArray(tab.terminals.count)  // for inner structure
                     if p2!.up || p2!.next == nil { p2 = nil } else { p2 = p2!.next }
                 } else {
                     s1 = tab.First(p2)
@@ -311,7 +311,7 @@ public class ParserGen {
             CopySourcePart(sym.attrPos, indent: 0)
             gen.WriteLine(" {")
             CopySourcePart(sym.semPos, indent: 2)
-            GenCode(sym.graph, indent: 2, isChecked: BitArray(size:tab.terminals.count))
+            GenCode(sym.graph, indent: 2, isChecked: BitArray(tab.terminals.count))
             gen.WriteLine("\t}"); gen.WriteLine()
         }
     }

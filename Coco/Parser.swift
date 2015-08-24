@@ -140,7 +140,7 @@ public class Parser {
             while StartOf(1) {
                 Get()
             }
-            pgen!.usingPos = Position(beg: beg, end: la.pos, col: 0, line: line)
+            pgen!.usingPos = Position(beg, la.pos, 0, line)
         }
         Expect(6)
         genScanner = true
@@ -152,7 +152,7 @@ public class Parser {
         while StartOf(2) {
             Get()
         }
-        tab.semDeclPos = Position(beg: beg, end: la.pos, col: 0, line: line)
+        tab.semDeclPos = Position(beg, la.pos, 0, line)
         if la.kind == 7 {
             Get()
             dfa!.ignoreCase = true
@@ -202,7 +202,7 @@ public class Parser {
             Get()
             sym = tab.FindSym(t.val)
             let undef = sym == nil
-            if undef { sym = tab.NewSym(Node.nt, name: t.val, line: t.line) }
+            if undef { sym = tab.NewSym(Node.nt, t.val, t.line) }
             else {
                 if sym!.typ == Node.nt {
                     if sym!.graph != nil { SemErr("name declared twice") }
@@ -245,7 +245,7 @@ public class Parser {
                 SemErr("grammar symbol must not have attributes")
             }
         }
-        tab.noSym = tab.NewSym(Node.t, name: "???", line: 0) // noSym gets highest number
+        tab.noSym = tab.NewSym(Node.t, "???", 0) // noSym gets highest number
         tab.SetupAnys()
         tab.RenumberPragmas()
         if tab.ddt[2] { tab.PrintNodes() }
@@ -291,7 +291,7 @@ public class Parser {
         sym = tab.FindSym(name)
         if (sym != nil) { SemErr("name declared twice") }
         else {
-            sym = tab.NewSym(typ, name: name, line: t.line)
+            sym = tab.NewSym(typ, name, t.line)
             sym!.tokenKind = Symbol.fixedToken
         }
         tokenString = ""
@@ -365,7 +365,7 @@ public class Parser {
             }
             Expect(25);
             if (t.pos > beg) {
-                sym.attrPos = Position(beg: beg, end: t.pos, col: col, line: line);
+                sym.attrPos = Position(beg, t.pos, col, line);
             }
         } else if (la.kind == 26) {
             Get();
@@ -380,7 +380,7 @@ public class Parser {
             }
             Expect(27);
             if (t.pos > beg) {
-                sym.attrPos = Position(beg: beg, end: t.pos, col: col, line: line);
+                sym.attrPos = Position(beg, t.pos, col, line);
             }
         } else { SynErr(45) }
     }
@@ -400,7 +400,7 @@ public class Parser {
             }
         }
         Expect(40);
-        pos = Position(beg: beg, end: t.pos, col: col, line: line);
+        pos = Position(beg, t.pos, col, line);
     }
     
     func Expression(inout g: Graph?) {
@@ -478,9 +478,9 @@ public class Parser {
         var g2: Graph?; var rslv : Node? = nil; var g : Graph? = nil
         if (StartOf(17)) {
             if (la.kind == 37) {
-                rslv = tab.NewNode(Node.rslv, sym: nil, line: la.line);
+                rslv = tab.NewNode(Node.rslv, nil, la.line);
                 Resolver(&rslv!.pos);
-                g = Graph(p: rslv);
+                g = Graph(rslv);
             }
             Factor(&g2);
             if (rslv != nil) { tab.MakeSequence(g!, g2: g2!) }
@@ -491,10 +491,10 @@ public class Parser {
                 tab.MakeSequence(g!, g2: g2!)
             }
         } else if (StartOf(19)) {
-            g = Graph(p: tab.NewNode(Node.eps, sym: nil, line: 0));
+            g = Graph(tab.NewNode(Node.eps, nil, 0))
         } else { SynErr(48) }
         if (g == nil) { // invalid start of Term
-            g = Graph(p: tab.NewNode(Node.eps, sym: nil, line: 0));
+            g = Graph(tab.NewNode(Node.eps, nil, 0))
         }
     }
     
@@ -503,7 +503,7 @@ public class Parser {
         Expect(30);
         let beg = la.pos; let col = la.col; let line = la.line;
         Condition();
-        pos = Position(beg: beg, end: t.pos, col: col, line: line);
+        pos = Position(beg, t.pos, col, line)
     }
     
     func Factor(inout g: Graph?) {
@@ -524,9 +524,9 @@ public class Parser {
             let undef = sym == nil;
             if (undef) {
                 if (kind == id) {
-                    sym = tab.NewSym(Node.nt, name: name, line: 0);  // forward nt
+                    sym = tab.NewSym(Node.nt, name, 0);  // forward nt
                 } else if (genScanner) {
-                    sym = tab.NewSym(Node.t, name: name, line: t.line);
+                    sym = tab.NewSym(Node.t, name, t.line);
                     dfa!.MatchLiteral(sym!.name, sym: sym!);
                 } else {  // undefined string in production
                     SemErr("undefined string in production");
@@ -540,10 +540,9 @@ public class Parser {
             if (weak) {
                 if (typ == Node.t) { typ = Node.wt }
             } else { SemErr("only terminals may be weak") }
-            let p = tab.NewNode(typ, sym: sym, line: t.line);
-            g = Graph(p: p)
-            
-            if (la.kind == 24 || la.kind == 26) {
+            let p = tab.NewNode(typ, sym, t.line)
+            g = Graph(p)
+            if la.kind == 24 || la.kind == 26 {
                 Attribs(p);
                 if (kind != id) { SemErr("a literal must not have attributes") }
             }
@@ -568,21 +567,21 @@ public class Parser {
             tab.MakeIteration(g!);
         case 39:
             SemText(&pos);
-            let p = tab.NewNode(Node.sem, sym: nil, line: 0);
+            let p = tab.NewNode(Node.sem, nil, 0)
             p.pos = pos;
-            g = Graph(p: p);
+            g = Graph(p)
         case 23:
             Get();
-            let p = tab.NewNode(Node.any, sym: nil, line: 0);  // p.set is set in tab.SetupAnys
-            g = Graph(p:p);
+            let p = tab.NewNode(Node.any, nil, 0);  // p.set is set in tab.SetupAnys
+            g = Graph(p)
         case 36:
             Get();
-            let p = tab.NewNode(Node.sync, sym: nil, line: 0);
-            g = Graph(p: p);
+            let p = tab.NewNode(Node.sync, nil, 0);
+            g = Graph(p)
         default: SynErr(49)
         }
         if (g == nil) { // invalid start of Factor
-            g = Graph(p: tab.NewNode(Node.eps, sym: nil, line: 0));
+            g = Graph(tab.NewNode(Node.eps, nil, 0))
         }
         
     }
@@ -600,7 +599,7 @@ public class Parser {
                 }
             }
             Expect(25);
-            if (t.pos > beg) { p.pos = Position(beg: beg, end: t.pos, col: col, line: line) }
+            if (t.pos > beg) { p.pos = Position(beg, t.pos, col, line) }
         } else if (la.kind == 26) {
             Get();
             let beg = la.pos; let col = la.col; let line = la.line;
@@ -613,7 +612,7 @@ public class Parser {
                 }
             }
             Expect(27);
-            if (t.pos > beg) { p.pos = Position(beg: beg, end: t.pos, col: col, line: line) }
+            if (t.pos > beg) { p.pos = Position(beg, t.pos, col, line) }
         } else { SynErr(50) }
     }
     
@@ -657,8 +656,8 @@ public class Parser {
                     SemErr("undefined name");
                     c = tab.NewCharClass(name, s: CharSet());
                 }
-                let p = tab.NewNode(Node.clas, sym: nil, line: 0); p.val = c!.n;
-                g = Graph(p: p);
+                let p = tab.NewNode(Node.clas, nil, 0); p.val = c!.n;
+                g = Graph(p)
                 tokenString = noString;
             } else { // str
                 g = tab.StrToGraph(name);
@@ -682,7 +681,7 @@ public class Parser {
             tab.MakeIteration(g!); tokenString = noString;
         } else { SynErr(51) }
         if (g == nil) { // invalid start of TokenFactor
-            g = Graph(p: tab.NewNode(Node.eps, sym: nil, line: 0));
+            g = Graph(tab.NewNode(Node.eps, nil, 0))
         }
     }
     
