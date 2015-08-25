@@ -110,7 +110,7 @@ public class ParserGen {
             Indent(indent)
             done: while buffer.Pos <= pos.end {
                 while ch == CR || ch == LF {  // eol is either CR or CRLF or LF
-                    gen.WriteLine(); Indent(indent);
+                    gen.WriteLine(); Indent(indent)
                     if ch == CR { ch = buffer.Read() } // skip CR
                     if ch == LF { ch = buffer.Read() } // skip LF
                     for (i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++) {

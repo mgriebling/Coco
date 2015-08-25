@@ -238,7 +238,7 @@ public class Parser {
         }
         tab.gramSy = tab.FindSym(gramName)
         if tab.gramSy == nil {
-            SemErr("missing production for grammar name");
+            SemErr("missing production for grammar name")
         } else {
             sym = tab.gramSy
             if sym!.attrPos != nil {
@@ -251,7 +251,7 @@ public class Parser {
         if tab.ddt[2] { tab.PrintNodes() }
         if errors.count == 0 {
             print("checking")
-            tab.CompSymbolSets();
+            tab.CompSymbolSets()
             if tab.ddt[7] { tab.XRef() }
             if tab.GrammarOk() {
                 print("parser", appendNewline: false)

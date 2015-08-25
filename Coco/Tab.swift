@@ -872,25 +872,25 @@ public class Tab {
 	
 	public func CompSymbolSets() {
 		CompDeletableSymbols();
-		CompFirstSets();
-		CompAnySets();
-		CompFollowSets();
-		CompSyncSets();
+		CompFirstSets()
+		CompAnySets()
+		CompFollowSets()
+		CompSyncSets()
 		if ddt[1] {
-			trace?.WriteLine();
-			trace?.WriteLine("First & follow symbols:");
-			trace?.WriteLine("----------------------"); trace?.WriteLine();
+			trace?.WriteLine()
+			trace?.WriteLine("First & follow symbols:")
+			trace?.WriteLine("----------------------"); trace?.WriteLine()
 			for sym in nonterminals {
 				trace?.WriteLine(sym.name)
-				trace?.Write("first:   "); PrintSet(sym.first, indent: 10);
-				trace?.Write("follow:  "); PrintSet(sym.follow, indent: 10);
+				trace?.Write("first:   "); PrintSet(sym.first, indent: 10)
+				trace?.Write("follow:  "); PrintSet(sym.follow, indent: 10)
 				trace?.WriteLine()
 			}
 		}
 		if ddt[4] {
-			trace?.WriteLine();
-			trace?.WriteLine("ANY and SYNC sets:");
-			trace?.WriteLine("-----------------");
+			trace?.WriteLine()
+			trace?.WriteLine("ANY and SYNC sets:")
+			trace?.WriteLine("-----------------")
 			for p in nodes {
 				if p.typ == Node.any || p.typ == Node.sync {
 					trace?.Write("\(p.n) \(Tab.nTyp[p.typ]): ")
