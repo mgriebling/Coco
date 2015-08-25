@@ -490,8 +490,7 @@ public class Tab {
 	}
 	
 	public func StrToGraph(str: String) -> Graph {
-		let ns : NSString = str
-		let s = Unescape(ns.substringToIndex(str.count()-2))
+		let s = Unescape(str.substring(1, str.count()-2))
 		if s.count() == 0 { parser!.SemErr("empty token not allowed") }
 		let g = Graph()
 		g.r = dummyNode

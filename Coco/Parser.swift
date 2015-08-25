@@ -538,9 +538,10 @@ public class Parser {
             if (typ != Node.t && typ != Node.nt) {
                 SemErr("this symbol kind is not allowed in a production");
             }
-            if (weak) {
+            if weak {
                 if (typ == Node.t) { typ = Node.wt }
-            } else { SemErr("only terminals may be weak") }
+                else { SemErr("only terminals may be weak") }
+            }
             let p = tab.NewNode(typ, sym, t.line)
             g = Graph(p)
             if la.kind == 24 || la.kind == 26 {
