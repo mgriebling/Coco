@@ -59,7 +59,7 @@ public class State {				// state of finite automaton
     }
     
     public func MeltWith(s: State) { // copy actions of s to state
-        for (var action: Action? = s.firstAction; action != nil; action = action!.next) {
+        for (var action = s.firstAction; action != nil; action = action!.next) {
             let a = Action(typ: action!.typ, sym: action!.sym, tc: action!.tc)
             a.AddTargets(action!)
             AddAction(a)
@@ -95,7 +95,7 @@ public class Action {			// action of finite automaton
     }
     
     public func AddTargets(a: Action) { // add copy of a.targets to action.targets
-        for (var p: Target? = a.target; p != nil; p = p!.next) {
+        for var p = a.target; p != nil; p = p!.next {
             let t = Target(s: p!.state)
             AddTarget(t)
         }
@@ -197,7 +197,7 @@ public class CharSet {
             if i <= ncur.to + 1 { // (cur.from-1) <= i <= (cur.to+1)
                 if (i == ncur.from - 1) { ncur.from-- }
                 else if (i == ncur.to + 1) {
-                    ncur.to++;
+                    ncur.to++
                     let next = ncur.next
                     if next != nil && ncur.to == next!.from - 1 { ncur.to = next!.to; ncur.next = next!.next }
                 }
@@ -322,11 +322,10 @@ class Generator {
         if frameFile.isEmpty || !fileExists(frameFile) { assert(false, "Cannot find : " + frame) }
         
         let fram = NSInputStream(fileAtPath: frameFile)
-        assert(fram != nil, "Cannot open frame file: " + frameFile)
+        assert(fram != nil && fram!.hasBytesAvailable, "Cannot open frame file: " + frameFile)
         self.fram = fram!
         return fram!
     }
-    
     
     func OpenGen(target: String) -> NSOutputStream {
         let fn = (tab.outDir as NSString).stringByAppendingPathComponent(target)
@@ -338,7 +337,6 @@ class Generator {
         }
         return gen!
     }
-    
     
     func GenCopyright() {
         var copyFr = ""
@@ -359,7 +357,6 @@ class Generator {
     func SkipFramePart(stop: String) {
         CopyFramePart(stop, generateOutput: false)
     }
-    
     
     func CopyFramePart(stop: String) {
         CopyFramePart(stop, generateOutput: true)
@@ -454,8 +451,8 @@ public class DFA {
     
     private func PutRange(s: CharSet) {
         for var r = s.head; r != nil; r = r!.next {
-            if (r!.from == r!.to) { gen.Write("ch == " + Ch(r!.from)); }
-            else if (r!.from == 0) { gen.Write("ch <= " + Ch(r!.to)); }
+            if r!.from == r!.to { gen.Write("ch == " + Ch(r!.from)); }
+            else if r!.from == 0 { gen.Write("ch <= " + Ch(r!.to)); }
             else { gen.Write("ch >= " + Ch(r!.from) + " && ch <= " + Ch(r!.to)) }
             if r!.next != nil { gen.Write(" || ") }
         }
@@ -543,28 +540,28 @@ public class DFA {
         else { return p!.state! }
     }
     
-    func Step(from: State, p: Node?, var stepped: BitArray) {
+    func Step(from: State, p: Node?, inout stepped: BitArray) {
         guard let p = p else { return }
         stepped[p.n] = true
         switch p.typ {
         case Node.clas, Node.chr:
             NewTransition(from, to: TheState(p.next), typ: p.typ, sym: p.val, tc: p.code)
         case Node.alt:
-            Step(from, p: p.sub, stepped: stepped); Step(from, p: p.down, stepped: stepped)
+            Step(from, p: p.sub, stepped: &stepped); Step(from, p: p.down, stepped: &stepped)
         case Node.iter:
             if Tab.DelSubGraph(p.sub) {
                 parser.SemErr("contents of {...} must not be deletable");
                 return
             }
-            if p.next != nil && !stepped[p.next!.n] { Step(from, p:p.next, stepped:stepped) }
-            Step(from, p:p.sub, stepped: stepped)
+            if p.next != nil && !stepped[p.next!.n] { Step(from, p:p.next, stepped:&stepped) }
+            Step(from, p:p.sub, stepped: &stepped)
             if p.state !== from {
                 stepped = BitArray( tab.nodes.count)
-                Step(p.state!, p:p, stepped:stepped)
+                Step(p.state!, p:p, stepped:&stepped)
             }
         case Node.opt:
-            if (p.next != nil && !stepped[p.next!.n]) { Step(from, p:p.next, stepped:stepped) }
-            Step(from, p:p.sub, stepped:stepped)
+            if (p.next != nil && !stepped[p.next!.n]) { Step(from, p:p.next, stepped:&stepped) }
+            Step(from, p:p.sub, stepped:&stepped)
         default: break
         }
     }
@@ -599,22 +596,23 @@ public class DFA {
         }
     }
     
-    func FindTrans (p: Node?, start: Bool, var marked: BitArray) {
+    func FindTrans (p: Node?, start: Bool, inout marked: BitArray) {
         guard let p = p else { return }
         if marked[p.n] { return }
         marked[p.n] = true
         if start {
-            Step(p.state!, p: p, stepped: BitArray( tab.nodes.count)) // start of group of equally numbered nodes
+			var steps = BitArray( tab.nodes.count)
+            Step(p.state!, p: p, stepped: &steps) // start of group of equally numbered nodes
         }
         switch p.typ {
         case Node.clas, Node.chr:
-            FindTrans(p.next, start: true, marked: marked)
+            FindTrans(p.next, start: true, marked: &marked)
         case Node.opt:
-            FindTrans(p.next, start: true, marked: marked); FindTrans(p.sub, start: false, marked: marked)
+            FindTrans(p.next, start: true, marked: &marked); FindTrans(p.sub, start: false, marked: &marked)
         case Node.iter:
-            FindTrans(p.next, start: false, marked: marked); FindTrans(p.sub, start: false, marked: marked)
+            FindTrans(p.next, start: false, marked: &marked); FindTrans(p.sub, start: false, marked: &marked)
         case Node.alt:
-            FindTrans(p.sub, start: false, marked: marked); FindTrans(p.down, start: false, marked: marked)
+            FindTrans(p.sub, start: false, marked: &marked); FindTrans(p.down, start: false, marked: &marked)
         default: break
         }
     }
@@ -626,16 +624,17 @@ public class DFA {
             return
         }
         NumberNodes(p, state: firstState, renumIter: true)
-        FindTrans(p, start: true, marked: BitArray(tab.nodes.count))
+		var trans = BitArray(tab.nodes.count)
+        FindTrans(p, start: true, marked: &trans)
         if p.typ == Node.iter {
-            Step(firstState!, p: p, stepped: BitArray(tab.nodes.count))
+			var steps = BitArray(tab.nodes.count)
+            Step(firstState!, p: p, stepped: &steps)
         }
     }
     
     // match string against current automaton; store it either as a fixedToken or as a litToken
-    public func MatchLiteral(var s: String, sym: Symbol) {
-        let range = NSMakeRange(1, s.count()-2)
-        s = tab.Unescape((s as NSString).substringWithRange(range))
+    public func MatchLiteral(var s: String, _ sym: Symbol) {
+        s = tab.Unescape(s.substring(1, s.count()-2))
         let len = s.count()
         var state = firstState
         var a : Action? = nil
@@ -818,7 +817,7 @@ public class DFA {
                     errors.SemErr("Tokens " + endOf!.name + " and " + t!.state.endOf!.name + " cannot be distinguished")
                 }
                 if t!.state.ctx {
-                    ctx = true;
+                    ctx = true
                     // The following check seems to be unnecessary. It reported an error
                     // if a symbol + context was the prefix of another symbol, e.g.
                     //   s1 = "a" "b" "c".
