@@ -94,7 +94,7 @@ public class Parser {
         if kind == n { Get(); return true }
         else if StartOf(repFol) { return false }
         else {
-            SynErr(n);
+            SynErr(n)
             while !(set(syFol, kind) || set(repFol, kind) || set(0, kind)) {
                 Get()
                 kind = la.kind

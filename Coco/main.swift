@@ -77,7 +77,7 @@ public class Coco {
 		
 		if arg.count > 1 && srcName.length != 0 {
 			do {
-				var srcDir = srcName.stringByDeletingLastPathComponent
+				let srcDir = srcName.stringByDeletingLastPathComponent
 				
 				let scanner = Scanner(fileName: String(srcName))
 				let parser = Parser(scanner: scanner)

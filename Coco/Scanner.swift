@@ -346,7 +346,7 @@ public class Scanner {
 		} else {
 			buffer!.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0;
 		}
-		return false;
+		return false
 	}
 	
 	func Comment1() -> Bool {
@@ -433,7 +433,7 @@ public class Scanner {
 				if ch >= "0" && ch <= "9" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z" { AddCh(); state = 1 }
 				else {
 					t.kind = 1
-					t.val = tval  //.substringToIndex(advance(tval.startIndex, tlen))
+					t.val = tval 
 					CheckLiteral(); return t
 				}
 			case 2:
@@ -544,8 +544,8 @@ public class Scanner {
 	
 	private func SetScannerBehindT() {
 		buffer!.Pos = t.pos
-		NextCh();
-		line = t.line; col = t.col; charPos = t.charPos;
+		NextCh()
+		line = t.line; col = t.col; charPos = t.charPos
 		for _ in 0..<tlen { NextCh() }
 	}
 	

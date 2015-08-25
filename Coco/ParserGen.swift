@@ -169,9 +169,15 @@ public class ParserGen {
     }
     
     func PutCaseLabels (s: BitArray) {
+        var oneLabel = false
+        gen.Write("case ");
         for sym in tab.terminals {
-            if s[sym.n] { gen.Write("case \(sym.n): ") }
+            if s[sym.n] {
+                if oneLabel { gen.Write(", ") }
+                gen.Write("\(sym.n)"); oneLabel = true
+            }
         }
+        gen.Write(": ")
     }
 
     func GenCode (var p: Node?, indent: Int, var isChecked: BitArray ) {
@@ -182,8 +188,8 @@ public class ParserGen {
             case Node.nt:
                 Indent(indent);
                 gen.Write(pn.sym!.name + "(")
-                CopySourcePart(pn.pos,indent:  0)
-                gen.WriteLine(");")
+                CopySourcePart(pn.pos, indent: 0)
+                gen.WriteLine(")")
             case Node.t:
                 Indent(indent);
                 // assert: if isChecked[p.sym.n] is true, then isChecked contains only p.sym.n
@@ -204,7 +210,7 @@ public class ParserGen {
                     GenErrorMsg(altErr, sym: curSy)
                     if acc > 0 {
                         gen.Write("if "); GenCond(pn.set, p: pn); gen.WriteLine(" { Get() } else { SynErr(\(errorNr)) }")
-                    } else { gen.WriteLine("SynErr(\(errorNr)); // ANY node that matches no symbol") }
+                    } else { gen.WriteLine("SynErr(\(errorNr)) // ANY node that matches no symbol") }
                 }
             case Node.eps: break // nothing
             case Node.rslv: break // nothing
@@ -215,7 +221,7 @@ public class ParserGen {
                 GenErrorMsg(syncErr, sym: curSy)
                 s1 = pn.set
                 gen.Write("while !("); GenCond(s1, p: pn); gen.Write(") {")
-                gen.Write("SynErr(\(errorNr)); Get();"); gen.WriteLine("}")
+                gen.Write("SynErr(\(errorNr)); Get() "); gen.WriteLine("}")
 
             case Node.alt:
                 s1 = tab.First(pn)
@@ -227,12 +233,12 @@ public class ParserGen {
                     s1 = tab.Expected(pn2.sub!, curSy: curSy)
                     Indent(indent)
                     if useSwitch {
-                        PutCaseLabels(s1); gen.WriteLine("")
+                        PutCaseLabels(s1); gen.WriteLine()
                     } else if pn2 === pn {
                         gen.Write("if "); GenCond(s1, p: pn2.sub!); gen.WriteLine(" {")
                     } else if pn2.down == nil && equal { gen.WriteLine("} else {")
                     } else {
-                        gen.Write("} else if (");  GenCond(s1, p: pn2.sub!); gen.WriteLine(") {")
+                        gen.Write("} else if ");  GenCond(s1, p: pn2.sub!); gen.WriteLine(" {")
                     }
                     GenCode(pn2.sub, indent: indent + 1, isChecked: s1)
                     p2 = pn2.down
@@ -319,14 +325,14 @@ public class ParserGen {
     func InitSets() {
         for i in 0..<symSet.count {
             let s = symSet[i]
-            gen.Write("\t\t{")
+            gen.Write("\t\t[")
             var j = 0
             for sym in tab.terminals {
                 if s[sym.n] { gen.Write("_T,") } else { gen.Write("_x,") }
                 ++j
                 if j%4 == 0 { gen.Write(" ") }
             }
-            if i == symSet.count-1 { gen.WriteLine("_x}") } else { gen.WriteLine("_x},") }
+            if i == symSet.count-1 { gen.WriteLine("_x]") } else { gen.WriteLine("_x],") }
         }
     }
 
@@ -356,7 +362,7 @@ public class ParserGen {
         g.CopyFramePart("-->declarations"); CopySourcePart(tab.semDeclPos, indent: 0)
         g.CopyFramePart("-->pragmas"); GenCodePragmas()
         g.CopyFramePart("-->productions"); GenProductions()
-        g.CopyFramePart("-->parseRoot"); gen.WriteLine("\t\t\(tab.gramSy!.name)()"); if tab.checkEOF { gen.WriteLine("\t\tExpect(0);") }
+        g.CopyFramePart("-->parseRoot"); gen.WriteLine("\t\t\(tab.gramSy!.name)()"); if tab.checkEOF { gen.WriteLine("\t\tExpect(0)") }
         g.CopyFramePart("-->initialization"); InitSets()
         g.CopyFramePart("-->errors"); gen.Write(err.string)
         g.CopyFramePart("")

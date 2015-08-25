@@ -618,7 +618,7 @@ public class Parser {
     }
     
     func Condition() {
-        while (StartOf(20)) {
+        while StartOf(20) {
             if (la.kind == 30) {
                 Get();
                 Condition();
@@ -723,15 +723,15 @@ public class Parser {
 
 public class Errors {
     public var count = 0                                 // number of errors detected
-    private let errorStream = Darwin.stderr               // error messages go to this stream
-    public var errMsgFormat = "-- line %i col %i: %s"    // 0=line, 1=column, 2=text
+    private let errorStream = Darwin.stderr              // error messages go to this stream
+    public var errMsgFormat = "-- line %i col %i: %@"    // 0=line, 1=column, 2=text
     
     func Write(s: String) { fputs(s, errorStream) }
     func WriteLine(format: String, line: Int, col: Int, s: String) {
         let str = String(format: format, line, col, s)
         WriteLine(str)
     }
-    func WriteLine(s: String) { s + "\n" }
+    func WriteLine(s: String) { Write(s + "\n") }
     
     public func SynErr (line: Int, col: Int, n: Int) {
         var s: String
@@ -796,7 +796,7 @@ public class Errors {
     }
     
     public func SemErr (line: Int, col: Int, s: String) {
-        WriteLine(errMsgFormat, line: line, col: col, s: s);
+        WriteLine(errMsgFormat, line: line, col: col, s: s)
         count++
     }
     
