@@ -112,7 +112,7 @@ public class Coco {
 //                print("-- " + e.Message)
 			}
 		} else {
-			print("Usage: Coco Grammar.ATG {{Option}}\n"
+			print("Usage: Coco Grammar.atg {{Option}}\n"
 				+ "Options:\n"
 				+ "  -namespace <namespaceName>\n"
 				+ "  -frames    <frameFilesDirectory>\n"

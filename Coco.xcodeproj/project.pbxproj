@@ -29,6 +29,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2FD7041B1B8E36D000301A9C /* Copyright.frame */ = {isa = PBXFileReference; lastKnownFileType = text; path = Copyright.frame; sourceTree = "<group>"; };
 		2FED1DC41B84A81400001383 /* Scanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
 		2FED1DC61B84A83D00001383 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
 		2FED1DC81B84CF9100001383 /* String+Char.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Char.swift"; sourceTree = "<group>"; };
@@ -79,6 +80,7 @@
 				47425F9D1B89E450002D9963 /* ParserGen.swift */,
 				476C345E1B848CA500EE75C6 /* Parser.frame */,
 				476C34611B848CA500EE75C6 /* Scanner.frame */,
+				2FD7041B1B8E36D000301A9C /* Copyright.frame */,
 				476C345A1B848CA500EE75C6 /* Coco.atg */,
 				2FED1DC81B84CF9100001383 /* String+Char.swift */,
 				2FED1DCA1B84E21A00001383 /* Tab.swift */,

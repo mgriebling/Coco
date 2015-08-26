@@ -255,10 +255,10 @@ public class Parser {
             tab.CompSymbolSets()
             if tab.ddt[7] { tab.XRef() }
             if tab.GrammarOk() {
-                print("parser", appendNewline: false)
+                print("parser", terminator: "")
                 pgen!.WriteParser()
                 if genScanner {
-                    print(" + scanner", appendNewline: false)
+                    print(" + scanner", terminator: "")
                     dfa!.WriteScanner()
                     if tab.ddt[0] { dfa!.PrintStates() }
                 }
@@ -332,7 +332,7 @@ public class Parser {
         while WeakSeparator(28, 7, 8) {
             TokenTerm(&g2)
             if first { tab.MakeFirstAlt(g!); first = false }
-            tab.MakeAlternative(g!, g2: g2!)
+            tab.MakeAlternative(g!, g2!)
         }
     }
     
@@ -397,7 +397,7 @@ public class Parser {
                 SemErr("bad string in semantic action");
             } else {
                 Get();
-                SemErr("missing end of previous semantic action");
+                SemErr("missing end of previous semantic action")
             }
         }
         Expect(40);
@@ -411,7 +411,7 @@ public class Parser {
         while WeakSeparator(28, 15, 16) {
             Term(&g2);
             if (first) { tab.MakeFirstAlt(g!); first = false; }
-            tab.MakeAlternative(g!, g2: g2!);
+            tab.MakeAlternative(g!, g2!)
         }
     }
     
@@ -485,12 +485,12 @@ public class Parser {
                 g = Graph(rslv);
             }
             Factor(&g2);
-            if (rslv != nil) { tab.MakeSequence(g!, g2: g2!) }
+            if (rslv != nil) { tab.MakeSequence(g!, g2!) }
             else { g = g2 }
             
             while (StartOf(18)) {
                 Factor(&g2);
-                tab.MakeSequence(g!, g2: g2!)
+                tab.MakeSequence(g!, g2!)
             }
         } else if (StartOf(19)) {
             g = Graph(tab.NewNode(Node.eps, nil, 0))
@@ -636,14 +636,14 @@ public class Parser {
         TokenFactor(&g);
         while (StartOf(7)) {
             TokenFactor(&g2);
-            tab.MakeSequence(g!, g2: g2!);
+            tab.MakeSequence(g!, g2!);
         }
         if (la.kind == 38) {
             Get();
             Expect(30);
             TokenExpr(&g2);
             tab.SetContextTrans(g2!.l); dfa!.hasCtxMoves = true;
-            tab.MakeSequence(g!, g2: g2!);
+            tab.MakeSequence(g!, g2!)
             Expect(31);
         }
     }

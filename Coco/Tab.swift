@@ -435,7 +435,7 @@ public class Tab {
 	}
 	
 	// The result will be in g1
-	public func MakeAlternative(g1: Graph, g2: Graph) {
+	public func MakeAlternative(g1: Graph, _ g2: Graph) {
 		g2.l = NewNode(Node.alt, sub: g2.l!); g2.l!.line = g2.l!.sub!.line
 		g2.l!.up = true
 		g2.r!.up = true
@@ -449,7 +449,7 @@ public class Tab {
 	}
 	
 	// The result will be in g1
-	public func MakeSequence(g1: Graph, g2: Graph) {
+	public func MakeSequence(g1: Graph, _ g2: Graph) {
 		var p = g1.r!.next; g1.r!.next = g2.l // link head node
 		while p != nil {  // link substructure
 			let q = p!.next; p!.next = g2.l
@@ -624,7 +624,7 @@ public class Tab {
 	
 	func Ch(ch: Int) -> String {
         let lch = Character(ch)
-		if lch < " " || ch >= 127 || lch == "'" || lch == "\\" { return String(lch) }
+		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(lch) }
 		else { return "\(lch)" }
 	}
 	
@@ -785,8 +785,8 @@ public class Tab {
             // examples a and b must be removed from the ANY set:
             // [a] ANY, or {a|b} ANY, or [a][b] ANY, or (a|) ANY, or
             // A = [a]. A ANY
-            if Tab.DelNode(p) {
-                a = LeadingAny(np.next);
+            if Tab.DelNode(np) {
+                a = LeadingAny(np.next)
                 if (a != nil) {
                     let q = (np.typ == Node.nt) ? np.sym!.graph : np.sub
                     Sets.Subtract(&a!.set, b:First(q))
@@ -802,7 +802,7 @@ public class Tab {
         for sym in nonterminals { FindAS(sym.graph) }
 	}
 	
-    public func Expected(p: Node, curSy: Symbol) -> BitArray {
+    public func Expected(p: Node?, curSy: Symbol) -> BitArray {
         let s = First(p)
         if Tab.DelGraph(p) { s.or(curSy.follow) }
         return s
@@ -920,7 +920,7 @@ public class Tab {
 	}
 	
 	func Char2Hex(ch: Character) -> String {
-		let s = String(format: "\\u%04x", ch.unicodeValue())
+		let s = String(format: "\\u%04X", ch.unicodeValue())
 		return s
 	}
 	
@@ -1084,7 +1084,7 @@ public class Tab {
 				if Tab.DelSubGraph(np.sub) { LL1Error(4, sym: nil) } // e.g. [[...]]
 				else {
 					s1 = Expected0(np.sub!, curSy: curSy);
-					s2 = Expected(np.next!, curSy: curSy);
+					s2 = Expected(np.next, curSy: curSy);
 					CheckOverlap(s1, s2: s2, cond: 2);
 				}
 				CheckAlts(np.sub)
@@ -1191,7 +1191,7 @@ public class Tab {
 
 	public func AllNtReached() -> Bool {
 		var ok = true
-		let visited = BitArray(nonterminals.count)
+		visited = BitArray(nonterminals.count)
 		visited[gramSy!.n] = true
 		MarkReachedNts(gramSy!.graph)
 		for sym in nonterminals {

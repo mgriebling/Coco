@@ -45,7 +45,7 @@ public class ParserGen {
     var errorNr : Int           // highest parser error number
     var curSy : Symbol          // symbol whose production is currently generated
     var fram: NSInputStream?    // parser frame file
-    var gen = NSOutputStream()  // generated parser source file
+	var gen: NSOutputStream?	// generated parser source file
     var err = StringWriter()    // generated parser error messages
     var symSet = [BitArray]()
     
@@ -66,7 +66,8 @@ public class ParserGen {
     }
     
     func Indent (n: Int) {
-        for _ in 1...n { gen.Write("\t") }
+		if n == 0 { return }  // why doesn't Swift just not iterate
+        for _ in 1...n { gen?.Write("\t") }
     }
     
     func Overlaps(s1: BitArray, _ s2: BitArray) -> Bool {
@@ -104,26 +105,26 @@ public class ParserGen {
         if let pos = pos {
             buffer.Pos = pos.beg; ch = buffer.Read()
             if tab.emitLines {
-                gen.WriteLine()
-                gen.WriteLine("#line \(pos.line) \"\(tab.srcName)\"")
+                gen?.WriteLine()
+                gen?.WriteLine("#line \(pos.line) \"\(tab.srcName)\"")
             }
             Indent(indent)
             done: while buffer.Pos <= pos.end {
                 while ch == CR || ch == LF {  // eol is either CR or CRLF or LF
-                    gen.WriteLine(); Indent(indent)
+                    gen?.WriteLine(); Indent(indent)
                     if ch == CR { ch = buffer.Read() } // skip CR
                     if ch == LF { ch = buffer.Read() } // skip LF
                     for (i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++) {
                         // skip blanks at beginning of line
-                        ch = buffer.Read();
+                        ch = buffer.Read()
                     }
                     if buffer.Pos > pos.end { break done }
                 }
-                gen.Write(String(Character(ch)))
+                gen?.Write(String(Character(ch)))
                 ch = buffer.Read()
             }
 
-            if indent > 0 { gen.WriteLine() }
+            if indent > 0 { gen?.WriteLine() }
         }
     }
     
@@ -153,31 +154,31 @@ public class ParserGen {
         if p.typ == Node.rslv { CopySourcePart(p.pos, indent: 0) }
         else {
             var n = Sets.Elements(s)
-            if n == 0 {  gen.Write("false") } // happens if an ANY set matches no symbol
-            else if (n <= maxTerm) {
+            if n == 0 {  gen?.Write("false") } // happens if an ANY set matches no symbol
+            else if n <= maxTerm {
                 for sym in tab.terminals {
                     if s[sym.n] {
-                        gen.Write("la.kind == \(sym.n)")
+                        gen?.Write("la.kind == \(sym.n)")
                         --n
-                        if n > 0 { gen.Write(" || ") }
+                        if n > 0 { gen?.Write(" || ") }
                     }
                 }
             } else {
-                gen.Write("StartOf(\(NewCondSet(s)))")
+                gen?.Write("StartOf(\(NewCondSet(s)))")
             }
         }
     }
     
     func PutCaseLabels (s: BitArray) {
         var oneLabel = false
-        gen.Write("case ");
+        gen?.Write("case ");
         for sym in tab.terminals {
             if s[sym.n] {
-                if oneLabel { gen.Write(", ") }
-                gen.Write("\(sym.n)"); oneLabel = true
+                if oneLabel { gen?.Write(", ") }
+                gen?.Write("\(sym.n)"); oneLabel = true
             }
         }
-        gen.Write(": ")
+        gen?.Write(": ")
     }
 
     func GenCode (var p: Node?, indent: Int, isChecked: BitArray ) {
@@ -187,30 +188,30 @@ public class ParserGen {
             switch pn.typ {
             case Node.nt:
                 Indent(indent);
-                gen.Write(pn.sym!.name + "(")
+                gen?.Write(pn.sym!.name + "(")
                 CopySourcePart(pn.pos, indent: 0)
-                gen.WriteLine(")")
+                gen?.WriteLine(")")
             case Node.t:
                 Indent(indent);
                 // assert: if isChecked[p.sym.n] is true, then isChecked contains only p.sym.n
-                if isChecked[pn.sym!.n] { gen.WriteLine("Get()") }
-                else { gen.WriteLine("Expect(\(pn.sym!.n))") }
+                if isChecked[pn.sym!.n] { gen?.WriteLine("Get()") }
+                else { gen?.WriteLine("Expect(\(pn.sym!.n))") }
             case Node.wt:
                 Indent(indent);
-                s1 = tab.Expected(pn.next!, curSy: curSy)
+                s1 = tab.Expected(pn.next, curSy: curSy)
                 s1.or(tab.allSyncSets)
-                gen.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1)))")
+                gen?.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1)))")
             case Node.any:
                 Indent(indent)
                 let acc = Sets.Elements(pn.set)
                 if tab.terminals.count == (acc + 1) || (acc > 0 && Sets.Equals(pn.set, b:isChecked)) {
                     // either this ANY accepts any terminal (the + 1 = end of file), or exactly what's allowed here
-                    gen.WriteLine("Get()")
+                    gen?.WriteLine("Get()")
                 } else {
                     GenErrorMsg(altErr, sym: curSy)
                     if acc > 0 {
-                        gen.Write("if "); GenCond(pn.set, p: pn); gen.WriteLine(" { Get() } else { SynErr(\(errorNr)) }")
-                    } else { gen.WriteLine("SynErr(\(errorNr)) // ANY node that matches no symbol") }
+                        gen?.Write("if "); GenCond(pn.set, p: pn); gen?.WriteLine(" { Get() } else { SynErr(\(errorNr)) }")
+                    } else { gen?.WriteLine("SynErr(\(errorNr)) // ANY node that matches no symbol") }
                 }
             case Node.eps: break // nothing
             case Node.rslv: break // nothing
@@ -220,64 +221,65 @@ public class ParserGen {
                 Indent(indent)
                 GenErrorMsg(syncErr, sym: curSy)
                 s1 = pn.set
-                gen.Write("while !("); GenCond(s1, p: pn); gen.Write(") {")
-                gen.Write("SynErr(\(errorNr)); Get() "); gen.WriteLine("}")
+                gen?.Write("while !("); GenCond(s1, p: pn); gen?.Write(") {")
+                gen?.Write("SynErr(\(errorNr)); Get() "); gen?.WriteLine("}")
 
             case Node.alt:
                 s1 = tab.First(pn)
                 let equal = Sets.Equals(s1, b: isChecked)
                 let useSwitch = UseSwitch(pn)
-                if useSwitch { Indent(indent); gen.WriteLine("switch la.kind {") }
+                if useSwitch { Indent(indent); gen?.WriteLine("switch la.kind {") }
                 p2 = pn
                 while let pn2 = p2 {
-                    s1 = tab.Expected(pn2.sub!, curSy: curSy)
+                    s1 = tab.Expected(pn2.sub, curSy: curSy)
                     Indent(indent)
                     if useSwitch {
-                        PutCaseLabels(s1); gen.WriteLine()
+                        PutCaseLabels(s1); gen?.WriteLine()
                     } else if pn2 === pn {
-                        gen.Write("if "); GenCond(s1, p: pn2.sub!); gen.WriteLine(" {")
-                    } else if pn2.down == nil && equal { gen.WriteLine("} else {")
+                        gen?.Write("if "); GenCond(s1, p: pn2.sub!); gen?.WriteLine(" {")
+                    } else if pn2.down == nil && equal {
+						gen?.WriteLine("} else {")
                     } else {
-                        gen.Write("} else if ");  GenCond(s1, p: pn2.sub!); gen.WriteLine(" {")
+                        gen?.Write("} else if ");  GenCond(s1, p: pn2.sub!); gen?.WriteLine(" {")
                     }
                     GenCode(pn2.sub, indent: indent + 1, isChecked: s1)
                     p2 = pn2.down
                 }
                 Indent(indent)
                 if equal {
-                    gen.WriteLine("}")
+                    gen?.WriteLine("}")
                 } else {
                     GenErrorMsg(altErr, sym: curSy)
                     if useSwitch {
-                        gen.WriteLine("default: SynErr(\(errorNr))")
-                        Indent(indent); gen.WriteLine("}")
+                        gen?.WriteLine("default: SynErr(\(errorNr))")
+                        Indent(indent); gen?.WriteLine("}")
                     } else {
-                        gen.Write("} "); gen.WriteLine("else { SynErr(\(errorNr)) }")
+                        gen?.Write("} "); gen?.WriteLine("else { SynErr(\(errorNr)) }")
                     }
                 }
             case Node.iter:
                 Indent(indent)
                 p2 = pn.sub
-                gen.Write("while ")
+                gen?.Write("while ")
                 if p2!.typ == Node.wt {
-                    s1 = tab.Expected(p2!.next!, curSy: curSy)
-                    s2 = tab.Expected(pn.next!, curSy: curSy)
-                    gen.Write("WeakSeparator(\(p2!.sym!.n),\(NewCondSet(s1)),\(NewCondSet(s2))) ")
+                    s1 = tab.Expected(p2!.next, curSy: curSy)
+                    s2 = tab.Expected(pn.next, curSy: curSy)
+                    gen?.Write("WeakSeparator(\(p2!.sym!.n),\(NewCondSet(s1)),\(NewCondSet(s2))) ")
                     s1 = BitArray(tab.terminals.count)  // for inner structure
                     if p2!.up || p2!.next == nil { p2 = nil } else { p2 = p2!.next }
                 } else {
                     s1 = tab.First(p2)
                     GenCond(s1, p: p2!)
                 }
-                gen.WriteLine(" {")
+                gen?.WriteLine(" {")
                 GenCode(p2, indent: indent + 1, isChecked: s1)
-                Indent(indent); gen.WriteLine("}")
+                Indent(indent); gen?.WriteLine("}")
             case Node.opt:
                 s1 = tab.First(pn.sub)
                 Indent(indent)
-                gen.Write("if "); GenCond(s1, p: pn.sub!); gen.WriteLine(" {")
+                gen?.Write("if "); GenCond(s1, p: pn.sub!); gen?.WriteLine(" {")
                 GenCode(pn.sub, indent: indent + 1, isChecked: s1)
-                Indent(indent); gen.WriteLine("}")
+                Indent(indent); gen?.WriteLine("}")
             default: break
             }
             if pn.typ != Node.eps && pn.typ != Node.sem && pn.typ != Node.sync {
@@ -291,48 +293,48 @@ public class ParserGen {
     func GenTokens() {
         for sym in tab.terminals {
             if sym.name[0].isLetter() {
-                gen.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
+                gen?.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
             }
         }
     }
     
     func GenPragmas() {
         for sym in tab.pragmas {
-            gen.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
+            gen?.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
         }
     }
     
     func GenCodePragmas() {
         for sym in tab.pragmas {
-            gen.WriteLine("\t\t\t\tif la.kind == \(sym.n) {{")
+            gen?.WriteLine("\t\t\t\tif la.kind == \(sym.n) {")
             CopySourcePart(sym.semPos, indent: 4)
-            gen.WriteLine("\t\t\t\t}")
+            gen?.WriteLine("\t\t\t\t}")
         }
     }
     
     func GenProductions() {
         for sym in tab.nonterminals {
             curSy = sym;
-            gen.Write("\tfunc \(sym.name)() ")
+            gen?.Write("\tfunc \(sym.name)(")
             CopySourcePart(sym.attrPos, indent: 0)
-            gen.WriteLine(" {")
+            gen?.WriteLine(") {")
             CopySourcePart(sym.semPos, indent: 2)
             GenCode(sym.graph, indent: 2, isChecked: BitArray(tab.terminals.count))
-            gen.WriteLine("\t}"); gen.WriteLine()
+            gen?.WriteLine("\t}"); gen?.WriteLine()
         }
     }
     
     func InitSets() {
         for i in 0..<symSet.count {
             let s = symSet[i]
-            gen.Write("\t\t[")
+            gen?.Write("\t\t[")
             var j = 0
             for sym in tab.terminals {
-                if s[sym.n] { gen.Write("_T,") } else { gen.Write("_x,") }
+                if s[sym.n] { gen?.Write("_T,") } else { gen?.Write("_x,") }
                 ++j
-                if j%4 == 0 { gen.Write(" ") }
+                if j%4 == 0 { gen?.Write(" ") }
             }
-            if i == symSet.count-1 { gen.WriteLine("_x]") } else { gen.WriteLine("_x],") }
+            if i == symSet.count-1 { gen?.WriteLine("_x]") } else { gen?.WriteLine("_x],") }
         }
     }
 
@@ -348,27 +350,27 @@ public class ParserGen {
         g.GenCopyright()
         g.SkipFramePart("-->begin")
         
-        if usingPos != nil { CopySourcePart(usingPos, indent: 0); gen.WriteLine() }
+        if usingPos != nil { CopySourcePart(usingPos, indent: 0); gen?.WriteLine() }
         g.CopyFramePart("-->namespace")
         /* AW open namespace, if it exists */
         if !tab.nsName.isEmpty {
-            gen.WriteLine("namespace \(tab.nsName) {{")
-            gen.WriteLine()
+            gen?.WriteLine("namespace \(tab.nsName) {{")
+            gen?.WriteLine()
         }
         g.CopyFramePart("-->constants")
         GenTokens() /* ML 2002/09/07 write the token kinds */
-        gen.WriteLine("\tpublic let maxT = \(tab.terminals.count-1)")
+        gen?.WriteLine("\tpublic let maxT = \(tab.terminals.count-1)")
         GenPragmas() /* ML 2005/09/23 write the pragma kinds */
         g.CopyFramePart("-->declarations"); CopySourcePart(tab.semDeclPos, indent: 0)
         g.CopyFramePart("-->pragmas"); GenCodePragmas()
         g.CopyFramePart("-->productions"); GenProductions()
-        g.CopyFramePart("-->parseRoot"); gen.WriteLine("\t\t\(tab.gramSy!.name)()"); if tab.checkEOF { gen.WriteLine("\t\tExpect(0)") }
+        g.CopyFramePart("-->parseRoot"); gen?.WriteLine("\t\t\(tab.gramSy!.name)()"); if tab.checkEOF { gen?.WriteLine("\t\tExpect(0)") }
         g.CopyFramePart("-->initialization"); InitSets()
-        g.CopyFramePart("-->errors"); gen.Write(err.string)
+        g.CopyFramePart("-->errors"); gen?.Write(err.string)
         g.CopyFramePart("")
         /* AW 2002-12-20 close namespace, if it exists */
-        if !tab.nsName.isEmpty { gen.Write("}") }
-        gen.close()
+        if !tab.nsName.isEmpty { gen?.Write("}") }
+        gen?.close()
         buffer.Pos = oldPos
     }
     
@@ -387,7 +389,7 @@ public class StringWriter {
     
     var stream: String = ""
     
-    public func Write(s: String) { print(s, &stream) }
+    public func Write(s: String) { print(s, stream) }
     public func WriteLine(s: String = "") { Write(s + "\n") }
     
     public var string : String { return stream }

@@ -96,7 +96,6 @@ public class Buffer {
 		if bufPos < bufLen {
 			return Int(buf[bufPos++])
 		} else if Pos < fileLen {
-			//			Pos = Pos; // shift buffer start to Pos
 			return Int(buf[bufPos++])
 		} else if !stream.CanSeek && ReadNextStreamChunk() > 0 {
 			return Int(buf[bufPos++])
@@ -127,19 +126,19 @@ public class Buffer {
 	public var Pos: Int {
 		get { return bufPos + bufStart }
 		set {
-			if (newValue >= fileLen && !stream.CanSeek) {
+			if newValue >= fileLen && !stream.CanSeek {
 				// Wanted position is after buffer and the stream
 				// is not seek-able e.g. network or console,
 				// thus we have to read the stream manually till
 				// the wanted position is in sight.
-				while (newValue >= fileLen && ReadNextStreamChunk() > 0) {}
+				while newValue >= fileLen && ReadNextStreamChunk() > 0 {}
 			}
 			
-			if (newValue < 0 || newValue > fileLen) {
+			if newValue < 0 || newValue > fileLen {
 				assert(true, "buffer out of bounds access, position: \(newValue)")
 			}
 			
-			if (newValue >= bufStart && newValue < bufStart + bufLen) { // already in buffer
+			if newValue >= bufStart && newValue < bufStart + bufLen { // already in buffer
 				bufPos = newValue - bufStart
 				//			} else if (stream != null) { // must be swapped in
 				//				stream.Seek(value, SeekOrigin.Begin);
@@ -287,10 +286,10 @@ public class Scanner {
 		pos = -1; line = 1; col = 0; charPos = -1
 		oldEols = 0
 		NextCh()
-		if ch.unicodeValue() == 0xEF { // check optional byte order mark for UTF-8
-			NextCh(); let ch1 = ch.unicodeValue()
-			NextCh(); let ch2 = ch.unicodeValue()
-			if ch1 != 0xBB || ch2 != 0xBF {
+		if ch == "\u{0EF}" { // check optional byte order mark for UTF-8
+			NextCh(); let ch1 = ch
+			NextCh(); let ch2 = ch
+			if ch1 != "\u{0BB}" || ch2 != "\u{0BF}" {
 				assert(false, "illegal byte order mark: EF \(ch1) \(ch2)")
 			}
 			buffer = UTF8Buffer(b: buffer!); col = 0; charPos = -1
@@ -320,8 +319,6 @@ public class Scanner {
 			NextCh()
 		}
 	}
-	
-	
 	
 	func Comment0() -> Bool {
 		var level = 1
@@ -417,8 +414,7 @@ public class Scanner {
 		var state = Scanner.start[ch.unicodeValue()] ?? 0
 		tval = ""; AddCh()
 		
-		loop:
-		repeat {
+		loop: repeat {
 			switch state {
 			case -1: t.kind = eofSym; break loop // NextCh already done
 			case 0:
@@ -537,7 +533,7 @@ public class Scanner {
 			default: break loop
 				
 			}
-		} while (true)
+		} while true
 		t.val = tval  //.substringToIndex(advance(tval.startIndex, tlen))
 		return t
 	}

@@ -310,7 +310,12 @@ class Generator {
         let fileManager = NSFileManager.defaultManager()
         return fileManager.fileExistsAtPath(name)
     }
-    
+	
+	func fileDelete (name: String) throws {
+		let fileManager = NSFileManager.defaultManager()
+		try fileManager.removeItemAtPath(name)
+	}
+	
     func fileCopy (from: String, to: String) throws {
         let fileManager = NSFileManager.defaultManager()
         try fileManager.copyItemAtPath(from, toPath: to)
@@ -322,20 +327,25 @@ class Generator {
         if frameFile.isEmpty || !fileExists(frameFile) { assert(false, "Cannot find : " + frame) }
         
         let fram = NSInputStream(fileAtPath: frameFile)
+		fram?.open()
         assert(fram != nil && fram!.hasBytesAvailable, "Cannot open frame file: " + frameFile)
         self.fram = fram!
         return fram!
     }
     
-    func OpenGen(target: String) -> NSOutputStream {
+    func OpenGen(target: String) -> NSOutputStream? {
         let fn = (tab.outDir as NSString).stringByAppendingPathComponent(target)
         do {
-            if fileExists(fn) { try fileCopy(fn, to: fn + ".old") }
-            gen = NSOutputStream(toFileAtPath: fn, append: false)!
+            if fileExists(fn) {
+				if fileExists(fn + ".old") { try fileDelete(fn + ".old") }
+				try fileCopy(fn, to: fn + ".old")
+			}
+            gen = NSOutputStream(toFileAtPath: fn, append: false)
+			gen?.open()
         } catch _ {
             assert(false, "Cannot generate file: " + fn)
         }
-        return gen!
+        return gen
     }
     
     func GenCopyright() {
@@ -347,6 +357,7 @@ class Generator {
         let scannerFram = fram
         if let lfram = NSInputStream(fileAtPath: copyFr) {
             fram = lfram
+			fram?.open()
             CopyFramePart("")
             fram = scannerFram
         } else {
@@ -396,7 +407,8 @@ class Generator {
         if fram!.read(&buffer, maxLength: 1) == 1 {
             return Int(buffer[0])
         } else {
-            assert(false, "Error reading frame file: " + frameFile)
+			return EOF
+            // assert(false, "Error reading frame file: " + frameFile)
         }
     }
 }
@@ -411,8 +423,8 @@ public class DFA {
     private var firstState: State?
     private var lastState: State?       // last allocated state
     private var lastSimState = 0        // last non melted state
-    private var fram = NSInputStream()  // scanner frame input
-    private var gen = NSOutputStream()  // generated scanner file
+	private var fram : NSInputStream?	// scanner frame input
+	private var gen : NSOutputStream?	// generated scanner file
     private var curSy = Symbol()        // current token to be recognized (in FindTrans)
     private var dirtyDFA: Bool          // DFA may become nondeterministic in MatchLiteral
     
@@ -441,20 +453,20 @@ public class DFA {
     //---------- Output primitives
     private func Ch(ch: Int) -> String {
         let lch = Character(ch)
-        if lch < " " || ch >= 127 || lch == "\'" || lch == "\\" { return String(ch) }
-        else { return "\(lch)" }
+		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(format: "\"\\u{0%X}\"", ch) }
+        else { return "\"\(lch)\"" }
     }
     
     private func ChCond(ch: Character) -> String {
-        return "ch == \(ch)"
+        return "ch == \(Ch(ch.unicodeValue()))"
     }
     
     private func PutRange(s: CharSet) {
         for var r = s.head; r != nil; r = r!.next {
-            if r!.from == r!.to { gen.Write("ch == " + Ch(r!.from)); }
-            else if r!.from == 0 { gen.Write("ch <= " + Ch(r!.to)); }
-            else { gen.Write("ch >= " + Ch(r!.from) + " && ch <= " + Ch(r!.to)) }
-            if r!.next != nil { gen.Write(" || ") }
+            if r!.from == r!.to { gen?.Write("ch == " + Ch(r!.from)); }
+            else if r!.from == 0 { gen?.Write("ch <= " + Ch(r!.to)); }
+            else { gen?.Write("ch >= " + Ch(r!.from) + " && ch <= " + Ch(r!.to)) }
+            if r!.next != nil { gen?.Write(" || ") }
         }
     }
     
@@ -885,54 +897,54 @@ public class DFA {
     //------------------------ scanner generation ----------------------
     
     func GenComBody(com: Comment) {
-        gen.WriteLine(  "\t\t\tfor (;;) {")
-        gen.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen.WriteLine("{")
+        gen?.WriteLine(  "\t\t\tfor (;;) {")
+        gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
-            gen.WriteLine("\t\t\t\t\tlevel--")
-            gen.WriteLine("\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
-            gen.WriteLine("\t\t\t\t\tNextCh()")
+            gen?.WriteLine("\t\t\t\t\tlevel--")
+            gen?.WriteLine("\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
+            gen?.WriteLine("\t\t\t\t\tNextCh()")
         } else {
-            gen.WriteLine("\t\t\t\t\tNextCh()")
-            gen.WriteLine("\t\t\t\t\tif \(ChCond(com.stop[1])) {{")
-            gen.WriteLine("\t\t\t\t\t\tlevel--;");
-            gen.WriteLine("\t\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
-            gen.WriteLine("\t\t\t\t\t\tNextCh()")
-            gen.WriteLine("\t\t\t\t\t}")
+            gen?.WriteLine("\t\t\t\t\tNextCh()")
+            gen?.WriteLine("\t\t\t\t\tif \(ChCond(com.stop[1])) {")
+            gen?.WriteLine("\t\t\t\t\t\tlevel--;");
+            gen?.WriteLine("\t\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
+            gen?.WriteLine("\t\t\t\t\t\tNextCh()")
+            gen?.WriteLine("\t\t\t\t\t}")
         }
         if com.nested {
-            gen.Write    ("\t\t\t\t}"); gen.Write(" else if \(ChCond(com.start[0])) "); gen.WriteLine("{")
+            gen?.Write    ("\t\t\t\t}"); gen?.Write(" else if \(ChCond(com.start[0])) "); gen?.WriteLine("{")
             if com.start.count() == 1 {
-                gen.WriteLine("\t\t\t\t\tlevel++; NextCh()")
+                gen?.WriteLine("\t\t\t\t\tlevel++; NextCh()")
             } else {
-                gen.WriteLine("\t\t\t\t\tNextCh()");
-                gen.Write    ("\t\t\t\t\tif \(ChCond(com.start[1])) "); gen.WriteLine("{")
-                gen.WriteLine("\t\t\t\t\t\tlevel++; NextCh()")
-                gen.WriteLine("\t\t\t\t\t}")
+                gen?.WriteLine("\t\t\t\t\tNextCh()");
+                gen?.Write    ("\t\t\t\t\tif \(ChCond(com.start[1])) "); gen?.WriteLine("{")
+                gen?.WriteLine("\t\t\t\t\t\tlevel++; NextCh()")
+                gen?.WriteLine("\t\t\t\t\t}")
             }
         }
-        gen.WriteLine(    "\t\t\t\t} else if ch == Buffer.EOF { return false }")
-        gen.WriteLine(    "\t\t\t\telse { NextCh() }")
-        gen.WriteLine(    "\t\t\t}")
+        gen?.WriteLine(    "\t\t\t\t} else if ch == Buffer.EOF { return false }")
+        gen?.WriteLine(    "\t\t\t\telse { NextCh() }")
+        gen?.WriteLine(    "\t\t\t}")
     }
     
     func GenComment(com: Comment, i: Int) {
-        gen.WriteLine();
-        gen.Write    ("\tfunc Comment\(i)() -> Bool "); gen.WriteLine("{");
-        gen.WriteLine("\t\tvar level = 1; var pos0 = pos; var line0 = line, var col0 = col; var charPos0 = charPos")
+        gen?.WriteLine();
+        gen?.Write    ("\tfunc Comment\(i)() -> Bool "); gen?.WriteLine("{");
+        gen?.WriteLine("\t\tvar level = 1; var pos0 = pos; var line0 = line, var col0 = col; var charPos0 = charPos")
         if com.start.count() == 1 {
-            gen.WriteLine("\t\tNextCh()")
+            gen?.WriteLine("\t\tNextCh()")
             GenComBody(com);
         } else {
-            gen.WriteLine("\t\tNextCh()");
-            gen.Write    ("\t\tif \(ChCond(com.start[1])) "); gen.WriteLine("{")
-            gen.WriteLine("\t\t\tNextCh()")
+            gen?.WriteLine("\t\tNextCh()");
+            gen?.Write    ("\t\tif \(ChCond(com.start[1])) "); gen?.WriteLine("{")
+            gen?.WriteLine("\t\t\tNextCh()")
             GenComBody(com)
-            gen.WriteLine("\t\t} else {")
-            gen.WriteLine("\t\t\tbuffer.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0")
-            gen.WriteLine("\t\t}")
-            gen.WriteLine("\t\treturn false")
+            gen?.WriteLine("\t\t} else {")
+            gen?.WriteLine("\t\t\tbuffer.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0")
+            gen?.WriteLine("\t\t}")
+            gen?.WriteLine("\t\treturn false")
         }
-        gen.WriteLine("\t}")
+        gen?.WriteLine("\t}")
     }
     
     func SymName(sym: Symbol) -> String {
@@ -946,62 +958,62 @@ public class DFA {
     
     func GenLiterals () {
         if ignoreCase {
-            gen.WriteLine("\t\tswitch t.val.lowercaseString {")
+            gen?.WriteLine("\t\tswitch t.val.lowercaseString {")
         } else {
-            gen.WriteLine("\t\tswitch t.val {")
+            gen?.WriteLine("\t\tswitch t.val {")
         }
         for sym in tab.terminals + tab.pragmas {
             if sym.tokenKind == Symbol.litToken {
                 var name = SymName(sym)
                 if ignoreCase { name = name.lowercaseString }
                 // sym.name stores literals with quotes, e.g. "\"Literal\""
-                gen.WriteLine("\t\t\tcase \(name): t.kind = \(sym.n)")
+                gen?.WriteLine("\t\t\tcase \(name): t.kind = \(sym.n)")
             }
         }
-        gen.WriteLine("\t\t\tdefault: break")
-        gen.Write("\t\t}")
+        gen?.WriteLine("\t\t\tdefault: break")
+        gen?.Write("\t\t}")
     }
     
     func WriteState(state: State) {
         let endOf = state.endOf
-        gen.WriteLine("\t\t\tcase \(state.nr):")
+        gen?.WriteLine("\t\t\tcase \(state.nr):")
         if (endOf != nil && state.firstAction != nil) {
-            gen.WriteLine("\t\t\t\trecEnd = pos; recKind = \(endOf!.n)")
+            gen?.WriteLine("\t\t\t\trecEnd = pos; recKind = \(endOf!.n)")
         }
         var ctxEnd = state.ctx
         for var action = state.firstAction; action != nil; action = action!.next {
-            if action === state.firstAction { gen.Write("\t\t\t\tif ") }
-            else { gen.Write("\t\t\t\telse if ") }
-            if action!.typ == Node.chr { gen.Write(ChCond(Character(action!.sym))) }
+            if action === state.firstAction { gen?.Write("\t\t\t\tif ") }
+            else { gen?.Write("\t\t\t\telse if ") }
+            if action!.typ == Node.chr { gen?.Write(ChCond(Character(action!.sym))) }
             else { PutRange(tab.CharClassSet(action!.sym)) }
-            gen.Write(" {")
+            gen?.Write(" {")
             if action!.tc == Node.contextTrans {
-                gen.Write("apx++; "); ctxEnd = false
+                gen?.Write("apx++; "); ctxEnd = false
             } else if (state.ctx) {
-                gen.Write("apx = 0; ")
+                gen?.Write("apx = 0; ")
             }
-            gen.Write("AddCh(); goto case \(action!.target!.state.nr)")
-            gen.WriteLine("}")
+            gen?.Write(" AddCh(); state = \(action!.target!.state.nr) ")
+            gen?.WriteLine("}")
         }
         if state.firstAction == nil {
-            gen.Write("\t\t\t\t{");
+            gen?.Write("\t\t\t\t{");
         } else {
-            gen.Write("\t\t\t\telse {")
+            gen?.Write("\t\t\t\telse {")
         }
         if ctxEnd { // final context state: cut appendix
-            gen.WriteLine()
-            gen.WriteLine("\t\t\t\t\ttlen -= apx")
-            gen.WriteLine("\t\t\t\t\tSetScannerBehindT()")
-            gen.Write("\t\t\t\t\t")
+            gen?.WriteLine()
+            gen?.WriteLine("\t\t\t\t\ttlen -= apx")
+            gen?.WriteLine("\t\t\t\t\tSetScannerBehindT()")
+            gen?.Write("\t\t\t\t\t")
         }
         if endOf == nil {
-            gen.WriteLine("goto case 0 }")
+            gen?.WriteLine(" state = 0 }")
         } else {
-            gen.Write("t.kind = \(endOf!.n) ")
+            gen?.Write(" t.kind = \(endOf!.n); ")
             if endOf!.tokenKind == Symbol.classLitToken {
-                gen.WriteLine("t.val = String(tval, 0, tlen); CheckLiteral(); return t }")
+                gen?.WriteLine(" t.val = tval; CheckLiteral(); return t }")
             } else {
-                gen.WriteLine("break }")
+                gen?.WriteLine("break loop }")
             }
         }
     }
@@ -1010,21 +1022,21 @@ public class DFA {
         for var action = firstState!.firstAction; action != nil; action = action!.next {
             let targetState = action!.target!.state.nr
             if action!.typ == Node.chr {
-                gen.WriteLine("\t\tstart[\(action!.sym)] = \(targetState)")
+                gen?.WriteLine("\t\tstart[\(action!.sym)] = \(targetState)")
             } else {
                 let s = tab.CharClassSet(action!.sym)
                 for var r = s.head; r != nil; r = r!.next {
-                    gen.WriteLine("\t\tfor i in \(r!.from)...\(r!.to) { start[i] = \(targetState) }")
+                    gen?.WriteLine("\t\tfor i in \(r!.from)...\(r!.to) { start[i] = \(targetState) }")
                 }
             }
         }
-        gen.WriteLine("\t\tstart[Buffer.EOF] = -1")
+        gen?.WriteLine("\t\tstart[Buffer.EOF] = -1")
     }
     
     public func WriteScanner() {
         let g = Generator(tab: tab)
         fram = g.OpenFrame("Scanner.frame")
-        gen = g.OpenGen("Scanner.cs")
+        gen = g.OpenGen("Scanner.swift")
         if dirtyDFA { MakeDeterministic() }
         
         g.GenCopyright()
@@ -1032,28 +1044,28 @@ public class DFA {
         
         g.CopyFramePart("-->namespace")
         if !tab.nsName.isEmpty {
-            gen.Write("namespace ")
-            gen.Write(tab.nsName)
-            gen.Write(" {")
+            gen?.Write("namespace ")
+            gen?.Write(tab.nsName)
+            gen?.Write(" {")
         }
         g.CopyFramePart("-->declarations")
-        gen.WriteLine("\tlet maxT = \(tab.terminals.count - 1)")
-        gen.WriteLine("\tlet noSym = \(tab.noSym.n)")
+        gen?.WriteLine("\tlet maxT = \(tab.terminals.count - 1)")
+        gen?.WriteLine("\tlet noSym = \(tab.noSym.n)")
         if ignoreCase {
-            gen.Write("\tvar valCh : Character       // current input character (for token.val)")
+            gen?.Write("\tvar valCh : Character       // current input character (for token.val)")
         }
         g.CopyFramePart("-->initialization")
         WriteStartTab();
         g.CopyFramePart("-->casing1")
         if ignoreCase {
-            gen.WriteLine("\t\tif ch != Buffer.EOF {")
-            gen.WriteLine("\t\t\tvalCh = Character(ch)")
-            gen.WriteLine("\t\t\tch = Character(ch).lowercase")
-            gen.WriteLine("\t\t}")
+            gen?.WriteLine("\t\tif ch.unicodeValue() != Buffer.EOF {")
+            gen?.WriteLine("\t\t\tvalCh = Character(ch)")
+            gen?.WriteLine("\t\t\tch = Character(ch).lowercase")
+            gen?.WriteLine("\t\t}")
         }
         g.CopyFramePart("-->casing2")
-        gen.Write("\t\t\ttval[tlen++] = ")
-        if ignoreCase { gen.Write("valCh") } else { gen.Write("Character(ch)") }
+        gen?.Write("\t\t\ttval[tlen++] = ")
+        if ignoreCase { gen?.Write("valCh") } else { gen?.Write("Character(ch)") }
         g.CopyFramePart("-->comments")
         var com = firstComment
         var comIdx = 0
@@ -1063,28 +1075,28 @@ public class DFA {
         }
         g.CopyFramePart("-->literals"); GenLiterals();
         g.CopyFramePart("-->scan1");
-        gen.Write("\t\t\t");
-        if tab.ignored.Elements() > 0 { PutRange(tab.ignored) } else { gen.Write("false") }
+        gen?.Write("\t\t\t");
+        if tab.ignored.Elements() > 0 { PutRange(tab.ignored) } else { gen?.Write("false") }
         g.CopyFramePart("-->scan2")
         if (firstComment != nil) {
-            gen.Write("\t\tif ")
+            gen?.Write("\t\tif ")
             com = firstComment; comIdx = 0
             while com != nil {
-                gen.Write(ChCond(com!.start[0]))
-                gen.Write(" && Comment\(comIdx)()")
-                if com!.next != nil { gen.Write(" ||") }
+                gen?.Write(ChCond(com!.start[0]))
+                gen?.Write(" && Comment\(comIdx)()")
+                if com!.next != nil { gen?.Write(" || ") }
                 com = com!.next; comIdx++
             }
-            gen.Write(" { return NextToken();")
+            gen?.Write(" { return NextToken() }")
         }
-        if hasCtxMoves { gen.WriteLine(); gen.Write("\t\tvar apx = 0") } /* pdt */
+        if hasCtxMoves { gen?.WriteLine(); gen?.Write("\t\tvar apx = 0") } /* pdt */
         g.CopyFramePart("-->scan3")
         for var state = firstState!.next; state != nil; state = state!.next {
             WriteState(state!)
         }
         g.CopyFramePart("")
-        if !tab.nsName.isEmpty { gen.Write("}") }
-        gen.close()
+        if !tab.nsName.isEmpty { gen?.Write("}") }
+        gen?.close()
     }
     
 } // end DFA

@@ -14,14 +14,14 @@ public extension String {
 	
 	public subscript (n: Int) -> Character {
 		get {
-			let s = advance(self.startIndex, n)
+			let s = self.startIndex.advancedBy(n)
 			if s < self.endIndex {
 				return self[s]
 			}
 			return "\0"
 		}
 		set {
-			let s = advance(self.startIndex, n)
+			let s = self.startIndex.advancedBy(n)
 			if s < self.endIndex {
 				self = self.substringToIndex(s) + "\(newValue)" + self.substringFromIndex(s.successor())
 			}
