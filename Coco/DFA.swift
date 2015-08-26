@@ -494,18 +494,18 @@ public class DFA {
         }
     }
     
-    func FindUsedStates(state: State, inout used:BitArray) {
+    func FindUsedStates(state: State, used:BitArray) {
         if used[state.nr] { return }
         used[state.nr] = true
         for var a = state.firstAction; a != nil; a = a!.next {
-            FindUsedStates(a!.target!.state, used: &used)
+            FindUsedStates(a!.target!.state, used: used)
         }
     }
     
     func DeleteRedundantStates() {
         var newState = [State](count: lastStateNr+1, repeatedValue: State())
-        var used = BitArray(lastStateNr + 1)
-        FindUsedStates(firstState!, used: &used)
+        let used = BitArray(lastStateNr+1)
+        FindUsedStates(firstState!, used: used)
         // combine equal final states
         for var s1 = firstState!.next; s1 != nil; s1 = s1!.next { // firstState cannot be final
             if used[s1!.nr] && s1!.endOf != nil && s1!.firstAction == nil && !s1!.ctx {
@@ -540,28 +540,27 @@ public class DFA {
         else { return p!.state! }
     }
     
-    func Step(from: State, p: Node?, inout stepped: BitArray) {
+    func Step(from: State, p: Node?, stepped: BitArray) {
         guard let p = p else { return }
         stepped[p.n] = true
         switch p.typ {
         case Node.clas, Node.chr:
             NewTransition(from, to: TheState(p.next), typ: p.typ, sym: p.val, tc: p.code)
         case Node.alt:
-            Step(from, p: p.sub, stepped: &stepped); Step(from, p: p.down, stepped: &stepped)
+            Step(from, p: p.sub, stepped: stepped); Step(from, p: p.down, stepped: stepped)
         case Node.iter:
             if Tab.DelSubGraph(p.sub) {
                 parser.SemErr("contents of {...} must not be deletable");
                 return
             }
-            if p.next != nil && !stepped[p.next!.n] { Step(from, p:p.next, stepped:&stepped) }
-            Step(from, p:p.sub, stepped: &stepped)
+            if p.next != nil && !stepped[p.next!.n] { Step(from, p:p.next, stepped:stepped) }
+            Step(from, p:p.sub, stepped: stepped)
             if p.state !== from {
-                stepped = BitArray( tab.nodes.count)
-                Step(p.state!, p:p, stepped:&stepped)
+                Step(p.state!, p:p, stepped:BitArray(tab.nodes.count))
             }
         case Node.opt:
-            if (p.next != nil && !stepped[p.next!.n]) { Step(from, p:p.next, stepped:&stepped) }
-            Step(from, p:p.sub, stepped:&stepped)
+            if (p.next != nil && !stepped[p.next!.n]) { Step(from, p:p.next, stepped:stepped) }
+            Step(from, p:p.sub, stepped:stepped)
         default: break
         }
     }
@@ -596,23 +595,22 @@ public class DFA {
         }
     }
     
-    func FindTrans (p: Node?, start: Bool, inout marked: BitArray) {
+    func FindTrans (p: Node?, start: Bool, marked: BitArray) {
         guard let p = p else { return }
         if marked[p.n] { return }
         marked[p.n] = true
         if start {
-			var steps = BitArray( tab.nodes.count)
-            Step(p.state!, p: p, stepped: &steps) // start of group of equally numbered nodes
+            Step(p.state!, p: p, stepped: BitArray(tab.nodes.count)) // start of group of equally numbered nodes
         }
         switch p.typ {
         case Node.clas, Node.chr:
-            FindTrans(p.next, start: true, marked: &marked)
+            FindTrans(p.next, start: true, marked: marked)
         case Node.opt:
-            FindTrans(p.next, start: true, marked: &marked); FindTrans(p.sub, start: false, marked: &marked)
+            FindTrans(p.next, start: true, marked: marked); FindTrans(p.sub, start: false, marked: marked)
         case Node.iter:
-            FindTrans(p.next, start: false, marked: &marked); FindTrans(p.sub, start: false, marked: &marked)
+            FindTrans(p.next, start: false, marked: marked); FindTrans(p.sub, start: false, marked: marked)
         case Node.alt:
-            FindTrans(p.sub, start: false, marked: &marked); FindTrans(p.down, start: false, marked: &marked)
+            FindTrans(p.sub, start: false, marked: marked); FindTrans(p.down, start: false, marked: marked)
         default: break
         }
     }
@@ -624,11 +622,9 @@ public class DFA {
             return
         }
         NumberNodes(p, state: firstState, renumIter: true)
-		var trans = BitArray(tab.nodes.count)
-        FindTrans(p, start: true, marked: &trans)
+        FindTrans(p, start: true, marked: BitArray(tab.nodes.count))
         if p.typ == Node.iter {
-			var steps = BitArray(tab.nodes.count)
-            Step(firstState!, p: p, stepped: &steps)
+            Step(firstState!, p: p, stepped: BitArray(tab.nodes.count))
         }
     }
     

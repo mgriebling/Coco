@@ -180,7 +180,7 @@ public class ParserGen {
         gen.Write(": ")
     }
 
-    func GenCode (var p: Node?, indent: Int, var isChecked: BitArray ) {
+    func GenCode (var p: Node?, indent: Int, isChecked: BitArray ) {
         var p2: Node?
         var s1, s2: BitArray
         while let pn = p {

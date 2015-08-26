@@ -180,7 +180,7 @@ public class Sets {
 	
 }
 
-public struct BitArray : CollectionType {
+public class BitArray : CollectionType {
     
     var array: [Bool]
     
@@ -206,7 +206,7 @@ public struct BitArray : CollectionType {
     
     public func and (b: BitArray) -> BitArray {
         let max = array.count
-        var result = BitArray(max)
+        let result = BitArray(max)
         for i in 0..<max {
             result[i] = array[i] && b[i]
         }
@@ -215,7 +215,7 @@ public struct BitArray : CollectionType {
     
     public func or (b: BitArray) -> BitArray {
         let max = array.count
-        var result = BitArray(max)
+        let result = BitArray(max)
         for i in 0..<max {
             result[i] = array[i] || b[i]
         }
@@ -224,7 +224,7 @@ public struct BitArray : CollectionType {
     
     public func not () -> BitArray {
         let max = array.count
-        var result = BitArray(max)
+        let result = BitArray(max)
         for i in 0..<max {
             result[i] = !array[i]
         }
@@ -235,7 +235,7 @@ public struct BitArray : CollectionType {
         return array == b.array
     }
     
-    mutating public func SetAll (value: Bool) {
+    public func SetAll (value: Bool) {
         for i in 0..<array.count { array[i] = value }
     }
     
@@ -277,7 +277,7 @@ public class Tab {
 	public var gramSy : Symbol?                 // root nonterminal: filled by ATG
 	public var eofSy = Symbol()                 // end of file symbol
 	public var noSym = Symbol()                 // used in case of an error
-	public var allSyncSets=BitArray( 0)			// union of all synchronisation sets
+	public var allSyncSets = BitArray()			// union of all synchronisation sets
 	public var literals:[String: Symbol]        // symbols that are used as literals
 	
 	public var srcName = ""                     // name of the atg file (including path)
@@ -290,7 +290,7 @@ public class Tab {
 	public var emitLines=false                  // emit #line pragmas for semantic actions
 	//   in the generated parser
 	
-	var visited = BitArray( 0)					// mark list for graph traversals
+	var visited = BitArray()					// mark list for graph traversals
 	var curSy = Symbol()                        // current symbol in computation of sets
 	
 	var parser: Parser?                         // other Coco objects
@@ -650,8 +650,8 @@ public class Tab {
 	//---------------------------------------------------------------------
 	
 	/* Computes the first set for the graph rooted at p */
-	func First0(var p: Node?, var mark: BitArray) -> BitArray {
-		var fs = BitArray( terminals.count)
+	func First0(var p: Node?, mark: BitArray) -> BitArray {
+		let fs = BitArray(terminals.count)
 		while p != nil && !mark[p!.n] {
 			mark[p!.n] = true
 			switch p!.typ {
@@ -676,7 +676,7 @@ public class Tab {
 	}
 	
     public func First(p: Node?) -> BitArray {
-        let fs = First0(p, mark: BitArray( nodes.count))
+        let fs = First0(p, mark: BitArray(nodes.count))
         if (ddt[3]) {
             trace?.WriteLine()
             if p != nil { trace?.WriteLine("First: node = \(p!.n)") }
@@ -767,7 +767,7 @@ public class Tab {
                 a = LeadingAny(np.sub);
                 if a != nil { Sets.Subtract(&a!.set, b:First(np.next)) }
             } else if np.typ == Node.alt {
-                let s1 = BitArray( terminals.count)
+                let s1 = BitArray(terminals.count)
                 var q: Node? = np
                 while let qp = q {
                     FindAS(qp.sub);
@@ -818,7 +818,7 @@ public class Tab {
 		while let pn = p where !visited[pn.n] {
 			visited[pn.n] = true
 			if (pn.typ == Node.sync) {
-				var s = Expected(pn.next!, curSy: curSy)
+				let s = Expected(pn.next!, curSy: curSy)
 				s[eofSy.n] = true
 				allSyncSets.or(s)
 				pn.set = s
@@ -832,9 +832,9 @@ public class Tab {
 	}
 	
 	func CompSyncSets() {
-		allSyncSets = BitArray( terminals.count)
+		allSyncSets = BitArray(terminals.count)
 		allSyncSets[eofSy.n] = true
-		visited = BitArray( nodes.count)
+		visited = BitArray(nodes.count)
 		for sym in nonterminals {
 			curSy = sym
 			CompSync(curSy.graph)
@@ -844,7 +844,7 @@ public class Tab {
 	public func SetupAnys() {
 		for p in nodes {
 			if p.typ == Node.any {
-				p.set = BitArray( terminals.count, value:true)
+				p.set = BitArray(terminals.count, value:true)
 				p.set[eofSy.n] = false
 			}
 		}
@@ -1114,11 +1114,11 @@ public class Tab {
 		while let np = p {
 			switch np.typ {
 			case Node.alt:
-				let expected = BitArray( terminals.count)
+				let expected = BitArray(terminals.count)
 				for var q: Node? = np; q != nil; q = q!.down {
 					expected.or(Expected0(q!.sub!, curSy: curSy))
 				}
-				let soFar = BitArray( terminals.count)
+				let soFar = BitArray(terminals.count)
 				for var q: Node? = np; q != nil; q = q!.down {
 					if q!.sub!.typ == Node.rslv {
 						let fs = Expected(q!.sub!.next!, curSy: curSy)
@@ -1191,7 +1191,7 @@ public class Tab {
 
 	public func AllNtReached() -> Bool {
 		var ok = true
-		var visited = BitArray(nonterminals.count)
+		let visited = BitArray(nonterminals.count)
 		visited[gramSy!.n] = true
 		MarkReachedNts(gramSy!.graph)
 		for sym in nonterminals {
@@ -1205,7 +1205,7 @@ public class Tab {
 
 	//--------- check if every nts can be derived to terminals  ------------
 	
-	func IsTerm(var p: Node?, mark:BitArray) -> Bool { // true if graph can be derived to terminals
+	func IsTerm(var p: Node?, mark: BitArray) -> Bool { // true if graph can be derived to terminals
 		while let np = p {
             if (np.typ == Node.nt && !mark[np.sym!.n]) { return false }
 			if (np.typ == Node.alt && !IsTerm(np.sub, mark: mark)
@@ -1219,7 +1219,7 @@ public class Tab {
     public func AllNtToTerm() -> Bool {
         var changed = false
         var ok = true
-        var mark = BitArray(nonterminals.count)
+        let mark = BitArray(nonterminals.count)
         // a nonterminal is marked if it can be derived to terminal symbols
         repeat {
             changed = false;
