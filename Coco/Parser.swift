@@ -99,27 +99,28 @@ public class Parser {
     }
     
     func Expect (n: Int) {
-        if la.kind==n { Get() } else { SynErr(n) }
+        if la.kind == n { Get() } else { SynErr(n) }
     }
     
     func StartOf (s: Int)-> Bool {
         return set(s, la.kind)
     }
     
-    func ExpectWeak (n: Int, follow: Int) {
-        if la.kind == n { Get() }
-        else {
+    func ExpectWeak (n: Int, _ follow: Int) {
+        if la.kind == n {
+			Get()
+		} else {
             SynErr(n)
             while !StartOf(follow) { Get() }
         }
     }
     
-    func WeakSeparator(n: Int, syFol: Int, repFol: Int) -> Bool {
+    func WeakSeparator(n: Int, _ syFol: Int, _ repFol: Int) -> Bool {
         var kind = la.kind
         if kind == n { Get(); return true }
         else if StartOf(repFol) { return false }
         else {
-            SynErr(n);
+            SynErr(n)
             while !(set(syFol, kind) || set(repFol, kind) || set(0, kind)) {
                 Get()
                 kind = la.kind
@@ -224,12 +225,12 @@ public class Parser {
             if la.kind == 39 {
                 SemText(&sym!.semPos)
             }
-            ExpectWeak(17, follow: 3)
+            ExpectWeak(17, 3)
             Expression(&g)
             sym!.graph = g!.l
             tab.Finish(g!)
             
-            ExpectWeak(18, follow: 4)
+            ExpectWeak(18, 4)
         }
         Expect(19)
         Expect(1)
@@ -255,7 +256,7 @@ public class Parser {
             if tab.ddt[7] { tab.XRef() }
             if tab.GrammarOk() {
                 print("parser", appendNewline: false)
-                pgen!.WriteParser();
+                pgen!.WriteParser()
                 if genScanner {
                     print(" + scanner", appendNewline: false)
                     dfa!.WriteScanner()
@@ -287,9 +288,9 @@ public class Parser {
     
     func TokenDecl(typ: Int) {
         var name = ""; var kind = 0; var sym: Symbol?; var g: Graph?
-        Sym(&name, kind:&kind)
+        Sym(&name, &kind)
         sym = tab.FindSym(name)
-        if (sym != nil) { SemErr("name declared twice") }
+        if sym != nil { SemErr("name declared twice") }
         else {
             sym = tab.NewSym(typ, name, t.line)
             sym!.tokenKind = Symbol.fixedToken
@@ -309,13 +310,13 @@ public class Parser {
                 if tab.literals[tokenString] != nil {
                     SemErr("token string declared twice")
                 }
-                tab.literals[tokenString] = sym;
-                dfa!.MatchLiteral(tokenString, sym: sym!)
+                tab.literals[tokenString] = sym
+                dfa!.MatchLiteral(tokenString, sym!)
             }
             
         } else if StartOf(6) {
             if kind == id { genScanner = false }
-            else { dfa!.MatchLiteral(sym!.name, sym: sym!) }
+            else { dfa!.MatchLiteral(sym!.name, sym!) }
             
         } else { SynErr(44) }
         if la.kind == 39 {
@@ -328,7 +329,7 @@ public class Parser {
         var g2: Graph?
         TokenTerm(&g)
         var first = true
-        while WeakSeparator(28, syFol: 7, repFol: 8) {
+        while WeakSeparator(28, 7, 8) {
             TokenTerm(&g2)
             if first { tab.MakeFirstAlt(g!); first = false }
             tab.MakeAlternative(g!, g2: g2!)
@@ -407,7 +408,7 @@ public class Parser {
         var g2: Graph?
         Term(&g);
         var first = true;
-        while WeakSeparator(28, syFol: 15, repFol: 16) {
+        while WeakSeparator(28, 15, 16) {
             Term(&g2);
             if (first) { tab.MakeFirstAlt(g!); first = false; }
             tab.MakeAlternative(g!, g2: g2!);
@@ -453,7 +454,7 @@ public class Parser {
         if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 }
     }
     
-    func Sym(inout name: String, inout kind: Int) {
+    func Sym(inout name: String, inout _ kind: Int) {
         name = "???"; kind = id;
         if (la.kind == 1) {
             Get();
@@ -475,7 +476,7 @@ public class Parser {
     }
     
     func Term(inout g: Graph?) {
-        var g2: Graph?; var rslv : Node? = nil // ; var g : Graph? = nil
+        var g2: Graph?; var rslv : Node? = nil
 		g = nil
         if (StartOf(17)) {
             if (la.kind == 37) {
@@ -517,7 +518,7 @@ public class Parser {
                 Get();
                 weak = true;
             }
-            Sym(&name, kind: &kind);
+            Sym(&name, &kind)
             var sym = tab.FindSym(name);
             if (sym == nil && kind == str) {
                 sym = tab.literals[name]
@@ -527,10 +528,10 @@ public class Parser {
                 if (kind == id) {
                     sym = tab.NewSym(Node.nt, name, 0);  // forward nt
                 } else if (genScanner) {
-                    sym = tab.NewSym(Node.t, name, t.line);
-                    dfa!.MatchLiteral(sym!.name, sym: sym!);
+                    sym = tab.NewSym(Node.t, name, t.line)
+                    dfa!.MatchLiteral(sym!.name, sym!)
                 } else {  // undefined string in production
-                    SemErr("undefined string in production");
+                    SemErr("undefined string in production")
                     sym = tab.eofSy;  // dummy
                 }
             }
@@ -651,7 +652,7 @@ public class Parser {
         var name = ""; var kind = 0
         g = nil
         if (la.kind == 1 || la.kind == 3 || la.kind == 5) {
-            Sym(&name, kind: &kind)
+            Sym(&name, &kind)
             if kind == id {
                 var c = tab.FindCharClass(name);
                 if (c == nil) {
@@ -696,7 +697,6 @@ public class Parser {
     }
     
     func set (x: Int, _ y: Int) -> Bool { return Parser._set[x][y] }
-    
     static let _set: [[Bool]] = [
         [_T,_T,_x,_T, _x,_T,_x,_x, _x,_x,_T,_T, _x,_x,_x,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _x,_x,_x],
         [_x,_T,_T,_T, _T,_T,_x,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_x],
