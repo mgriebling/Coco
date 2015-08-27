@@ -46,6 +46,10 @@ public extension String {
         let str : NSString = self
         return str.containsString(s)
     }
+    
+    public func Trim() -> String {
+        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+    }
 	
 }
 
@@ -86,7 +90,9 @@ public extension Character {
 }
 
 func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue() }
-func == (l: Character, r: Int) -> Bool { return l.unicodeValue() == r }
+func == (l: Character, r: Int) -> Bool { return r == l }
+func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue() }
+func != (l: Character, r: Int) -> Bool { return r != l }
 func + (c: Character, inc: Int) -> Character { return c.add(inc) }
 func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
 func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }

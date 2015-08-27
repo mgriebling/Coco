@@ -308,13 +308,13 @@ public class Scanner {
 			ch = Character(buffer!.Read()); col++; charPos++
 			// replace isolated "\r" by "\n" in order to make
 			// eol handling uniform across Windows, Unix and Mac
-			if ch == "\r" && buffer!.Peek() != nl.unicodeValue() { ch = EOL }
+			if ch == "\r" && buffer!.Peek() != nl { ch = EOL }
 			if ch == EOL { line++; col = 0 }
 		}
 	}
 	
 	func AddCh() {
-		if ch.unicodeValue() != Buffer.EOF {
+		if ch != Buffer.EOF {
 			tval.append(ch)
 			NextCh()
 		}
@@ -330,11 +330,11 @@ public class Scanner {
 		if ch == "/" {
 			NextCh()
 			for (;;) {
-				if ch.unicodeValue() == 10 {
+				if ch == 10 {
 					level--;
 					if level == 0 { oldEols = line - line0; NextCh(); return true }
 					NextCh()
-				} else if ch.unicodeValue() == Buffer.EOF {
+				} else if ch == Buffer.EOF {
 					return false
 				}else {
 					NextCh()
@@ -368,7 +368,7 @@ public class Scanner {
 					if ch == "*" {
 						level++; NextCh()
 					}
-				} else if ch.unicodeValue() == Buffer.EOF {
+				} else if ch == Buffer.EOF {
 					return false
 				} else {
 					NextCh()
@@ -405,7 +405,7 @@ public class Scanner {
 	}
 	
 	func NextToken() -> Token {
-		while ch == " " || ch.unicodeValue() >= 9 && ch.unicodeValue() <= 10 || ch.unicodeValue() == 13 { NextCh() }
+        while ch == " " || ch >= "\u{9}" && ch <= "\u{A}" || ch == 13 { NextCh() }
 		if ch == "/" && Comment0() || ch == "/" && Comment1() { return NextToken() }
 		var recKind = noSym
 		var recEnd = pos
@@ -441,19 +441,19 @@ public class Scanner {
 			case 4:
 				t.kind = 4; break loop
 			case 5:
-				if ch.unicodeValue() <= 9 || ch.unicodeValue() >= 11 && ch.unicodeValue() <= 12 || ch.unicodeValue() >= 14 &&
-					ch <= "&" || ch >= "(" && ch <= "[" || ch >= "]" && ch.unicodeValue() <= 65535 { AddCh(); state = 6 }
-				else if ch.unicodeValue() == 92 { AddCh(); state = 7 }
+                if ch <= "\u{9}" || ch >= "\u{B}" && ch <= "\u{C}" || ch >= "\u{D}" && ch <= "&" ||
+                   ch >= "(" && ch <= "[" || ch >= "]" && ch <= "\u{FFFF}" { AddCh(); state = 6 }
+				else if ch == "\u{5C}" { AddCh(); state = 7 }
 				else { state = 0 }
 			case 6:
-				if ch.unicodeValue() == 39 { AddCh(); state = 9 }
+                if ch == "\u{27}" { AddCh(); state = 9 }
 				else { state = 0 }
 			case 7:
 				if ch >= " " && ch <= "~" { AddCh(); state = 8 }
 				else { state = 0 }
 			case 8:
 				if ch >= "0" && ch <= "9" || ch >= "a" && ch <= "f" {AddCh(); state = 8 }
-				else if ch.unicodeValue() == 39 { AddCh(); state = 9 }
+				else if ch == "\u{27}" { AddCh(); state = 9 }
 				else { state = 0 }
 			case 9:
 				t.kind = 5; break loop
@@ -466,23 +466,23 @@ public class Scanner {
 				if (ch >= "-" && ch <= "." || ch >= "0" && ch <= ":" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") {AddCh(); state = 11 }
 				else { t.kind = 43; break loop }
 			case 12:
-				if (ch.unicodeValue() <= 9 || ch.unicodeValue() >= 11 && ch.unicodeValue() <= 12 || ch.unicodeValue() >= 14 &&
-					ch <= "!" || ch >= "#" && ch <= "[" || ch >= "]" && ch.unicodeValue() <= 65535) { AddCh(); state = 12 }
-				else if (ch.unicodeValue() == 10 || ch.unicodeValue() == 13) { AddCh(); state = 4 }
-				else if (ch == "\"") { AddCh(); state = 3 }
-				else if (ch.unicodeValue() == 92) { AddCh(); state = 14 }
+				if ch <= "\u{9}" || ch >= "\u{B}" && ch <= "\u{C}" || ch >= "\u{D}" && ch <= "!" ||
+                   ch >= "#" && ch <= "[" || ch >= "]" && ch <= "\u{FFFF}" { AddCh(); state = 12 }
+				else if ch == 10 || ch == 13 { AddCh(); state = 4 }
+				else if ch == "\"" { AddCh(); state = 3 }
+				else if ch == 92 { AddCh(); state = 14 }
 				else { state = 0 }
 			case 13:
 				recEnd = pos; recKind = 42
-				if (ch >= "0" && ch <= "9") {AddCh(); state = 10 }
+                if ch >= "0" && ch <= "9" { AddCh(); state = 10 }
 				else if (ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") { AddCh(); state = 15 }
 				else { t.kind = 42; break loop }
 			case 14:
-				if (ch >= " " && ch <= "~") {AddCh(); state = 12 }
+				if (ch >= " " && ch <= "~") { AddCh(); state = 12 }
 				else {state = 0 }
 			case 15:
 				recEnd = pos; recKind = 42;
-				if (ch >= "0" && ch <= "9") {AddCh(); state = 10 }
+				if (ch >= "0" && ch <= "9") { AddCh(); state = 10 }
 				else if (ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") {AddCh(); state = 15 }
 				else if (ch == "=") { AddCh(); state = 11 }
 				else { t.kind = 42; break loop }
@@ -570,3 +570,4 @@ public class Scanner {
 	// make sure that peeking starts at the current scan position
 	public func ResetPeek () { pt = tokens; }
 }
+
