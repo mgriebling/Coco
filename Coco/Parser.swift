@@ -382,7 +382,7 @@ public class Parser {
         } else { SynErr(45) }
     }
     
-    func SemText(inout pos: Position ) {
+    func SemText(inout pos: Position?) {
         Expect(39)
         let beg = la.pos; let col = la.col; let line = la.line;
         while (StartOf(13)) {
@@ -505,7 +505,7 @@ public class Parser {
     }
     
     func Factor(inout g: Graph?) {
-        var name = ""; var kind = 0; var pos = Position(); var weak = false
+		var name = ""; var kind = 0; var pos : Position?; var weak = false
         g = nil
         
         switch la.kind {
@@ -565,7 +565,7 @@ public class Parser {
             Expect(35);
             tab.MakeIteration(g!);
         case 39:
-            SemText(&pos);
+            SemText(&pos)
             let p = tab.NewNode(Node.sem, nil, 0)
             p.pos = pos;
             g = Graph(p)

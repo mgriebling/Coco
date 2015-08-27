@@ -154,7 +154,7 @@ public class ParserGen {
         if p.typ == Node.rslv { CopySourcePart(p.pos, indent: 0) }
         else {
             var n = Sets.Elements(s)
-            if n == 0 {  gen?.Write("false") } // happens if an ANY set matches no symbol
+            if n == 0 { gen?.Write("false") } // happens if an ANY set matches no symbol
             else if n <= maxTerm {
                 for sym in tab.terminals {
                     if s[sym.n] {
@@ -199,7 +199,9 @@ public class ParserGen {
             case Node.wt:
                 Indent(indent);
                 s1 = tab.Expected(pn.next, curSy: curSy)
-                s1.or(tab.allSyncSets)
+				let s3 = s1.Clone()
+                s3.or(tab.allSyncSets)
+				s1 = s3
                 gen?.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1)))")
             case Node.any:
                 Indent(indent)

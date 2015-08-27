@@ -896,7 +896,7 @@ public class DFA {
     //------------------------ scanner generation ----------------------
     
     func GenComBody(com: Comment) {
-        gen?.WriteLine(  "\t\t\tfor ;; {")
+        gen?.WriteLine(  "\t\t\tfor ;;) {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
             gen?.WriteLine("\t\t\t\t\tlevel--")

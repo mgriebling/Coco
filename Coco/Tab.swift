@@ -68,7 +68,7 @@ public class Symbol {
 	public var nts = BitArray()     // nt: Tab.nonterminals whose followers have to be added to this sym
 	public var line = 0             // source text line number of item in this node
 	public var attrPos: Position?   // nt: position of attributes in source text (or nil)
-	public var semPos = Position()  // pr: pos of semantic action in source text (or nil)
+	public var semPos: Position?    // pr: pos of semantic action in source text (or nil)
 	// nt: pos of local declarations in source text (or nil)
 	
 	public init(_ typ: Int, _ name: String, _ line: Int) {
@@ -163,7 +163,11 @@ public class Sets {
 	}
 	
 	public static func Equals(a: BitArray, b: BitArray) -> Bool {
-		return a.equals(b)
+		let max = a.count
+		for i in 0..<max {
+			if a[i] != b[i] { return false }
+		}
+		return true
 	}
 	
 	public static func Intersect(a: BitArray, b: BitArray) -> Bool { // a * b != {}
@@ -176,7 +180,8 @@ public class Sets {
 	
 	public static func Subtract(inout a: BitArray, b: BitArray) { // a = a - b
 		let c = b.Clone()
-        a = a.and(c.not())
+		c.not()
+        a.and(c)
 	}
 	
 }
@@ -205,22 +210,18 @@ public class BitArray : CollectionType {
         set { array[index] = newValue }
     }
     
-    public func and (b: BitArray) -> BitArray {
+    public func and (b: BitArray) {
         let max = array.count
-        let result = BitArray(max)
         for i in 0..<max {
-            result[i] = array[i] && b[i]
+            array[i] = array[i] && b[i]
         }
-        return result
     }
     
-    public func or (b: BitArray) -> BitArray {
+    public func or (b: BitArray) {
         let max = array.count
-        let result = BitArray(max)
         for i in 0..<max {
-            result[i] = array[i] || b[i]
+            array[i] = array[i] || b[i]
         }
-        return result
     }
 	
 	public func Clone () -> BitArray {
@@ -229,13 +230,11 @@ public class BitArray : CollectionType {
 		return copy
 	}
     
-    public func not () -> BitArray {
+    public func not () {
         let max = array.count
-        let result = BitArray(max)
         for i in 0..<max {
-            result[i] = !array[i]
+            array[i] = !array[i]
         }
-        return result
     }
     
     public func equals (b: BitArray) -> Bool {
@@ -396,7 +395,9 @@ public class Tab {
 				len = sym.name.count()
 				if col + len >= 80 {
 					trace?.WriteLine();
-					for _ in 1..<indent { trace?.Write(" ") }
+					if indent >= 1 {
+						for _ in 1..<indent { trace?.Write(" ") }
+					}
 				}
 				trace?.Write(sym.name + " ")
 				col += len + 1
@@ -602,7 +603,7 @@ public class Tab {
 	public var dummyName : Character = "A"
 	
 	public func NewCharClass(var name: String, _ s: CharSet) -> CharClass {
-		if name == "#" { name = "#" + String(dummyName); dummyName++ }
+		if name == "#" { name = "#" + String(dummyName); dummyName += 1 }
 		let c = CharClass(name: name, s: s)
 		c.n = classes.count
 		classes.append(c)
@@ -618,7 +619,7 @@ public class Tab {
 	
 	public func FindCharClass(s: CharSet) -> CharClass? {
 		for c in classes {
-			if s === c.set { return c }
+			if s.Equals(c.set) { return c }
 		}
 		return nil
 	}
@@ -631,8 +632,8 @@ public class Tab {
 	
 	func Ch(ch: Int) -> String {
         let lch = Character(ch)
-		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(format: "\"\\u{0%X}\"", ch) }
-		else { return "\"\(lch)\"" }
+		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(ch) }
+		else { return "'\(lch)'" }
 	}
 	
     func WriteCharSet(s: CharSet) {
@@ -780,7 +781,9 @@ public class Tab {
                     FindAS(qp.sub);
                     a = LeadingAny(qp.sub)
                     if a != nil {
-                        Sets.Subtract(&a!.set, b:First(qp.down).or(s1))
+						let temp = First(qp.down)
+						temp.or(s1)
+                        Sets.Subtract(&a!.set, b:temp)
                     } else {
                         s1.or(First(qp.sub))
                     }
@@ -1282,7 +1285,7 @@ public class Tab {
 					trace?.WriteLine()
                     for _ in 1...14 { trace?.Write(" ") }
 				}
-				trace?.Write("\(line)"); col += 5
+				trace?.Write("\(line)  "); col += 5
 			}
 			trace?.WriteLine()
 		}
