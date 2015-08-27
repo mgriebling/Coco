@@ -320,7 +320,7 @@ public class Scanner {
 		t = Token()
 		t.pos = pos; t.col = col; t.line = line; t.charPos = charPos
 		var state = Scanner.start[ch.unicodeValue()] ?? 0
-		tlen = 0; AddCh()
+		tval = ""; AddCh()
 		
 		loop: repeat {
 			switch state {
@@ -333,6 +333,7 @@ public class Scanner {
 				t.kind = recKind; break loop
 				// NextCh already done
 -->scan3
+			default: break loop
 			}
 		} while true
 		t.val = tval
@@ -341,8 +342,8 @@ public class Scanner {
 
 	private func SetScannerBehindT() {
 		buffer!.Pos = t.pos
-		NextCh();
-		line = t.line; col = t.col; charPos = t.charPos;
+		NextCh()
+		line = t.line; col = t.col; charPos = t.charPos
 		for _ in 0..<tlen { NextCh() }
 	}
 	
@@ -363,8 +364,7 @@ public class Scanner {
 				pt.next = NextToken()
 			}
 			pt = pt.next!
-		} while pt.kind > maxT // skip pragmas
-		
+		} while pt.kind > maxT // skip pragmas		
 		return pt
 	}
 	

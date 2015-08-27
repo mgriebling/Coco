@@ -66,12 +66,12 @@ TOKENS
 	char      = '\'' ( charCh | '\\' printable { hex } ) '\''.
 
 PRAGMAS
-	ddtSym    = '$' { digit | letter }.  (. tab.SetDDT(la.val) .)
+	ddtSym    = '$' { digit | letter }.  (.	tab.SetDDT(la.val) .)
 
 	optionSym = '$' letter { letter } '='
 	            { digit | letter
 	            | '-' | '.' | ':'
-	            }.                       (. tab.SetOption(la.val) .)
+	            }.                       (.	tab.SetOption(la.val) .)
 
 
 COMMENTS FROM "/*" TO "*/" NESTED
@@ -101,12 +101,12 @@ Coco                            (. var sym: Symbol?; var g, g1, g2: Graph; var g
   [ "TOKENS"  { TokenDecl<Node.t> }]
   [ "PRAGMAS" { TokenDecl<Node.pr> }]
   { "COMMENTS"                  (. var nested = false .)
-    "FROM" TokenExpr<out g1> 
-    "TO" TokenExpr<out g2>
+    "FROM" TokenExpr<&g1> 
+    "TO" TokenExpr<&g2>
     [ "NESTED"                  (. nested = true .)
     ]                           (. dfa?.NewComment(g1.l, g2.l, nested) .)
   }
-  { "IGNORE" Set<out s>         (. tab.ignored.Or(s) .)
+  { "IGNORE" Set<&s>         (. tab.ignored.Or(s) .)
   }
 
   SYNC 
@@ -161,14 +161,14 @@ Coco                            (. var sym: Symbol?; var g, g1, g2: Graph; var g
                                      if tab.ddt[7] { tab.XRef() }
                                      if tab.GrammarOk() {
                                        print("parser", terminator: "")
-                                       pgen.WriteParser()
+                                       pgen?.WriteParser()
                                        if genScanner {
                                          print(" + scanner", terminator: "")
                                          dfa?.WriteScanner()
                                          if tab.ddt[0] { dfa?.PrintStates() }
                                        }
                                        print(" generated")
-                                       if tab.ddt[8] { pgen.WriteStatistics() }
+                                       if tab.ddt[8] { pgen?.WriteStatistics() }
                                      }
                                    }
                                    if tab.ddt[6] { tab.PrintSymbolTable() }
@@ -202,16 +202,16 @@ Set<inout s:CharSet>            (. var s2: CharSet .)
 
 /*------------------------------------------------------------------------------------*/
 
-SimSet<inout s:CharSet>         (. var n1, n2: Int .)
+SimSet<inout s:CharSet>         (. var n1 = 0; var n2 = 0 .)
 =                               (. s = CharSet() .)
-( ident                         (. var c = tab.FindCharClass(t.val)
+( ident                         (. let c = tab.FindCharClass(t.val)
                                    if c == nil { SemErr("undefined name") } else { s.Or(c.set) }
                                  .)
 | string                        (. var name = t.val
                                    name = tab.Unescape(name.substring(1, name.Length-2))
                                    for ch in name.characters {
-                                     if dfa!.ignoreCase { s.Set(char.ToLower(ch)) }
-                                     else { s.Set(ch) }
+                                     if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue()) }
+                                     else { s.Set(ch.unicodeValue()) }
                                     }
                                  .)
 | Char<&n1>						(. s.Set(n1) .)
@@ -227,7 +227,7 @@ Char<inout n:Int>
 =
   char                          (. var name = t.val; n = 0
                                    name = tab.Unescape(name.substring(1, name.Length-2))
-                                   if name.count() == 1 { n = name[0] }
+                                   if name.count() == 1 { n = name[0].unicodeValue() }
                                    else { SemErr("unacceptable character value") }
                                    if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 }
                                  .)
@@ -270,14 +270,14 @@ TokenDecl<typ:Int>               (. var name: String; var kind: Int; var sym: Sy
 
 AttrDecl<sym:Symbol>
 =
-  '<'                           (. var beg = la.pos; var col = la.col; var line = la.line .)
+  '<'                           (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY
   | badString                   (. SemErr("bad string in attributes") .)
   }
   '>'                           (. if t.pos > beg {
                                      sym!.attrPos = Position(beg, t.pos, col, line)
 									} .)
-| "<."                          (. var beg = la.pos; var col = la.col; var line = la.line .)
+| "<."                          (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY
   | badString                   (. SemErr("bad string in attributes") .)
   }
@@ -384,7 +384,7 @@ Factor<inout g:Graph?>          (. var name: String; var kind: Int; var pos: Pos
 
 Resolver<inout pos:Position?>
 =
-  "IF" "("                       (. var beg = la.pos; var col = la.col; var line = la.line .)
+  "IF" "("                       (. let beg = la.pos; let col = la.col; let line = la.line .)
   Condition                      (. pos = Position(beg, t.pos, col, line) .)
 .
 
@@ -467,12 +467,12 @@ Sym<inout name:String, inout _ kind:Int>
 
 Attribs<p: Node>
 =
-  '<'                           (. var beg = la.pos; var col = la.col; var line = la.line .)
+  '<'                           (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY 
   | badString                   (. SemErr("bad string in attributes") .)
   }
   '>'                           (. if t.pos > beg { p.pos = Position(beg, t.pos, col, line) } .)
-| "<."                          (. var beg = la.pos; var col = la.col; var line = la.line .)
+| "<."                          (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY 
   | badString                   (. SemErr("bad string in attributes") .)
   }
@@ -483,7 +483,7 @@ Attribs<p: Node>
 
 SemText<inout pos:Position>
 =
-  "(."                          (. var beg = la.pos; var col = la.col; var line = la.line .)
+  "(."                          (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY
   | badString                   (. SemErr("bad string in semantic action") .)
   | "(."                        (. SemErr("missing end of previous semantic action") .)

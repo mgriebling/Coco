@@ -189,24 +189,24 @@ public class UTF8Buffer: Buffer {
 		repeat {
 			ch = super.Read()
 			// until we find a utf8 start (0xxxxxxx or 11xxxxxx)
-		} while (ch >= 128) && ((ch & 0xC0) != 0xC0) && (ch != Buffer.EOF)
-		if (ch < 128 || ch == Buffer.EOF) {
+		} while ch >= 128 && (ch & 0xC0) != 0xC0 && ch != Buffer.EOF
+		if ch < 128 || ch == Buffer.EOF {
 			// nothing to do, first 127 chars are the same in ascii and utf8
 			// 0xxxxxxx or end of file character
-		} else if ((ch & 0xF0) == 0xF0) {
+		} else if (ch & 0xF0) == 0xF0 {
 			// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 			let c1 = ch & 0x07; ch = super.Read()
 			let c2 = ch & 0x3F; ch = super.Read()
 			let c3 = ch & 0x3F; ch = super.Read()
 			let c4 = ch & 0x3F
-			ch = (((((c1 << 6) | c2) << 6) | c3) << 6) | c4;
-		} else if ((ch & 0xE0) == 0xE0) {
+			ch = (((((c1 << 6) | c2) << 6) | c3) << 6) | c4
+		} else if (ch & 0xE0) == 0xE0 {
 			// 1110xxxx 10xxxxxx 10xxxxxx
 			let c1 = ch & 0x0F; ch = super.Read()
 			let c2 = ch & 0x3F; ch = super.Read()
 			let c3 = ch & 0x3F
 			ch = (((c1 << 6) | c2) << 6) | c3;
-		} else if ((ch & 0xC0) == 0xC0) {
+		} else if (ch & 0xC0) == 0xC0 {
 			// 110xxxxx 10xxxxxx
 			let c1 = ch & 0x1F; ch = super.Read()
 			let c2 = ch & 0x3F
@@ -325,7 +325,7 @@ public class Scanner {
 		NextCh()
 		if ch == "/" {
 			NextCh()
-			for (;;) {
+			for ;; {
 				if ch == 10 {
 					level--;
 					if level == 0 { oldEols = line - line0; NextCh(); return true }
@@ -347,7 +347,7 @@ public class Scanner {
 		NextCh()
 		if ch == "*" {
 			NextCh()
-			for (;;) {
+			for ;; {
 				if ch == "*" {
 					NextCh()
 					if ch == "/" {
@@ -419,11 +419,7 @@ public class Scanner {
 			case 1:
 				recEnd = pos; recKind = 1
 				if ch >= "0" && ch <= "9" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z" { AddCh(); state = 1 }
-				else {
-					t.kind = 1
-					t.val = tval 
-					CheckLiteral(); return t
-				}
+				else { t.kind = 1;	t.val = tval; CheckLiteral(); return t }
 			case 2:
 				recEnd = pos; recKind = 2
 				if ch >= "0" && ch <= "9"  { AddCh(); state = 2 }
@@ -451,14 +447,14 @@ public class Scanner {
 				t.kind = 5; break loop
 			case 10:
 				recEnd = pos; recKind = 42;
-				if (ch >= "0" && ch <= "9" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") {AddCh(); state = 10 }
+				if ch >= "0" && ch <= "9" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z" {AddCh(); state = 10 }
 				else { t.kind = 42; break loop }
 			case 11:
 				recEnd = pos; recKind = 43;
 				if (ch >= "-" && ch <= "." || ch >= "0" && ch <= ":" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z") {AddCh(); state = 11 }
 				else { t.kind = 43; break loop }
 			case 12:
-				if ch <= "\u{9}" || ch >= "\u{B}" && ch <= "\u{C}" || ch >= "\u{D}" && ch <= "!" ||
+				if ch <= "\u{9}" || ch >= "\u{B}" && ch <= "\u{C}" || ch >= "\u{E}" && ch <= "!" ||
                    ch >= "#" && ch <= "[" || ch >= "]" && ch <= "\u{FFFF}" { AddCh(); state = 12 }
 				else if ch == 10 || ch == 13 { AddCh(); state = 4 }
 				else if ch == "\"" { AddCh(); state = 3 }
@@ -523,7 +519,6 @@ public class Scanner {
 				if ch == "." { AddCh(); state = 29 }
 				else { t.kind = 30; break loop }
 			default: break loop
-				
 			}
 		} while true
 		t.val = tval

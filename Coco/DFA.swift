@@ -896,7 +896,7 @@ public class DFA {
     //------------------------ scanner generation ----------------------
     
     func GenComBody(com: Comment) {
-        gen?.WriteLine(  "\t\t\tfor (;;) {")
+        gen?.WriteLine(  "\t\t\tfor ;; {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
             gen?.WriteLine("\t\t\t\t\tlevel--")
@@ -1058,13 +1058,13 @@ public class DFA {
         g.CopyFramePart("-->casing1")
         if ignoreCase {
             gen?.WriteLine("\t\tif ch != Buffer.EOF {")
-            gen?.WriteLine("\t\t\tvalCh = Character(ch)")
-            gen?.WriteLine("\t\t\tch = Character(ch).lowercase")
+            gen?.WriteLine("\t\t\tvalCh = ch")
+            gen?.WriteLine("\t\t\tch = ch.lowercase")
             gen?.WriteLine("\t\t}")
         }
         g.CopyFramePart("-->casing2")
-        gen?.Write("\t\t\ttval[tlen++] = ")
-        if ignoreCase { gen?.Write("valCh") } else { gen?.Write("Character(ch)") }
+        gen?.Write("\t\t\ttval.append(")
+        if ignoreCase { gen?.Write("valCh)") } else { gen?.Write("ch)") }
         g.CopyFramePart("-->comments")
         var com = firstComment
         var comIdx = 0
