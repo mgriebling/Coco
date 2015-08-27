@@ -200,7 +200,8 @@ public class ParserGen {
                 Indent(indent);
                 s1 = tab.Expected(pn.next, curSy: curSy)
 				let s3 = s1.Clone()
-                s3.or(tab.allSyncSets)
+				let s4 = tab.allSyncSets
+                s3.or(s4)
 				s1 = s3
                 gen?.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1)))")
             case Node.any:
