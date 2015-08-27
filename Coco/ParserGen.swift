@@ -146,7 +146,7 @@ public class ParserGen {
         for i in 1..<symSet.count { // skip symSet[0] (reserved for union of SYNC sets)
             if Sets.Equals(s, b: symSet[i]) { return i }
         }
-        symSet.append(s)
+		symSet.append(s.Clone())
         return symSet.count - 1
     }
     
@@ -220,7 +220,7 @@ public class ParserGen {
             case Node.sync:
                 Indent(indent)
                 GenErrorMsg(syncErr, sym: curSy)
-                s1 = pn.set
+                s1 = pn.set.Clone()
                 gen?.Write("while !("); GenCond(s1, p: pn); gen?.Write(") {")
                 gen?.Write("SynErr(\(errorNr)); Get() "); gen?.WriteLine("}")
 

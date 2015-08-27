@@ -175,7 +175,8 @@ public class Sets {
 	}
 	
 	public static func Subtract(inout a: BitArray, b: BitArray) { // a = a - b
-        a = a.and(b.not())
+		let c = b.Clone()
+        a = a.and(c.not())
 	}
 	
 }
@@ -221,6 +222,12 @@ public class BitArray : CollectionType {
         }
         return result
     }
+	
+	public func Clone () -> BitArray {
+		let copy = BitArray(count)
+		copy.array = array
+		return copy
+	}
     
     public func not () -> BitArray {
         let max = array.count
@@ -594,7 +601,7 @@ public class Tab {
 	public var classes = [CharClass]()
 	public var dummyName : Character = "A"
 	
-	public func NewCharClass(var name: String, s: CharSet) -> CharClass {
+	public func NewCharClass(var name: String, _ s: CharSet) -> CharClass {
 		if name == "#" { name = "#" + String(dummyName); dummyName++ }
 		let c = CharClass(name: name, s: s)
 		c.n = classes.count
@@ -624,8 +631,8 @@ public class Tab {
 	
 	func Ch(ch: Int) -> String {
         let lch = Character(ch)
-		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(lch) }
-		else { return "\(lch)" }
+		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(format: "\"\\u{0%X}\"", ch) }
+		else { return "\"\(lch)\"" }
 	}
 	
     func WriteCharSet(s: CharSet) {

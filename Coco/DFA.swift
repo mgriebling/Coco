@@ -105,7 +105,7 @@ public class Action {			// action of finite automaton
     public func Symbols(tab: Tab) -> CharSet {
         var s: CharSet
         if typ == Node.clas {
-            s = tab.CharClassSet(sym)
+            s = tab.CharClassSet(sym).Clone()
         } else {
             s = CharSet(); s.Set(sym)
         }
@@ -117,7 +117,7 @@ public class Action {			// action of finite automaton
             typ = Node.chr; sym = s.First()
         } else {
             var c = tab.FindCharClass(s)
-            if c == nil { c = tab.NewCharClass("#", s: s) } // class with dummy name
+            if c == nil { c = tab.NewCharClass("#", s) } // class with dummy name
             typ = Node.clas; sym = c!.n
         }
     }
@@ -648,7 +648,7 @@ public class DFA {
         var i: Int
         for i=0;i<len;i++ { // try to match s against existing DFA
             a = FindAction(state!, ch: s[i])
-            if (a == nil) { break }
+            if a == nil { break }
             state = a!.target!.state
         }
         // if s was not totally consumed or leads to a non-final state => make new DFA from it
@@ -710,7 +710,7 @@ public class DFA {
             else { setb = tab.CharClassSet(b.sym); return setb[a.sym] }
         } else {
             seta = tab.CharClassSet(a.sym);
-            if (b.typ == Node.chr) { return seta[b.sym] }
+            if b.typ == Node.chr { return seta[b.sym] }
             else { setb = tab.CharClassSet(b.sym); return seta.Intersects(setb) }
         }
     }
@@ -905,7 +905,7 @@ public class DFA {
         } else {
             gen?.WriteLine("\t\t\t\t\tNextCh()")
             gen?.WriteLine("\t\t\t\t\tif \(ChCond(com.stop[1])) {")
-            gen?.WriteLine("\t\t\t\t\t\tlevel--;");
+            gen?.WriteLine("\t\t\t\t\t\tlevel--")
             gen?.WriteLine("\t\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
             gen?.WriteLine("\t\t\t\t\t\tNextCh()")
             gen?.WriteLine("\t\t\t\t\t}")
@@ -929,7 +929,7 @@ public class DFA {
     func GenComment(com: Comment, i: Int) {
         gen?.WriteLine();
         gen?.Write    ("\tfunc Comment\(i)() -> Bool "); gen?.WriteLine("{");
-        gen?.WriteLine("\t\tvar level = 1; var pos0 = pos; var line0 = line, var col0 = col; var charPos0 = charPos")
+        gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line, let col0 = col; let charPos0 = charPos")
         if com.start.count() == 1 {
             gen?.WriteLine("\t\tNextCh()")
             GenComBody(com);
@@ -961,7 +961,7 @@ public class DFA {
         } else {
             gen?.WriteLine("\t\tswitch t.val {")
         }
-        for sym in (tab.terminals + tab.pragmas) {
+		for sym in tab.terminals + tab.pragmas {
             if sym.tokenKind == Symbol.litToken {
                 var name = SymName(sym)
                 if ignoreCase { name = name.lowercaseString }
@@ -1021,15 +1021,15 @@ public class DFA {
         for var action = firstState!.firstAction; action != nil; action = action!.next {
             let targetState = action!.target!.state!.nr
             if action!.typ == Node.chr {
-                gen?.WriteLine("\t\tstart[\(action!.sym)] = \(targetState)")
+                gen?.WriteLine("\t\tresult[\(action!.sym)] = \(targetState)")
             } else {
                 let s = tab.CharClassSet(action!.sym)
                 for var r = s.head; r != nil; r = r!.next {
-                    gen?.WriteLine("\t\tfor i in \(r!.from)...\(r!.to) { start[i] = \(targetState) }")
+                    gen?.WriteLine("\t\tfor i in \(r!.from)...\(r!.to) { result[i] = \(targetState) }")
                 }
             }
         }
-        gen?.WriteLine("\t\tstart[Buffer.EOF] = -1")
+        gen?.WriteLine("\t\tresult[Buffer.EOF] = -1")
     }
     
     public func WriteScanner() {

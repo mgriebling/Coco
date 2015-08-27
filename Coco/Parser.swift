@@ -281,7 +281,7 @@ public class Parser {
         Expect(17)
         Set(&s)
         if s.Elements() == 0 { SemErr("character set must not be empty") }
-        tab.NewCharClass(name, s: s)
+        tab.NewCharClass(name, s)
         
         Expect(18)
     }
@@ -297,7 +297,7 @@ public class Parser {
         }
         tokenString = ""
         
-        while !(StartOf(5)) { SynErr(43); Get() }
+        while !StartOf(5) { SynErr(43); Get() }
         if la.kind == 17 {
             Get()
             TokenExpr(&g)
@@ -654,10 +654,10 @@ public class Parser {
         if (la.kind == 1 || la.kind == 3 || la.kind == 5) {
             Sym(&name, &kind)
             if kind == id {
-                var c = tab.FindCharClass(name);
+                var c = tab.FindCharClass(name)
                 if (c == nil) {
-                    SemErr("undefined name");
-                    c = tab.NewCharClass(name, s: CharSet());
+                    SemErr("undefined name")
+                    c = tab.NewCharClass(name, CharSet())
                 }
                 let p = tab.NewNode(Node.clas, nil, 0); p.val = c!.n;
                 g = Graph(p)

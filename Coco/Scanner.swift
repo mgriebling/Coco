@@ -321,11 +321,7 @@ public class Scanner {
 	}
 	
 	func Comment0() -> Bool {
-		var level = 1
-		let pos0 = pos
-		let line0 = line
-		let col0 = col
-		let charPos0 = charPos
+		var level = 1; let pos0 = pos; let line0 = line; let col0 = col; let charPos0 = charPos
 		NextCh()
 		if ch == "/" {
 			NextCh()
@@ -336,22 +332,18 @@ public class Scanner {
 					NextCh()
 				} else if ch == Buffer.EOF {
 					return false
-				}else {
+				} else {
 					NextCh()
 				}
 			}
 		} else {
-			buffer!.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0;
+			buffer!.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0
 		}
 		return false
 	}
 	
 	func Comment1() -> Bool {
-		var level = 1
-		let pos0 = pos
-		let line0 = line
-		let col0 = col
-		let charPos0 = charPos
+		var level = 1; let pos0 = pos; let line0 = line; let col0 = col; let charPos0 = charPos
 		NextCh()
 		if ch == "*" {
 			NextCh()
@@ -359,7 +351,7 @@ public class Scanner {
 				if ch == "*" {
 					NextCh()
 					if ch == "/" {
-						level--;
+						level--
 						if level == 0 { oldEols = line - line0; NextCh(); return true }
 						NextCh()
 					}
