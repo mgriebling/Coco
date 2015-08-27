@@ -31,7 +31,7 @@ import Foundation
 public class Coco {
     
     public static func Main (arg: [String]) {
-        print("Coco/R (Aug 19, 2015) MG")
+        print("Coco/R (Aug 27, 2015) MG")
         var srcName : NSString = ""
         var nsName = ""
         var frameDir = ""

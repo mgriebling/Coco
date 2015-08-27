@@ -534,7 +534,7 @@ public class Scanner {
 				
 			}
 		} while true
-		t.val = tval  //.substringToIndex(advance(tval.startIndex, tlen))
+		t.val = tval
 		return t
 	}
 	

@@ -86,7 +86,7 @@ public class Action {			// action of finite automaton
     public func AddTarget(t: Target) { // add t to the action.targets
         var last: Target? = nil
         var p: Target? = target
-        while let pn = p where t.state.nr >= pn.state.nr {
+        while let pn = p where t.state!.nr >= pn.state!.nr {
             if t.state === pn.state { return }
             last = pn; p = pn.next
         }
@@ -96,10 +96,10 @@ public class Action {			// action of finite automaton
     
     public func AddTargets(a: Action) { // add copy of a.targets to action.targets
         for var p = a.target; p != nil; p = p!.next {
-            let t = Target(s: p!.state)
+            let t = Target(s: p!.state!)
             AddTarget(t)
         }
-        if (a.tc == Node.contextTrans) { tc = Node.contextTrans }
+        if a.tc == Node.contextTrans { tc = Node.contextTrans }
     }
     
     public func Symbols(tab: Tab) -> CharSet {
@@ -128,7 +128,7 @@ public class Action {			// action of finite automaton
 //-----------------------------------------------------------------------------
 
 public class Target {				// set of states that are reached by an action
-    public var state: State 		// target state
+    public var state: State? 		// target state
     public var next: Target?
     
     public init (s: State) {
@@ -142,7 +142,7 @@ public class Target {				// set of states that are reached by an action
 
 public class Melted {					// info about melted states
     public var set: BitArray 			// set of old states
-    public var state: State 			// new state
+    public var state: State? 			// new state
     public var next: Melted?
     
     public init(set: BitArray, state: State) {
@@ -425,7 +425,7 @@ public class DFA {
     private var lastSimState = 0        // last non melted state
 	private var fram : NSInputStream?	// scanner frame input
 	private var gen : NSOutputStream?	// generated scanner file
-    private var curSy = Symbol()        // current token to be recognized (in FindTrans)
+	private var curSy : Symbol?			// current token to be recognized (in FindTrans)
     private var dirtyDFA: Bool          // DFA may become nondeterministic in MatchLiteral
     
     public var ignoreCase: Bool         // true if input should be treated case-insensitively
@@ -463,8 +463,8 @@ public class DFA {
     
     private func PutRange(s: CharSet) {
         for var r = s.head; r != nil; r = r!.next {
-            if r!.from == r!.to { gen?.Write("ch == " + Ch(r!.from)); }
-            else if r!.from == 0 { gen?.Write("ch <= " + Ch(r!.to)); }
+            if r!.from == r!.to { gen?.Write("ch == " + Ch(r!.from)) }
+            else if r!.from == 0 { gen?.Write("ch <= " + Ch(r!.to)) }
             else { gen?.Write("ch >= " + Ch(r!.from) + " && ch <= " + Ch(r!.to)) }
             if r!.next != nil { gen?.Write(" || ") }
         }
@@ -483,7 +483,7 @@ public class DFA {
         let t = Target(s: to)
         let a = Action(typ: typ, sym: sym, tc: tc); a.target = t
         from.AddAction(a)
-        if typ == Node.clas { curSy.tokenKind = Symbol.classToken }
+        if typ == Node.clas { curSy!.tokenKind = Symbol.classToken }
     }
     
     func CombineShifts() {
@@ -510,7 +510,7 @@ public class DFA {
         if used[state.nr] { return }
         used[state.nr] = true
         for var a = state.firstAction; a != nil; a = a!.next {
-            FindUsedStates(a!.target!.state, used: used)
+            FindUsedStates(a!.target!.state!, used: used)
         }
     }
     
@@ -531,8 +531,8 @@ public class DFA {
         for var state = firstState; state != nil; state = state!.next {
             if used[state!.nr] {
                 for var a = state!.firstAction; a != nil; a = a!.next {
-                    if !used[a!.target!.state.nr] {
-                        a!.target!.state = newState[a!.target!.state.nr]
+                    if !used[a!.target!.state!.nr] {
+                        a!.target!.state = newState[a!.target!.state!.nr]
                     }
                 }
             }
@@ -608,8 +608,7 @@ public class DFA {
     }
     
     func FindTrans (p: Node?, start: Bool, marked: BitArray) {
-        guard let p = p else { return }
-        if marked[p.n] { return }
+        guard let p = p where !marked[p.n] else { return }
         marked[p.n] = true
         if start {
             Step(p.state!, p: p, stepped: BitArray(tab.nodes.count)) // start of group of equally numbered nodes
@@ -731,7 +730,7 @@ public class DFA {
     func MeltStates(state: State) {
         var ctx = false
         var targets = BitArray()
-        var endOf: Symbol?
+		var endOf : Symbol?
         for var action = state.firstAction; action != nil; action = action!.next {
             if action!.target!.next != nil {
                 GetTargetStates(action!, targets: &targets, endOf: &endOf, ctx: &ctx)
@@ -739,7 +738,7 @@ public class DFA {
                 if melt == nil {
                     let s = NewState(); s.endOf = endOf; s.ctx = ctx
                     for var targ = action!.target; targ != nil; targ = targ!.next {
-                        s.MeltWith(targ!.state)
+                        s.MeltWith(targ!.state!)
                     }
                     MakeUnique(s)
                     melt = NewMelted(targets, state: s)
@@ -753,7 +752,7 @@ public class DFA {
     func FindCtxStates() {
         for var state = firstState; state != nil; state = state!.next {
             for var a = state!.firstAction; a != nil; a = a!.next {
-                if a!.tc == Node.contextTrans { a!.target!.state.ctx = true }
+                if a!.tc == Node.contextTrans { a!.target!.state!.ctx = true }
             }
         }
     }
@@ -787,7 +786,7 @@ public class DFA {
                 if action!.typ == Node.clas { trace.Write((tab.classes[action!.sym]).name) }
                 else { trace.Write("\(Ch(action!.sym))") }
                 for var targ = action!.target; targ != nil; targ = targ!.next {
-                    trace.Write(" \(targ!.state.nr)")
+                    trace.Write(" \(targ!.state!.nr)")
                 }
                 if action!.tc == Node.contextTrans { trace.WriteLine(" context") } else { trace.WriteLine() }
             }
@@ -810,50 +809,50 @@ public class DFA {
         return nil
     }
     
-    public func GetTargetStates(a: Action, inout targets: BitArray, inout endOf: Symbol?, inout ctx: Bool) {
-        // compute the set of target states
-        targets = BitArray(maxStates); endOf = nil
-        ctx = false
-        for var t = a.target; t != nil; t = t!.next {
-            let stateNr = t!.state.nr
-            if stateNr <= lastSimState { targets[stateNr] = true }
-            else { targets.or(MeltedSet(stateNr)) }
-            if t!.state.endOf != nil {
-                if endOf == nil || endOf === t!.state.endOf {
-                    endOf = t!.state.endOf
-                } else {
-                    errors.SemErr("Tokens " + endOf!.name + " and " + t!.state.endOf!.name + " cannot be distinguished")
-                }
-                if t!.state.ctx {
-                    ctx = true
-                    // The following check seems to be unnecessary. It reported an error
-                    // if a symbol + context was the prefix of another symbol, e.g.
-                    //   s1 = "a" "b" "c".
-                    //   s2 = "a" CONTEXT("b").
-                    // But this is ok.
-                    // if (t.state.endOf != nil) {
-                    //   Console.WriteLine("Ambiguous context clause");
-                    //	 errors.count++;
-                    // }
-                }
-            }
-        }
-    }
-    
+	public func GetTargetStates(a: Action, inout targets: BitArray, inout endOf: Symbol?, inout ctx: Bool) {
+		// compute the set of target states
+		targets = BitArray(maxStates); endOf = nil
+		ctx = false
+		for var t = a.target; t != nil; t = t!.next {
+			let stateNr = t!.state!.nr
+			if stateNr <= lastSimState { targets[stateNr] = true }
+			else { targets.or(MeltedSet(stateNr)) }
+			if t!.state!.endOf != nil {
+				if endOf == nil || endOf === t!.state!.endOf {
+					endOf = t!.state!.endOf
+				} else {
+					errors.SemErr("Tokens " + endOf!.name + " and " + t!.state!.endOf!.name + " cannot be distinguished")
+				}
+			}
+			if t!.state!.ctx {
+				ctx = true
+				// The following check seems to be unnecessary. It reported an error
+				// if a symbol + context was the prefix of another symbol, e.g.
+				//   s1 = "a" "b" "c".
+				//   s2 = "a" CONTEXT("b").
+				// But this is ok.
+				// if (t.state.endOf != nil) {
+				//   Console.WriteLine("Ambiguous context clause");
+				//	 errors.count++;
+				// }
+			}
+		}
+	}
+	
     //------------------------- melted states ------------------------------
-    
+	
     var firstMelted: Melted?	// head of melted state list
-    
+	
     func NewMelted(set: BitArray, state: State) -> Melted {
         let m = Melted(set: set, state: state)
         m.next = firstMelted; firstMelted = m
         return m
     }
-    
+	
     func MeltedSet(nr: Int) -> BitArray {
         var m = firstMelted
         while m != nil {
-            if m!.state.nr == nr { return m!.set } else { m = m!.next }
+            if m!.state!.nr == nr { return m!.set } else { m = m!.next }
         }
         assert(false, "compiler error in Melted.Set")
     }
@@ -962,7 +961,7 @@ public class DFA {
         } else {
             gen?.WriteLine("\t\tswitch t.val {")
         }
-        for sym in tab.terminals + tab.pragmas {
+        for sym in (tab.terminals + tab.pragmas) {
             if sym.tokenKind == Symbol.litToken {
                 var name = SymName(sym)
                 if ignoreCase { name = name.lowercaseString }
@@ -992,7 +991,7 @@ public class DFA {
             } else if (state.ctx) {
                 gen?.Write("apx = 0; ")
             }
-            gen?.Write(" AddCh(); state = \(action!.target!.state.nr) ")
+            gen?.Write(" AddCh(); state = \(action!.target!.state!.nr) ")
             gen?.WriteLine("}")
         }
         if state.firstAction == nil {
@@ -1020,7 +1019,7 @@ public class DFA {
     
     func WriteStartTab() {
         for var action = firstState!.firstAction; action != nil; action = action!.next {
-            let targetState = action!.target!.state.nr
+            let targetState = action!.target!.state!.nr
             if action!.typ == Node.chr {
                 gen?.WriteLine("\t\tstart[\(action!.sym)] = \(targetState)")
             } else {
@@ -1058,7 +1057,7 @@ public class DFA {
         WriteStartTab();
         g.CopyFramePart("-->casing1")
         if ignoreCase {
-            gen?.WriteLine("\t\tif ch.unicodeValue() != Buffer.EOF {")
+            gen?.WriteLine("\t\tif ch != Buffer.EOF {")
             gen?.WriteLine("\t\t\tvalCh = Character(ch)")
             gen?.WriteLine("\t\t\tch = Character(ch).lowercase")
             gen?.WriteLine("\t\t}")
@@ -1073,9 +1072,9 @@ public class DFA {
             GenComment(com!, i: comIdx)
             com = com!.next; comIdx++
         }
-        g.CopyFramePart("-->literals"); GenLiterals();
-        g.CopyFramePart("-->scan1");
-        gen?.Write("\t\t\t");
+        g.CopyFramePart("-->literals"); GenLiterals()
+        g.CopyFramePart("-->scan1")
+        gen?.Write("\t\t\t")
         if tab.ignored.Elements() > 0 { PutRange(tab.ignored) } else { gen?.Write("false") }
         g.CopyFramePart("-->scan2")
         if (firstComment != nil) {
