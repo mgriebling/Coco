@@ -4,7 +4,7 @@
     Copyright (c) 1990, 2004 Hanspeter Moessenboeck, University of Linz
     extended by M. Loeberbauer & A. Woess, Univ. of Linz
     with improvements by Pat Terry, Rhodes University
-    Swift port by Michael Griebling, Computer Inspirations
+    Swift port by Michael Griebling
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the
@@ -114,7 +114,7 @@ public class ParserGen {
                     gen?.WriteLine(); Indent(indent)
                     if ch == CR { ch = buffer.Read() } // skip CR
                     if ch == LF { ch = buffer.Read() } // skip LF
-                    for (i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++) {
+                    for i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++ {
                         // skip blanks at beginning of line
                         ch = buffer.Read()
                     }
