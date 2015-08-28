@@ -64,8 +64,8 @@ public class Parser {
         errDist = 0
     }
 
-	void Get () {
-		for (;;) {
+	func Get () {
+		for ;; {
             t = la
             la = scanner.Scan()
             if la.kind <= maxT { ++errDist; break }
@@ -82,7 +82,7 @@ public class Parser {
         return set(s, la.kind)
     }
     
-    func ExpectWeak (n: Int, follow: Int) {
+    func ExpectWeak (n: Int, _ follow: Int) {
         if la.kind == n {
 			Get()
 		} else {

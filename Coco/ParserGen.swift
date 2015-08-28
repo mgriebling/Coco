@@ -158,7 +158,7 @@ public class ParserGen {
             else if n <= maxTerm {
                 for sym in tab.terminals {
                     if s[sym.n] {
-                        gen?.Write("la.kind == \(sym.n)")
+                        gen?.Write("la.kind == \(sym.n) /* \(sym.name) */")
                         --n
                         if n > 0 { gen?.Write(" || ") }
                     }
@@ -175,7 +175,7 @@ public class ParserGen {
         for sym in tab.terminals {
             if s[sym.n] {
                 if oneLabel { gen?.Write(", ") }
-                gen?.Write("\(sym.n)"); oneLabel = true
+                gen?.Write("\(sym.n) /* \(sym.name) */"); oneLabel = true
             }
         }
         gen?.Write(": ")
@@ -195,7 +195,7 @@ public class ParserGen {
                 Indent(indent);
                 // assert: if isChecked[p.sym.n] is true, then isChecked contains only p.sym.n
                 if isChecked[pn.sym!.n] { gen?.WriteLine("Get()") }
-                else { gen?.WriteLine("Expect(\(pn.sym!.n))") }
+                else { gen?.WriteLine("Expect(\(pn.sym!.n)) /* \(pn.sym!.name) */") }
             case Node.wt:
                 Indent(indent);
                 s1 = tab.Expected(pn.next, curSy: curSy)
@@ -203,7 +203,7 @@ public class ParserGen {
 				let s4 = tab.allSyncSets
                 s3.or(s4)
 				s1 = s3
-                gen?.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1)))")
+                gen?.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1))) /* \(pn.sym!.name) */ ")
             case Node.any:
                 Indent(indent)
                 let acc = Sets.Elements(pn.set)
@@ -225,7 +225,7 @@ public class ParserGen {
                 GenErrorMsg(syncErr, sym: curSy)
                 s1 = pn.set.Clone()
                 gen?.Write("while !("); GenCond(s1, p: pn); gen?.Write(") {")
-                gen?.Write("SynErr(\(errorNr)); Get() "); gen?.WriteLine("}")
+                gen?.Write(" SynErr(\(errorNr)); Get() "); gen?.WriteLine("}")
 
             case Node.alt:
                 s1 = tab.First(pn)
@@ -267,7 +267,7 @@ public class ParserGen {
                 if p2!.typ == Node.wt {
                     s1 = tab.Expected(p2!.next, curSy: curSy)
                     s2 = tab.Expected(pn.next, curSy: curSy)
-                    gen?.Write("WeakSeparator(\(p2!.sym!.n),\(NewCondSet(s1)),\(NewCondSet(s2))) ")
+                    gen?.Write("WeakSeparator(\(p2!.sym!.n),\(NewCondSet(s1)),\(NewCondSet(s2))) /* \(p2!.sym!.name) */ ")
                     s1 = BitArray(tab.terminals.count)  // for inner structure
                     if p2!.up || p2!.next == nil { p2 = nil } else { p2 = p2!.next }
                 } else {
@@ -309,7 +309,7 @@ public class ParserGen {
     
     func GenCodePragmas() {
         for sym in tab.pragmas {
-            gen?.WriteLine("\t\t\t\tif la.kind == \(sym.n) {")
+            gen?.WriteLine("\t\t\t\tif la.kind == \(sym.n) /* \(sym.name) */ {")
             CopySourcePart(sym.semPos, indent: 4)
             gen?.WriteLine("\t\t\t\t}")
         }
@@ -367,7 +367,8 @@ public class ParserGen {
         g.CopyFramePart("-->declarations"); CopySourcePart(tab.semDeclPos, indent: 0)
         g.CopyFramePart("-->pragmas"); GenCodePragmas()
         g.CopyFramePart("-->productions"); GenProductions()
-        g.CopyFramePart("-->parseRoot"); gen?.WriteLine("\t\t\(tab.gramSy!.name)()"); if tab.checkEOF { gen?.WriteLine("\t\tExpect(0)") }
+        g.CopyFramePart("-->parseRoot"); gen?.WriteLine("\t\t\(tab.gramSy!.name)()");
+        if tab.checkEOF { gen?.WriteLine("\t\tExpect(0) // EOF ") }
         g.CopyFramePart("-->initialization"); InitSets()
         g.CopyFramePart("-->errors"); gen?.Write(err.string)
         g.CopyFramePart("")

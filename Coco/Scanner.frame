@@ -189,24 +189,24 @@ public class UTF8Buffer: Buffer {
 		repeat {
 			ch = super.Read()
 			// until we find a utf8 start (0xxxxxxx or 11xxxxxx)
-		} while (ch >= 128) && ((ch & 0xC0) != 0xC0) && (ch != Buffer.EOF)
-		if (ch < 128 || ch == Buffer.EOF) {
+		} while ch >= 128 && (ch & 0xC0) != 0xC0 && ch != Buffer.EOF
+		if ch < 128 || ch == Buffer.EOF {
 			// nothing to do, first 127 chars are the same in ascii and utf8
 			// 0xxxxxxx or end of file character
-		} else if ((ch & 0xF0) == 0xF0) {
+		} else if (ch & 0xF0) == 0xF0 {
 			// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 			let c1 = ch & 0x07; ch = super.Read()
 			let c2 = ch & 0x3F; ch = super.Read()
 			let c3 = ch & 0x3F; ch = super.Read()
 			let c4 = ch & 0x3F
-			ch = (((((c1 << 6) | c2) << 6) | c3) << 6) | c4;
-		} else if ((ch & 0xE0) == 0xE0) {
+			ch = (((((c1 << 6) | c2) << 6) | c3) << 6) | c4
+		} else if (ch & 0xE0) == 0xE0 {
 			// 1110xxxx 10xxxxxx 10xxxxxx
 			let c1 = ch & 0x0F; ch = super.Read()
 			let c2 = ch & 0x3F; ch = super.Read()
 			let c3 = ch & 0x3F
 			ch = (((c1 << 6) | c2) << 6) | c3;
-		} else if ((ch & 0xC0) == 0xC0) {
+		} else if (ch & 0xC0) == 0xC0 {
 			// 110xxxxx 10xxxxxx
 			let c1 = ch & 0x1F; ch = super.Read()
 			let c2 = ch & 0x3F
@@ -298,7 +298,7 @@ public class Scanner {
 	}
 
 	func AddCh() {
-		if ch.unicodeValue() != Buffer.EOF {
+		if ch != Buffer.EOF {
 -->casing2
 			NextCh()
 		}

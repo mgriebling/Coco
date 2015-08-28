@@ -429,19 +429,19 @@ public class Scanner {
 			case 4:
 				t.kind = 4; break loop
 			case 5:
-                if ch <= "\u{9}" || ch >= "\u{B}" && ch <= "\u{C}" || ch >= "\u{D}" && ch <= "&" ||
+                if ch <= "\u{9}" || ch >= "\u{B}" && ch <= "\u{C}" || ch >= "\u{E}" && ch <= "&" ||
                    ch >= "(" && ch <= "[" || ch >= "]" && ch <= "\u{FFFF}" { AddCh(); state = 6 }
 				else if ch == "\u{5C}" { AddCh(); state = 7 }
 				else { state = 0 }
 			case 6:
-                if ch == "\u{27}" { AddCh(); state = 9 }
+                if ch == "'" { AddCh(); state = 9 }
 				else { state = 0 }
 			case 7:
 				if ch >= " " && ch <= "~" { AddCh(); state = 8 }
 				else { state = 0 }
 			case 8:
 				if ch >= "0" && ch <= "9" || ch >= "a" && ch <= "f" {AddCh(); state = 8 }
-				else if ch == "\u{27}" { AddCh(); state = 9 }
+				else if ch == "'" { AddCh(); state = 9 }
 				else { state = 0 }
 			case 9:
 				t.kind = 5; break loop
@@ -475,7 +475,7 @@ public class Scanner {
 				else if (ch == "=") { AddCh(); state = 11 }
 				else { t.kind = 42; break loop }
 			case 16:
-				t.kind = 17; break loop
+                t.kind = 17; break loop
 			case 17:
 				t.kind = 20; break loop
 			case 18:

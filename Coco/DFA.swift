@@ -896,7 +896,7 @@ public class DFA {
     //------------------------ scanner generation ----------------------
     
     func GenComBody(com: Comment) {
-        gen?.WriteLine(  "\t\t\tfor ;;) {")
+        gen?.WriteLine(  "\t\t\tfor ;; {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
             gen?.WriteLine("\t\t\t\t\tlevel--")
@@ -995,7 +995,7 @@ public class DFA {
             gen?.WriteLine("}")
         }
         if state.firstAction == nil {
-            gen?.Write("\t\t\t\t{");
+            gen?.Write("\t\t\t\t")
         } else {
             gen?.Write("\t\t\t\telse {")
         }
@@ -1006,15 +1006,17 @@ public class DFA {
             gen?.Write("\t\t\t\t\t")
         }
         if endOf == nil {
-            gen?.WriteLine(" state = 0 }")
+            gen?.Write(" state = 0 ")
         } else {
             gen?.Write(" t.kind = \(endOf!.n); ")
             if endOf!.tokenKind == Symbol.classLitToken {
-                gen?.WriteLine(" t.val = tval; CheckLiteral(); return t }")
+                gen?.Write(" t.val = tval; CheckLiteral(); return t ")
             } else {
-                gen?.WriteLine("break loop }")
+                gen?.Write("break loop ")
             }
         }
+        if state.firstAction != nil { gen?.Write("}") }
+        gen?.WriteLine()
     }
     
     func WriteStartTab() {

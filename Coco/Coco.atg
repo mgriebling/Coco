@@ -87,7 +87,7 @@ Coco                            (. var sym: Symbol?; var g, g1, g2: Graph; var g
 =
   [ // using statements
     ANY                         (. beg = t.pos; line = t.line .)
-    { ANY }                     (. pgen.usingPos = Position(beg, la.pos, 0, line) .)
+    { ANY }                     (. pgen!.usingPos = Position(beg, la.pos, 0, line) .)
   ]
 
   "COMPILER"                    (. genScanner = true
@@ -104,7 +104,7 @@ Coco                            (. var sym: Symbol?; var g, g1, g2: Graph; var g
     "FROM" TokenExpr<&g1> 
     "TO" TokenExpr<&g2>
     [ "NESTED"                  (. nested = true .)
-    ]                           (. dfa?.NewComment(g1.l, g2.l, nested) .)
+    ]                           (. dfa?.NewComment(g1!.l!, g2!.l!, nested) .)
   }
   { "IGNORE" Set<&s>         (. tab.ignored.Or(s) .)
   }
@@ -133,8 +133,8 @@ Coco                            (. var sym: Symbol?; var g, g1, g2: Graph; var g
                                  .)
     [ SemText<&sym!.semPos> ] WEAK
     '='
-    Expression<&g>				(. sym!.graph = g.l
-                                   tab.Finish(g)
+    Expression<&g>				(. sym!.graph = g!.l
+                                   tab.Finish(g!)
                                  .)
 	WEAK
     '.'
@@ -205,10 +205,10 @@ Set<inout s:CharSet>            (. var s2: CharSet .)
 SimSet<inout s:CharSet>         (. var n1 = 0; var n2 = 0 .)
 =                               (. s = CharSet() .)
 ( ident                         (. let c = tab.FindCharClass(t.val)
-                                   if c == nil { SemErr("undefined name") } else { s.Or(c.set) }
+                                   if c == nil { SemErr("undefined name") } else { s.Or(c!.set) }
                                  .)
 | string                        (. var name = t.val
-                                   name = tab.Unescape(name.substring(1, name.Length-2))
+                                   name = tab.Unescape(name.substring(1, name.count()-2))
                                    for ch in name.characters {
                                      if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue()) }
                                      else { s.Set(ch.unicodeValue()) }
@@ -226,7 +226,7 @@ SimSet<inout s:CharSet>         (. var n1 = 0; var n2 = 0 .)
 Char<inout n:Int>
 =
   char                          (. var name = t.val; n = 0
-                                   name = tab.Unescape(name.substring(1, name.Length-2))
+                                   name = tab.Unescape(name.substring(1, name.count()-2))
                                    if name.count() == 1 { n = name[0].unicodeValue() }
                                    else { SemErr("unacceptable character value") }
                                    if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 }
@@ -235,7 +235,7 @@ Char<inout n:Int>
 
 /*------------------------------------------------------------------------------------*/
 
-TokenDecl<typ:Int>               (. var name: String; var kind: Int; var sym: Symbol?; var g: Graph .)
+TokenDecl<typ:Int>               (. var name = ""; var kind: Int; var sym: Symbol?; var g: Graph .)
 =
   Sym<&name, &kind>				 (. sym = tab.FindSym(name)
                                    if sym != nil { SemErr("name declared twice") }
@@ -247,19 +247,19 @@ TokenDecl<typ:Int>               (. var name: String; var kind: Int; var sym: Sy
                                  .)
   SYNC
   ( '=' TokenExpr<&g> '.'		 (. if kind == str { SemErr("a literal must not be declared with a structure") }
-                                   tab.Finish(g)
+                                   tab.Finish(g!)
                                    if tokenString.isEmpty || tokenString == noString {
-                                     dfa?.ConvertToStates(g.l, sym)
+                                     dfa?.ConvertToStates(g!.l!, sym!)
                                     } else { // TokenExpr is a single string
                                      if tab.literals[tokenString] != nil {
                                        SemErr("token string declared twice")
 									 }
                                      tab.literals[tokenString] = sym
-                                     dfa?.MatchLiteral(tokenString, sym)
+                                     dfa?.MatchLiteral(tokenString, sym!)
                                    }
                                  .)
   |                             (. if kind == id { genScanner = false }
-                                   else { dfa?.MatchLiteral(sym!.name, sym) }
+                                   else { dfa?.MatchLiteral(sym!.name, sym!) }
                                  .)
   )
   [ SemText<&sym!.semPos>		(. if typ != Node.pr { SemErr("semantic action not allowed here") } .)
@@ -288,29 +288,29 @@ AttrDecl<sym:Symbol>
 
 /*------------------------------------------------------------------------------------*/
 
-Expression<inout g:Graph>         (. var g2: Graph .)
+Expression<inout g:Graph?>         (. var g2: Graph? .)
 = 
   Term<&g>						 (. var first = true .)
   {                             WEAK
     '|'
-    Term<&g2>					 (. if first { tab.MakeFirstAlt(g); first = false }
-                                   tab.MakeAlternative(g, g2)
+    Term<&g2>					 (. if first { tab.MakeFirstAlt(g!); first = false }
+                                   tab.MakeAlternative(g!, g2!)
                                  .)
   }
 .
 
 /*------------------------------------------------------------------------------------*/
 
-Term<inout g:Graph?>            (. var g2: Graph; var rslv: Node? = nil;
+Term<inout g:Graph?>            (. var g2: Graph?; var rslv: Node? = nil
 								   g = nil .)
 =
 ( [                             (. rslv = tab.NewNode(Node.rslv, nil, la.line) .)
     Resolver<&rslv!.pos>		(. g = Graph(rslv) .)
   ]
-  Factor<&g2>					(. if rslv != nil { tab.MakeSequence(g!, g2) }
+  Factor<&g2>					(. if rslv != nil { tab.MakeSequence(g!, g2!) }
                                    else { g = g2 }
                                  .)
-  { Factor<&g2>					(. tab.MakeSequence(g!, g2) .)
+  { Factor<&g2>					(. tab.MakeSequence(g!, g2!) .)
   }
 |                               (. g = Graph(tab.NewNode(Node.eps, nil, 0)) .)
 )                               (. if g == nil { // invalid start of Term
@@ -321,7 +321,7 @@ Term<inout g:Graph?>            (. var g2: Graph; var rslv: Node? = nil;
 
 /*------------------------------------------------------------------------------------*/
 
-Factor<inout g:Graph?>          (. var name: String; var kind: Int; var pos: Position; var weak = false
+Factor<inout g:Graph?>          (. var name = ""; var kind: Int; var pos: Position; var weak = false
                                    g = nil
                                  .)
 =
@@ -364,14 +364,14 @@ Factor<inout g:Graph?>          (. var name: String; var kind: Int; var pos: Pos
 | '(' Expression<&g> ')'
 | '[' Expression<&g> ']'		(. tab.MakeOption(g!) .)
 | '{' Expression<&g> '}'		(. tab.MakeIteration(g!) .)
-| SemText<&pos>					(. var p = tab.NewNode(Node.sem, nil, 0)
+| SemText<&pos>					(. let p = tab.NewNode(Node.sem, nil, 0)
                                    p.pos = pos
                                    g = Graph(p)
                                  .)
-| "ANY"                         (. var p = tab.NewNode(Node.any, nil, 0)  // p.set is set in tab.SetupAnys
+| "ANY"                         (. let p = tab.NewNode(Node.any, nil, 0)  // p.set is set in tab.SetupAnys
                                    g = Graph(p)
                                  .)
-| "SYNC"                        (. var p = tab.NewNode(Node.sync, nil, 0)
+| "SYNC"                        (. let p = tab.NewNode(Node.sync, nil, 0)
                                    g = Graph(p)
                                  .)
 )                               (. if g == nil { // invalid start of Factor
@@ -421,30 +421,30 @@ TokenTerm<inout g:Graph?>		(. var g2: Graph? .)
 
 /*------------------------------------------------------------------------------------*/
 
-TokenFactor<inout g:Graph?>     (. var name= ""; var kind = 0 .)
+TokenFactor<inout g:Graph?>     (.  var name = ""; var kind = 0 .)
 =
-                                (. g = nil .)
-( Sym<&name, &kind>				(. if kind == id {
-                                     var c = tab.FindCharClass(name)
-                                     if c == nil {
-                                       SemErr("undefined name")
-                                       c = tab.NewCharClass(name, CharSet())
-                                     }
-                                     let p = tab.NewNode(Node.clas, nil, 0); p.val = c!.n
-                                     g = Graph(p)
-                                     tokenString = noString
-                                   } else { // str
-                                     g = tab.StrToGraph(name)
-                                     if tokenString.isEmpty() { tokenString = name }
-                                     else { tokenString = noString }
-                                   }
+                                (.  g = nil .)
+( Sym<&name, &kind>				(.  if kind == id {
+                                        var c = tab.FindCharClass(name)
+                                        if c == nil {
+                                            SemErr("undefined name")
+                                            c = tab.NewCharClass(name, CharSet())
+                                        }
+                                        let p = tab.NewNode(Node.clas, nil, 0); p.val = c!.n
+                                        g = Graph(p)
+                                        tokenString = noString
+                                    } else { // str
+                                        g = tab.StrToGraph(name)
+                                        if tokenString.isEmpty() { tokenString = name }
+                                        else { tokenString = noString }
+                                    }
                                  .)
 | '(' TokenExpr<&g> ')'
-| '[' TokenExpr<&g> ']'			(. tab.MakeOption(g!); tokenString = noString .)
-| '{' TokenExpr<&g> '}'			(. tab.MakeIteration(g!); tokenString = noString .)
-)                               (. if g == nil { // invalid start of TokenFactor
-                                     g = Graph(tab.NewNode(Node.eps, nil, 0))
-                                   }
+| '[' TokenExpr<&g> ']'			(.  tab.MakeOption(g!); tokenString = noString .)
+| '{' TokenExpr<&g> '}'			(.  tab.MakeIteration(g!); tokenString = noString .)
+)                               (.  if g == nil { // invalid start of TokenFactor
+                                        g = Graph(tab.NewNode(Node.eps, nil, 0))
+                                    }
 								 .)
 .
 

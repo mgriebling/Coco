@@ -102,7 +102,7 @@ public class Parser {
         if la.kind == n { Get() } else { SynErr(n) }
     }
     
-    func StartOf (s: Int)-> Bool {
+    func StartOf (s: Int) -> Bool {
         return set(s, la.kind)
     }
     
