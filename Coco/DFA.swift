@@ -626,7 +626,7 @@ public class DFA {
         }
     }
     
-    public func ConvertToStates(p: Node, sym: Symbol) {
+    public func ConvertToStates(p: Node, _ sym: Symbol) {
         curSy = sym;
         if Tab.DelGraph(p) {
             parser.SemErr("token might be empty")
@@ -887,7 +887,7 @@ public class DFA {
         return s
     }
     
-    public func NewComment(from:Node, to: Node, nested: Bool) {
+    public func NewComment(from:Node, _ to: Node, _ nested: Bool) {
         let c = Comment(start: CommentStr(from), stop: CommentStr(to), nested: nested)
         c.next = firstComment; firstComment = c
     }
@@ -929,7 +929,7 @@ public class DFA {
     func GenComment(com: Comment, i: Int) {
         gen?.WriteLine();
         gen?.Write    ("\tfunc Comment\(i)() -> Bool "); gen?.WriteLine("{");
-        gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line, let col0 = col; let charPos0 = charPos")
+        gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line; let col0 = col; let charPos0 = charPos")
         if com.start.count() == 1 {
             gen?.WriteLine("\t\tNextCh()")
             GenComBody(com);
@@ -939,7 +939,7 @@ public class DFA {
             gen?.WriteLine("\t\t\tNextCh()")
             GenComBody(com)
             gen?.WriteLine("\t\t} else {")
-            gen?.WriteLine("\t\t\tbuffer.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0")
+            gen?.WriteLine("\t\t\tbuffer!.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0")
             gen?.WriteLine("\t\t}")
             gen?.WriteLine("\t\treturn false")
         }
