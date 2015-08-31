@@ -66,10 +66,6 @@
             argument = "Coco.atg"
             isEnabled = "YES">
          </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-trace AFGIJPSX"
-            isEnabled = "YES">
-         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>

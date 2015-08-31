@@ -4,7 +4,7 @@
     Copyright (c) 1990, 2004 Hanspeter Moessenboeck, University of Linz
     extended by M. Loeberbauer & A. Woess, Univ. of Linz
     with improvements by Pat Terry, Rhodes University
-    Swift port by Michael Griebling, Computer Inspirations
+    Swift port by Michael Griebling
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the
@@ -114,7 +114,7 @@ public class ParserGen {
                     gen?.WriteLine(); Indent(indent)
                     if ch == CR { ch = buffer.Read() } // skip CR
                     if ch == LF { ch = buffer.Read() } // skip LF
-                    for (i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++) {
+                    for i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++ {
                         // skip blanks at beginning of line
                         ch = buffer.Read()
                     }
@@ -150,6 +150,21 @@ public class ParserGen {
         return symSet.count - 1
     }
     
+    func isValidName (sym: Symbol) -> Bool {
+        let name = sym.name.stringByReplacingOccurrencesOfString("\"", withString: "")
+        for (num, ch) in name.characters.enumerate() {
+            if num == 0 && !ch.isLetter() { return false }
+            else if !ch.isAlphanumeric() { return false }
+        }
+        return true
+    }
+    
+    func GenToken (sym: Symbol) {
+        if sym.name[0].isLetter() { gen?.Write("_" + sym.name) }
+        else if isValidName(sym) { gen?.Write("_" + sym.name.stringByReplacingOccurrencesOfString("\"", withString: "")) }
+        else { gen?.Write("\(sym.n) /* \(sym.name) */") }
+    }
+    
     func GenCond (s: BitArray, p: Node) {
         if p.typ == Node.rslv { CopySourcePart(p.pos, indent: 0) }
         else {
@@ -158,7 +173,7 @@ public class ParserGen {
             else if n <= maxTerm {
                 for sym in tab.terminals {
                     if s[sym.n] {
-                        gen?.Write("la.kind == \(sym.n)")
+                        gen?.Write("la.kind == "); GenToken(sym)
                         --n
                         if n > 0 { gen?.Write(" || ") }
                     }
@@ -175,7 +190,7 @@ public class ParserGen {
         for sym in tab.terminals {
             if s[sym.n] {
                 if oneLabel { gen?.Write(", ") }
-                gen?.Write("\(sym.n)"); oneLabel = true
+                GenToken(sym); oneLabel = true
             }
         }
         gen?.Write(": ")
@@ -195,7 +210,7 @@ public class ParserGen {
                 Indent(indent);
                 // assert: if isChecked[p.sym.n] is true, then isChecked contains only p.sym.n
                 if isChecked[pn.sym!.n] { gen?.WriteLine("Get()") }
-                else { gen?.WriteLine("Expect(\(pn.sym!.n))") }
+                else { gen?.Write("Expect("); GenToken(pn.sym!); gen?.WriteLine(")") }
             case Node.wt:
                 Indent(indent);
                 s1 = tab.Expected(pn.next, curSy: curSy)
@@ -203,7 +218,7 @@ public class ParserGen {
 				let s4 = tab.allSyncSets
                 s3.or(s4)
 				s1 = s3
-                gen?.WriteLine("ExpectWeak(\(pn.sym!.n), \(NewCondSet(s1)))")
+                gen?.Write("ExpectWeak("); GenToken(pn.sym!); gen?.WriteLine("), \(NewCondSet(s1)))")
             case Node.any:
                 Indent(indent)
                 let acc = Sets.Elements(pn.set)
@@ -225,7 +240,7 @@ public class ParserGen {
                 GenErrorMsg(syncErr, sym: curSy)
                 s1 = pn.set.Clone()
                 gen?.Write("while !("); GenCond(s1, p: pn); gen?.Write(") {")
-                gen?.Write("SynErr(\(errorNr)); Get() "); gen?.WriteLine("}")
+                gen?.Write(" SynErr(\(errorNr)); Get() "); gen?.WriteLine("}")
 
             case Node.alt:
                 s1 = tab.First(pn)
@@ -267,7 +282,7 @@ public class ParserGen {
                 if p2!.typ == Node.wt {
                     s1 = tab.Expected(p2!.next, curSy: curSy)
                     s2 = tab.Expected(pn.next, curSy: curSy)
-                    gen?.Write("WeakSeparator(\(p2!.sym!.n),\(NewCondSet(s1)),\(NewCondSet(s2))) ")
+                    gen?.Write("WeakSeparator("); GenToken(p2!.sym!); gen?.Write(",\(NewCondSet(s1)),\(NewCondSet(s2)))")
                     s1 = BitArray(tab.terminals.count)  // for inner structure
                     if p2!.up || p2!.next == nil { p2 = nil } else { p2 = p2!.next }
                 } else {
@@ -297,6 +312,8 @@ public class ParserGen {
         for sym in tab.terminals {
             if sym.name[0].isLetter() {
                 gen?.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
+            } else if isValidName(sym) {
+                gen?.WriteLine("\tpublic let _" + sym.name.stringByReplacingOccurrencesOfString("\"", withString: "") + " = \(sym.n)")
             }
         }
     }
@@ -309,8 +326,8 @@ public class ParserGen {
     
     func GenCodePragmas() {
         for sym in tab.pragmas {
-            gen?.WriteLine("\t\t\t\tif la.kind == \(sym.n) {")
-            CopySourcePart(sym.semPos, indent: 4)
+            gen?.Write("\t\t\t\tif la.kind == "); GenToken(sym); gen?.WriteLine(" {")
+            CopySourcePart(sym.semPos, indent: 5)
             gen?.WriteLine("\t\t\t\t}")
         }
     }
@@ -367,7 +384,8 @@ public class ParserGen {
         g.CopyFramePart("-->declarations"); CopySourcePart(tab.semDeclPos, indent: 0)
         g.CopyFramePart("-->pragmas"); GenCodePragmas()
         g.CopyFramePart("-->productions"); GenProductions()
-        g.CopyFramePart("-->parseRoot"); gen?.WriteLine("\t\t\(tab.gramSy!.name)()"); if tab.checkEOF { gen?.WriteLine("\t\tExpect(0)") }
+        g.CopyFramePart("-->parseRoot"); gen?.WriteLine("\t\t\(tab.gramSy!.name)()");
+        if tab.checkEOF { gen?.WriteLine("\t\tExpect(_EOF)") }
         g.CopyFramePart("-->initialization"); InitSets()
         g.CopyFramePart("-->errors"); gen?.Write(err.string)
         g.CopyFramePart("")

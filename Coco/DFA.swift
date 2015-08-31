@@ -4,7 +4,7 @@
     Copyright (c) 1990, 2004 Hanspeter Moessenboeck, University of Linz
     extended by M. Loeberbauer & A. Woess, Univ. of Linz
     with improvements by Pat Terry, Rhodes University
-    Swift port by Michael Griebling, Computer Inspirations
+    Swift port by Michael Griebling
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the
@@ -626,7 +626,7 @@ public class DFA {
         }
     }
     
-    public func ConvertToStates(p: Node, sym: Symbol) {
+    public func ConvertToStates(p: Node, _ sym: Symbol) {
         curSy = sym;
         if Tab.DelGraph(p) {
             parser.SemErr("token might be empty")
@@ -688,18 +688,18 @@ public class DFA {
         } else if setb.Includes(seta) {
             setc = setb.Clone(); setc.Subtract(seta)
             a.AddTargets(b)
-            b.ShiftWith(setc, tab: tab);
+            b.ShiftWith(setc, tab: tab)
         } else {
-            setc = seta.Clone(); setc.And(setb);
-            seta.Subtract(setc);
-            setb.Subtract(setc);
-            a.ShiftWith(seta, tab: tab);
-            b.ShiftWith(setb, tab: tab);
+            setc = seta.Clone(); setc.And(setb)
+            seta.Subtract(setc)
+            setb.Subtract(setc)
+            a.ShiftWith(seta, tab: tab)
+            b.ShiftWith(setb, tab: tab)
             c = Action(typ: 0, sym: 0, tc: Node.normalTrans)  // typ and sym are set in ShiftWith
-            c.AddTargets(a);
-            c.AddTargets(b);
-            c.ShiftWith(setc, tab: tab);
-            state.AddAction(c);
+            c.AddTargets(a)
+            c.AddTargets(b)
+            c.ShiftWith(setc, tab: tab)
+            state.AddAction(c)
         }
     }
     
@@ -887,7 +887,7 @@ public class DFA {
         return s
     }
     
-    public func NewComment(from:Node, to: Node, nested: Bool) {
+    public func NewComment(from:Node, _ to: Node, _ nested: Bool) {
         let c = Comment(start: CommentStr(from), stop: CommentStr(to), nested: nested)
         c.next = firstComment; firstComment = c
     }
@@ -896,7 +896,7 @@ public class DFA {
     //------------------------ scanner generation ----------------------
     
     func GenComBody(com: Comment) {
-        gen?.WriteLine(  "\t\t\tfor ;;) {")
+        gen?.WriteLine(  "\t\t\tfor ;; {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
             gen?.WriteLine("\t\t\t\t\tlevel--")
@@ -929,7 +929,7 @@ public class DFA {
     func GenComment(com: Comment, i: Int) {
         gen?.WriteLine();
         gen?.Write    ("\tfunc Comment\(i)() -> Bool "); gen?.WriteLine("{");
-        gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line, let col0 = col; let charPos0 = charPos")
+        gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line; let col0 = col; let charPos0 = charPos")
         if com.start.count() == 1 {
             gen?.WriteLine("\t\tNextCh()")
             GenComBody(com);
@@ -939,7 +939,7 @@ public class DFA {
             gen?.WriteLine("\t\t\tNextCh()")
             GenComBody(com)
             gen?.WriteLine("\t\t} else {")
-            gen?.WriteLine("\t\t\tbuffer.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0")
+            gen?.WriteLine("\t\t\tbuffer!.Pos = pos0; NextCh(); line = line0; col = col0; charPos = charPos0")
             gen?.WriteLine("\t\t}")
             gen?.WriteLine("\t\treturn false")
         }
@@ -995,7 +995,7 @@ public class DFA {
             gen?.WriteLine("}")
         }
         if state.firstAction == nil {
-            gen?.Write("\t\t\t\t{");
+            gen?.Write("\t\t\t\t")
         } else {
             gen?.Write("\t\t\t\telse {")
         }
@@ -1006,15 +1006,17 @@ public class DFA {
             gen?.Write("\t\t\t\t\t")
         }
         if endOf == nil {
-            gen?.WriteLine(" state = 0 }")
+            gen?.Write(" state = 0 ")
         } else {
             gen?.Write(" t.kind = \(endOf!.n); ")
             if endOf!.tokenKind == Symbol.classLitToken {
-                gen?.WriteLine(" t.val = tval; CheckLiteral(); return t }")
+                gen?.Write(" t.val = tval; CheckLiteral(); return t ")
             } else {
-                gen?.WriteLine("break loop }")
+                gen?.Write("break loop ")
             }
         }
+        if state.firstAction != nil { gen?.Write("}") }
+        gen?.WriteLine()
     }
     
     func WriteStartTab() {
