@@ -130,7 +130,7 @@ public class Parser {
     }
     
     func Coco() {
-		var sym: Symbol?; var g, g1, g2: Graph?; var gramName: String; var s = CharSet(); var beg, line: Int
+		var sym: Symbol?; var g, g1, g2: Graph?; let gramName: String; var s = CharSet(); var beg, line: Int
         if StartOf(1) {
             Get()
             beg = t.pos; line = t.line
