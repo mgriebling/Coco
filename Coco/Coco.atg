@@ -83,7 +83,7 @@ IGNORE cr + lf + tab
 
 PRODUCTIONS
 
-Coco                            (. var sym: Symbol?; var g, g1, g2: Graph?; var gramName: String; var s = CharSet(); var beg, line: Int .)
+Coco                            (. var sym: Symbol?; var g, g1, g2: Graph?; let gramName: String; var s = CharSet(); var beg, line: Int .)
 =
   [ // using statements
     ANY                         (. beg = t.pos; line = t.line .)

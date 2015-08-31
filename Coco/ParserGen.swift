@@ -218,7 +218,7 @@ public class ParserGen {
 				let s4 = tab.allSyncSets
                 s3.or(s4)
 				s1 = s3
-                gen?.Write("ExpectWeak("); GenToken(pn.sym!); gen?.WriteLine("), \(NewCondSet(s1)))")
+                gen?.Write("ExpectWeak("); GenToken(pn.sym!); gen?.WriteLine(", \(NewCondSet(s1)))")
             case Node.any:
                 Indent(indent)
                 let acc = Sets.Elements(pn.set)
