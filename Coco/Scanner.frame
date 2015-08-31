@@ -261,7 +261,12 @@ public class Scanner {
 	}
 	
 	public init (s: NSInputStream) {
-		buffer = Buffer(s: s, isUserStream: true)
+        s.open()
+        if s.hasBytesAvailable {
+            buffer = Buffer(s: s, isUserStream: true)
+		} else {
+			assert(false, "Cannot open user stream")
+		}
 		Init()
 	}
 	

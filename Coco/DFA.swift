@@ -688,18 +688,18 @@ public class DFA {
         } else if setb.Includes(seta) {
             setc = setb.Clone(); setc.Subtract(seta)
             a.AddTargets(b)
-            b.ShiftWith(setc, tab: tab);
+            b.ShiftWith(setc, tab: tab)
         } else {
-            setc = seta.Clone(); setc.And(setb);
-            seta.Subtract(setc);
-            setb.Subtract(setc);
-            a.ShiftWith(seta, tab: tab);
-            b.ShiftWith(setb, tab: tab);
+            setc = seta.Clone(); setc.And(setb)
+            seta.Subtract(setc)
+            setb.Subtract(setc)
+            a.ShiftWith(seta, tab: tab)
+            b.ShiftWith(setb, tab: tab)
             c = Action(typ: 0, sym: 0, tc: Node.normalTrans)  // typ and sym are set in ShiftWith
-            c.AddTargets(a);
-            c.AddTargets(b);
-            c.ShiftWith(setc, tab: tab);
-            state.AddAction(c);
+            c.AddTargets(a)
+            c.AddTargets(b)
+            c.ShiftWith(setc, tab: tab)
+            state.AddAction(c)
         }
     }
     

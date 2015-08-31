@@ -92,9 +92,9 @@
 				47425F9D1B89E450002D9963 /* ParserGen.swift */,
 				47402E0E1B90DD5700127AD7 /* Parser.swift */,
 				47402E0F1B90DD5700127AD7 /* Scanner.swift */,
+				2FED1DCA1B84E21A00001383 /* Tab.swift */,
 				472BB2901B8F1D34009B0F12 /* Support */,
 				2FED1DC81B84CF9100001383 /* String+Char.swift */,
-				2FED1DCA1B84E21A00001383 /* Tab.swift */,
 			);
 			path = Coco;
 			sourceTree = "<group>";

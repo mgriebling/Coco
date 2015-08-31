@@ -85,6 +85,11 @@ public extension Character {
         return cSet.characterIsMember(self.toUnichar())
     }
     
+    public func isAlphanumeric() -> Bool {
+        let cSet = NSCharacterSet.alphanumericCharacterSet()
+        return cSet.characterIsMember(self.toUnichar())
+    }
+    
     public var lowercase : Character {
         let s = String(self)
         return s.lowercaseString.characters.first!

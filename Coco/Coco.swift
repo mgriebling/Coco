@@ -26,6 +26,22 @@
     Coco/R itself) does not fall under the GNU General Public License.
 -------------------------------------------------------------------------*/
 
+/*-------------------------------------------------------------------------
+    Trace output options
+    0 | A: prints the states of the scanner automaton
+    1 | F: prints the First and Follow sets of all nonterminals
+    2 | G: prints the syntax graph of the productions
+    3 | I: traces the computation of the First sets
+    4 | J: prints the sets associated with ANYs and synchronisation sets
+    6 | S: prints the symbol table (terminals, nonterminals, pragmas)
+    7 | X: prints a cross reference list of all syntax symbols
+    8 | P: prints statistics about the Coco run
+
+    Trace output can be switched on by the pragma
+    $ { digit | letter }
+    in the attributed grammar or as a command-line option
+-------------------------------------------------------------------------*/
+
 import Foundation
 
 public class Coco {
