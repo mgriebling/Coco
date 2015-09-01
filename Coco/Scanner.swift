@@ -338,7 +338,7 @@ public class Scanner {
 		if ch == "/" {
 			NextCh()
 			for ;; {
-				if ch == "\u{0A}" {
+				if ch == "\n" {
 					level--
 					if level == 0 { oldEols = line - line0; NextCh(); return true }
 					NextCh()
@@ -404,7 +404,7 @@ public class Scanner {
 
 	func NextToken() -> Token {
 		while ch == " " ||
-			ch >= "\u{09}" && ch <= "\u{0A}" || ch == "\u{0D}"
+			ch >= "\t" && ch <= "\n" || ch == "\r"
 		{ NextCh() }
 		if ch == "/" && Comment0() || ch == "/" && Comment1() { return NextToken() }
 		var recKind = noSym
@@ -437,8 +437,8 @@ public class Scanner {
 			case 4:
 				 t.kind = 4; break loop 
 			case 5:
-				if ch <= "\u{09}" || ch >= "\u{0B}" && ch <= "\u{0C}" || ch >= "\u{0E}" && ch <= "&" || ch >= "(" && ch <= "[" || ch >= "]" && ch <= "\u{0FFFF}" { AddCh(); state = 6 }
-				else if ch == "\u{05C}" { AddCh(); state = 7 }
+				if ch <= "\t" || ch >= "\u{0B}" && ch <= "\u{0C}" || ch >= "\u{0E}" && ch <= "&" || ch >= "(" && ch <= "[" || ch >= "]" && ch <= "\u{0FFFF}" { AddCh(); state = 6 }
+				else if ch == "\\" { AddCh(); state = 7 }
 				else { state = 0 }
 			case 6:
 				if ch == "'" { AddCh(); state = 9 }
@@ -461,10 +461,10 @@ public class Scanner {
 				if ch >= "-" && ch <= "." || ch >= "0" && ch <= ":" || ch >= "A" && ch <= "Z" || ch == "_" || ch >= "a" && ch <= "z" { AddCh(); state = 11 }
 				else { t.kind = 43; break loop }
 			case 12:
-				if ch <= "\u{09}" || ch >= "\u{0B}" && ch <= "\u{0C}" || ch >= "\u{0E}" && ch <= "!" || ch >= "#" && ch <= "[" || ch >= "]" && ch <= "\u{0FFFF}" { AddCh(); state = 12 }
-				else if ch == "\u{0A}" || ch == "\u{0D}" { AddCh(); state = 4 }
-				else if ch == "\u{022}" { AddCh(); state = 3 }
-				else if ch == "\u{05C}" { AddCh(); state = 14 }
+				if ch <= "\t" || ch >= "\u{0B}" && ch <= "\u{0C}" || ch >= "\u{0E}" && ch <= "!" || ch >= "#" && ch <= "[" || ch >= "]" && ch <= "\u{0FFFF}" { AddCh(); state = 12 }
+				else if ch == "\n" || ch == "\r" { AddCh(); state = 4 }
+				else if ch == "\"" { AddCh(); state = 3 }
+				else if ch == "\\" { AddCh(); state = 14 }
 				else { state = 0 }
 			case 13:
 				recEnd = pos; recKind = 42

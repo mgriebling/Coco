@@ -301,7 +301,7 @@ public class ParserGen {
             default: break
             }
             if pn.typ != Node.eps && pn.typ != Node.sem && pn.typ != Node.sync {
-                isChecked.SetAll(false)  // = new BitArray(tab.terminals.Count);
+                isChecked.SetAll(false)
             }
             if pn.up { break }
             p = pn.next
@@ -345,8 +345,7 @@ public class ParserGen {
     }
     
     func InitSets() {
-        for i in 0..<symSet.count {
-            let s = symSet[i]
+        for (i, s) in symSet.enumerate() {
             gen?.Write("\t\t[")
             var j = 0
             for sym in tab.terminals {

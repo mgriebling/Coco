@@ -453,8 +453,11 @@ public class DFA {
     //---------- Output primitives
     private func Ch(ch: Int) -> String {
         let lch = Character(ch)
-		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(format: "\"\\u{0%X}\"", ch) }
-        else { return "\"\(lch)\"" }
+        if lch == "\"" || lch == "\\" || lch ==  "\n" || lch ==  "\r" || lch ==  "\t" {
+            return "\"" + tab.Escape(String(lch)) + "\""
+        } else if lch < " " || ch >= 127 {
+            return String(format: "\"\\u{0%X}\"", ch)
+        } else { return "\"\(lch)\"" }
     }
     
     private func ChCond(ch: Character) -> String {
