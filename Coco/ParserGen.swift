@@ -381,7 +381,7 @@ public class ParserGen {
         GenTokens() /* ML 2002/09/07 write the token kinds */
         gen?.WriteLine("\tpublic let maxT = \(tab.terminals.count-1)")
         GenPragmas() /* ML 2005/09/23 write the pragma kinds */
-        g.CopyFramePart("-->declarations"); CopySourcePart(tab.semDeclPos, indent: 0)
+        g.CopyFramePart("-->declarations"); CopySourcePart(tab.semDeclPos, indent: 1)
         g.CopyFramePart("-->pragmas"); GenCodePragmas()
         g.CopyFramePart("-->productions"); GenProductions()
         g.CopyFramePart("-->parseRoot"); gen?.WriteLine("\t\t\(tab.gramSy!.name)()");

@@ -33,18 +33,18 @@
 
 COMPILER Coco
 
-	/* Default parser declarations */
-	let id = 0
-	let str = 1
+/* Default parser declarations */
+let id = 0
+let str = 1
 
-	public var trace: NSOutputStream? // other Coco objects referenced in this ATG
-	public var tab = Tab()
-	public var dfa: DFA?
-	public var pgen: ParserGen?
+public var trace: NSOutputStream? // other Coco objects referenced in this ATG
+public var tab = Tab()
+public var dfa: DFA?
+public var pgen: ParserGen?
 
-	var genScanner = false
-	var tokenString = ""            // used in declarations of literal tokens
-	let noString = "-none-"         // used in declarations of literal tokens
+var genScanner = false
+var tokenString = ""            // used in declarations of literal tokens
+let noString = "-none-"         // used in declarations of literal tokens
 
 /*-------------------------------------------------------------------------*/
 
