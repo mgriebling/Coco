@@ -3,7 +3,7 @@
     Copyright (c) 1990, 2004 Hanspeter Moessenboeck, University of Linz
     extended by M. Loeberbauer & A. Woess, Univ. of Linz
     with improvements by Pat Terry, Rhodes University
-    Swift port by Michael Griebling
+    Swift port by Michael Griebling, 2015
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the

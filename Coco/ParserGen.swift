@@ -4,7 +4,7 @@
     Copyright (c) 1990, 2004 Hanspeter Moessenboeck, University of Linz
     extended by M. Loeberbauer & A. Woess, Univ. of Linz
     with improvements by Pat Terry, Rhodes University
-    Swift port by Michael Griebling
+    Swift port by Michael Griebling, 2015
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the
@@ -130,7 +130,7 @@ public class ParserGen {
     
     func GenErrorMsg (errTyp: Int, sym: Symbol) {
         errorNr++
-        err.Write("\t\t\tcase \(errorNr): s = \"")
+        err.Write("\t\tcase \(errorNr): s = \"")
         switch errTyp {
         case tErr:
             if sym.name[0] == "\"" { err.Write(tab.Escape(sym.name) + " expected") }
