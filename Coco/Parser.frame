@@ -65,7 +65,7 @@ public class Parser {
     }
 
 	func Get () {
-		for ;; {
+		while true {
             t = la
             la = scanner.Scan()
             if la.kind <= maxT { ++errDist; break }

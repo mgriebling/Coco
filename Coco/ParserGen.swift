@@ -81,8 +81,9 @@ public class ParserGen {
     }
     
     // use a switch if more than 5 alternatives and none starts with a resolver, and no LL1 warning
-    func UseSwitch (var p: Node?) -> Bool {
+    func UseSwitch (p: Node?) -> Bool {
         var s1, s2: BitArray
+        var p = p
         if p!.typ != Node.alt { return false }
         var nAlts = 0
         s1 = BitArray(tab.terminals.count)
@@ -91,7 +92,7 @@ public class ParserGen {
             // must not optimize with switch statement, if there are ll1 warnings
             if Overlaps(s1, s2) { return false }
             s1.or(s2)
-            ++nAlts
+            nAlts += 1
             // must not optimize with switch-statement, if alt uses a resolver expression
             if pn.sub!.typ == Node.rslv { return false }
             p = pn.down
@@ -101,7 +102,7 @@ public class ParserGen {
     
     func CopySourcePart (pos: Position?, indent: Int) {
         // Copy text described by pos from atg to gen
-        var ch, i: Int
+        var ch: Int
         if let pos = pos {
             buffer.Pos = pos.beg; ch = buffer.Read()
             if tab.emitLines {
@@ -114,7 +115,7 @@ public class ParserGen {
                     gen?.WriteLine(); Indent(indent)
                     if ch == CR { ch = buffer.Read() } // skip CR
                     if ch == LF { ch = buffer.Read() } // skip LF
-                    for i = 1; i <= pos.col && (ch == " " || ch == "\t"); i++ {
+                    for _ in 1...pos.col where ch == " " || ch == "\t" {
                         // skip blanks at beginning of line
                         ch = buffer.Read()
                     }
@@ -129,7 +130,7 @@ public class ParserGen {
     }
     
     func GenErrorMsg (errTyp: Int, sym: Symbol) {
-        errorNr++
+        errorNr += 1
         err.Write("\t\tcase \(errorNr): s = \"")
         switch errTyp {
         case tErr:
@@ -174,7 +175,7 @@ public class ParserGen {
                 for sym in tab.terminals {
                     if s[sym.n] {
                         gen?.Write("la.kind == "); GenToken(sym)
-                        --n
+                        n -= 1
                         if n > 0 { gen?.Write(" || ") }
                     }
                 }
@@ -196,8 +197,9 @@ public class ParserGen {
         gen?.Write(": ")
     }
 
-    func GenCode (var p: Node?, indent: Int, isChecked: BitArray ) {
+    func GenCode (p: Node?, indent: Int, isChecked: BitArray ) {
         var p2: Node?
+        var p = p
         var s1, s2: BitArray
         while let pn = p {
             switch pn.typ {
@@ -350,7 +352,7 @@ public class ParserGen {
             var j = 0
             for sym in tab.terminals {
                 if s[sym.n] { gen?.Write("_T,") } else { gen?.Write("_x,") }
-                ++j
+                j += 1
                 if j%4 == 0 { gen?.Write(" ") }
             }
             if i == symSet.count-1 { gen?.WriteLine("_x]") } else { gen?.WriteLine("_x],") }

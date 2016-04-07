@@ -47,7 +47,7 @@ import Foundation
 public class Coco {
     
     public static func Main (arg: [String]) {
-        print("Coco/R (Aug 27, 2015)")
+        print("Coco/R (April 7, 2016)")
         var srcName : NSString = ""
         var nsName = ""
         var frameDir = ""
@@ -57,13 +57,13 @@ public class Coco {
         var emitLines = false
         var i = 0
         while i < arg.count {
-            if (arg[i] == "-namespace" && i < arg.count - 1) { nsName = arg[++i].Trim() }
-            else if (arg[i] == "-frames" && i < arg.count - 1) { frameDir = arg[++i].Trim() }
-            else if (arg[i] == "-trace" && i < arg.count - 1) { ddtString = arg[++i].Trim() }
-            else if (arg[i] == "-o" && i < arg.count - 1) { outDir = arg[++i].Trim() }
+            if (arg[i] == "-namespace" && i < arg.count - 1) { i += 1; nsName = arg[i].Trim() }
+            else if (arg[i] == "-frames" && i < arg.count - 1) { i += 1; frameDir = arg[i].Trim() }
+            else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].Trim() }
+            else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].Trim() }
             else if (arg[i] == "-lines") { emitLines = true }
             else { srcName = arg[i] }
-            i++
+            i += 1
         }
         
         if arg.count > 1 && srcName.length != 0 {

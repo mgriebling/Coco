@@ -104,10 +104,10 @@ public class Parser {
     }
 
 	func Get () {
-		for ;; {
+		while true {
             t = la
             la = scanner.Scan()
-            if la.kind <= maxT { ++errDist; break }
+            if la.kind <= maxT { errDist += 1; break }
 				if la.kind == _ddtSym {
 					tab.SetDDT(la.val) 
 				}
@@ -809,17 +809,17 @@ public class Errors {
         default: s = "error \(n)"
         }
         WriteLine(errMsgFormat, line: line, col: col, s: s)
-        count++
+        count += 1
 	}
 
     public func SemErr (line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s);
-        count++
+        count += 1
     }
     
     public func SemErr (s: String) {
         WriteLine(s)
-        count++
+        count += 1
     }
     
     public func Warning (line: Int, col: Int, s: String) {

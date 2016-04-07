@@ -157,7 +157,7 @@ public class Sets {
 	public static func Elements(s: BitArray) -> Int {
 		var n = 0
 		for item in s {
-			if item { n++ }
+			if item { n += 1 }
 		}
 		return n
 	}
@@ -330,7 +330,8 @@ public class Tab {
 	
 	let tKind = ["fixedToken", "classToken", "litToken", "classLitToken"]
 	
-	public func NewSym(typ: Int, var _ name: String, _ line: Int) -> Symbol {
+	public func NewSym(typ: Int, _ name: String, _ line: Int) -> Symbol {
+        var name = name
 		if name.count() == 2 && name[0] == "\"" {
 			parser!.SemErr("empty token not allowed"); name = "???"
 		}
@@ -368,7 +369,7 @@ public class Tab {
 		} else {
 			trace?.Write("            ")
 		}
-		trace?.WriteLine("\(sym.line) \(tKind[sym.tokenKind)")
+		trace?.WriteLine("\(sym.line) \(tKind[sym.tokenKind])")
 	}
 	
 	public func PrintSymbolTable() {
@@ -510,7 +511,8 @@ public class Tab {
 		return g
 	}
 	
-	public func SetContextTrans(var p: Node?) { // set transition code in the graph rooted at p
+	public func SetContextTrans(p: Node?) { // set transition code in the graph rooted at p
+        var p = p
 		while p != nil {
 			if let np = p {
 				if (np.typ == Node.chr || np.typ == Node.clas) {
@@ -602,7 +604,8 @@ public class Tab {
 	public var classes = [CharClass]()
 	public var dummyName : Character = "A"
 	
-	public func NewCharClass(var name: String, _ s: CharSet) -> CharClass {
+	public func NewCharClass(name: String, _ s: CharSet) -> CharClass {
+        var name = name
 		if name == "#" { name = "#" + String(dummyName); dummyName += 1 }
 		let c = CharClass(name: name, s: s)
 		c.n = classes.count
@@ -637,9 +640,11 @@ public class Tab {
 	}
 	
     func WriteCharSet(s: CharSet) {
-        for var r = s.head; r != nil; r = r!.next {
+        var r = s.head
+        while r != nil {
             if r!.from < r!.to { trace?.Write(Ch(r!.from) + ".." + Ch(r!.to) + " ") }
             else { trace?.Write(Ch(r!.from) + " ") }
+            r = r!.next
         }
     }
 	
@@ -658,7 +663,8 @@ public class Tab {
 	//---------------------------------------------------------------------
 	
 	/* Computes the first set for the graph rooted at p */
-	func First0(var p: Node?, mark: BitArray) -> BitArray {
+	func First0(p: Node?, mark: BitArray) -> BitArray {
+        var p = p
 		let fs = BitArray(terminals.count)
 		while p != nil && !mark[p!.n] {
 			mark[p!.n] = true
@@ -705,7 +711,8 @@ public class Tab {
 		}
 	}
 	
-    func CompFollow(var p: Node?) {
+    func CompFollow(p: Node?) {
+        var p = p
         while let np = p where !visited[np.n] {
             visited[np.n] = true
             if np.typ == Node.nt {
@@ -767,7 +774,8 @@ public class Tab {
         return a
     }
     
-    func FindAS(var p: Node?) { // find ANY sets
+    func FindAS(p: Node?) { // find ANY sets
+        var p = p
         var a: Node?
         while let np = p {
             if np.typ == Node.opt || np.typ == Node.iter {
@@ -824,7 +832,8 @@ public class Tab {
         else { return Expected(p, curSy: curSy) }
     }
 	
-	func CompSync(var p: Node?) {
+	func CompSync(p: Node?) {
+        var p = p
 		while let pn = p where !visited[pn.n] {
 			visited[pn.n] = true
 			if (pn.typ == Node.sync) {
@@ -877,7 +886,7 @@ public class Tab {
 	
 	public func RenumberPragmas() {
 		var n = terminals.count
-		for sym in pragmas { sym.n = n++ }
+        for sym in pragmas { sym.n = n; n += 1 }
 	}
 	
 	public func CompSymbolSets() {
@@ -963,7 +972,7 @@ public class Tab {
 				}
 			} else {
 				buf.append(s[i])
-				i++
+				i += 1
 			}
 		}
 		return buf
@@ -1034,7 +1043,8 @@ public class Tab {
 		var changed: Bool
 		repeat {
 			changed = false
-			for var i=0; i<list.count; i++ {
+            var i = 0
+			while i<list.count {
 				let n = list[i]
 				onLeftSide = false; onRightSide = false
 				for m in list {
@@ -1043,8 +1053,9 @@ public class Tab {
 				}
 				if !onLeftSide || !onRightSide {
                     list = list.filter() { $0 !== n }  // remove n from list
-					i--; changed = true
+					i -= 1; changed = true
 				}
+                i += 1
 			}
 		} while changed
 		var ok = true
@@ -1076,7 +1087,8 @@ public class Tab {
 		}
 	}
 
-	func CheckAlts(var p: Node?) {
+	func CheckAlts(p: Node?) {
+        var p = p
 		var s1: BitArray
 		var s2: BitArray
 		while let np = p {
@@ -1120,16 +1132,21 @@ public class Tab {
 		errors?.Warning(p.line, col: p.pos!.col, s: msg)
 	}
 
-	func CheckRes(var p: Node?, var rslvAllowed: Bool) {
+	func CheckRes(p: Node?, rslvAllowed: Bool) {
+        var p = p
+        var rslvAllowed = rslvAllowed
 		while let np = p {
 			switch np.typ {
 			case Node.alt:
 				let expected = BitArray(terminals.count)
-				for var q: Node? = np; q != nil; q = q!.down {
+                var q: Node? = np
+				while q != nil {
 					expected.or(Expected0(q!.sub!, curSy: curSy))
+                    q = q!.down
 				}
 				let soFar = BitArray(terminals.count)
-				for var q: Node? = np; q != nil; q = q!.down {
+                q = np
+				while q != nil {
 					if q!.sub!.typ == Node.rslv {
 						let fs = Expected(q!.sub!.next!, curSy: curSy)
 						if Sets.Intersect(fs, b: soFar) {
@@ -1141,6 +1158,7 @@ public class Tab {
 						}
 					} else { soFar.or(Expected(q!.sub!, curSy: curSy)) }
 					CheckRes(q!.sub!, rslvAllowed: true)
+                    q = q!.down
 				}
 			case Node.iter, Node.opt:
 				if np.sub!.typ == Node.rslv {
@@ -1185,7 +1203,8 @@ public class Tab {
 
 	//-------------- check if every nts can be reached  -----------------
 	
-	func MarkReachedNts(var p: Node?) {
+	func MarkReachedNts(p: Node?) {
+        var p = p
 		while let np = p {
 			if np.typ == Node.nt && !visited[np.sym!.n] { // new nt reached
 				visited[np.sym!.n] = true
@@ -1215,7 +1234,8 @@ public class Tab {
 
 	//--------- check if every nts can be derived to terminals  ------------
 	
-	func IsTerm(var p: Node?, mark: BitArray) -> Bool { // true if graph can be derived to terminals
+	func IsTerm(p: Node?, mark: BitArray) -> Bool { // true if graph can be derived to terminals
+        var p = p
 		while let np = p {
             if (np.typ == Node.nt && !mark[np.sym!.n]) { return false }
 			if (np.typ == Node.alt && !IsTerm(np.sub, mark: mark)

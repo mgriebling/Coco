@@ -59,10 +59,12 @@ public class State {				// state of finite automaton
     }
     
     public func MeltWith(s: State) { // copy actions of s to state
-        for (var action = s.firstAction; action != nil; action = action!.next) {
+        var action = s.firstAction
+        while action != nil {
             let a = Action(typ: action!.typ, sym: action!.sym, tc: action!.tc)
             a.AddTargets(action!)
             AddAction(a)
+            action = action!.next
         }
     }
 }
@@ -95,9 +97,11 @@ public class Action {			// action of finite automaton
     }
     
     public func AddTargets(a: Action) { // add copy of a.targets to action.targets
-        for var p = a.target; p != nil; p = p!.next {
+        var p = a.target
+        while p != nil {
             let t = Target(s: p!.state!)
             AddTarget(t)
+            p = p!.next
         }
         if a.tc == Node.contextTrans { tc = Node.contextTrans }
     }
@@ -182,9 +186,11 @@ public class CharSet {
     
     public subscript(i: Int) -> Bool {
         get {
-            for var p = head; p != nil; p = p!.next {
+            var p = head
+            while p != nil {
                 if i < p!.from { return false }
                 else if i <= p!.to { return true } // p.from <= i <= p.to
+                p = p!.next
             }
             return false
         }
@@ -195,9 +201,9 @@ public class CharSet {
         var prev: Range? = nil
         while let ncur = cur where i >= ncur.from-1 {
             if i <= ncur.to + 1 { // (cur.from-1) <= i <= (cur.to+1)
-                if (i == ncur.from - 1) { ncur.from-- }
-                else if (i == ncur.to + 1) {
-                    ncur.to++
+                if i == ncur.from - 1 { ncur.from -= 1 }
+                else if i == ncur.to + 1 {
+                    ncur.to += 1
                     let next = ncur.next
                     if next != nil && ncur.to == next!.from - 1 { ncur.to = next!.to; ncur.next = next!.next }
                 }
@@ -213,10 +219,12 @@ public class CharSet {
     public func Clone() -> CharSet {
         let s = CharSet()
         var prev: Range? = nil
-        for var cur = head; cur != nil; cur = cur!.next {
+        var cur = head
+        while cur != nil {
             let r = Range(from: cur!.from, to: cur!.to)
             if prev == nil { s.head = r } else { prev!.next = r }
             prev = r
+            cur = cur!.next
         }
         return s
     }
@@ -233,7 +241,8 @@ public class CharSet {
     
     public func Elements() -> Int {
         var n = 0
-        for var p = head; p != nil; p = p!.next { n += p!.to - p!.from + 1 }
+        var p = head
+        while p != nil { n += p!.to - p!.from + 1;  p = p!.next }
         return n
     }
     
@@ -243,45 +252,55 @@ public class CharSet {
     }
     
     public func Or(s: CharSet) {
-        for var p = s.head; p != nil; p = p!.next {
+        var p = s.head
+        while p != nil {
             for i in p!.from...p!.to { Set(i) }
+            p = p!.next
         }
     }
     
     public func And(s: CharSet) {
         let x = CharSet()
-        for var p = head; p != nil; p = p!.next {
+        var p = head
+        while p != nil  {
             for i in p!.from...p!.to {
                 if s[i] { x.Set(i) }
             }
+            p = p!.next
         }
         head = x.head
     }
     
     public func Subtract(s: CharSet) {
         let x = CharSet()
-        for var p = head; p != nil; p = p!.next {
+        var p = head
+        while p != nil {
             for i in p!.from...p!.to {
                 if !s[i] { x.Set(i) }
             }
+            p = p!.next
         }
         head = x.head;
     }
     
     public func Includes(s: CharSet) -> Bool {
-        for var p = s.head; p != nil; p = p!.next {
+        var p = s.head
+        while p != nil  {
             for i in p!.from...p!.to {
                 if !self[i] { return false }
             }
+            p = p!.next
         }
         return true;
     }
     
     public func Intersects(s: CharSet) -> Bool {
-        for var p = s.head; p != nil; p = p!.next {
+        var p = s.head
+        while p != nil {
             for i in p!.from...p!.to {
                 if self[i] { return true }
             }
+            p = p!.next
         }
         return false;
     }
@@ -389,7 +408,7 @@ class Generator {
                 var i = 0
                 repeat {
                     if i == endOfStopString { return } // stop[0..i] found
-                    ch = framRead(); i++
+                    ch = framRead(); i += 1
                 } while ch == stop[i].unicodeValue()
                 // stop[0..i-1] found; continue with last read character
                 if generateOutput { gen!.Write((stop as NSString).substringToIndex(i)) }
@@ -465,18 +484,20 @@ public class DFA {
     }
     
     private func PutRange(s: CharSet) {
-        for var r = s.head; r != nil; r = r!.next {
+        var r = s.head
+        while r != nil {
             if r!.from == r!.to { gen?.Write("ch == " + Ch(r!.from)) }
             else if r!.from == 0 { gen?.Write("ch <= " + Ch(r!.to)) }
             else { gen?.Write("ch >= " + Ch(r!.from) + " && ch <= " + Ch(r!.to)) }
             if r!.next != nil { gen?.Write(" || ") }
+            r = r!.next
         }
     }
     
     //---------- State handling
     
     func NewState() -> State {
-        let s = State(); s.nr = ++lastStateNr
+        let s = State(); lastStateNr += 1; s.nr = lastStateNr
         if firstState == nil { firstState = s } else { lastState!.next = s }
         lastState = s
         return s
@@ -494,8 +515,10 @@ public class DFA {
         var a, b, c : Action?
         var seta: CharSet
         var setb: CharSet
-        for state = firstState; state != nil; state = state!.next {
-            for a = state!.firstAction; a != nil; a = a!.next {
+        state = firstState
+        while state != nil {
+            a = state!.firstAction
+            while a != nil {
                 b = a!.next
                 while b != nil {
                     if a!.target!.state === b!.target!.state && a!.tc == b!.tc {
@@ -505,15 +528,19 @@ public class DFA {
                         c = b; b = b!.next; state!.DetachAction(c!)
                     } else { b = b!.next }
                 }
+                a = a!.next
             }
+            state = state!.next
         }
     }
     
     func FindUsedStates(state: State, used:BitArray) {
         if used[state.nr] { return }
         used[state.nr] = true
-        for var a = state.firstAction; a != nil; a = a!.next {
+        var a = state.firstAction
+        while a != nil {
             FindUsedStates(a!.target!.state!, used: used)
+            a = a!.next
         }
     }
     
@@ -522,30 +549,40 @@ public class DFA {
         let used = BitArray(lastStateNr+1)
         FindUsedStates(firstState!, used: used)
         // combine equal final states
-        for var s1 = firstState!.next; s1 != nil; s1 = s1!.next { // firstState cannot be final
+        var s1 = firstState!.next
+        while s1 != nil { // firstState cannot be final
             if used[s1!.nr] && s1!.endOf != nil && s1!.firstAction == nil && !s1!.ctx {
-                for var s2 = s1!.next; s2 != nil; s2 = s2!.next {
+                var s2 = s1!.next
+                while s2 != nil {
                     if used[s2!.nr] && s1!.endOf === s2!.endOf && s2!.firstAction == nil && !s2!.ctx {
                         used[s2!.nr] = false; newState[s2!.nr] = s1!
                     }
+                    s2 = s2!.next
                 }
             }
+            s1 = s1!.next
         }
-        for var state = firstState; state != nil; state = state!.next {
+        var state = firstState
+        while state != nil {
             if used[state!.nr] {
-                for var a = state!.firstAction; a != nil; a = a!.next {
+                var a = state!.firstAction
+                while a != nil {
                     if !used[a!.target!.state!.nr] {
                         a!.target!.state = newState[a!.target!.state!.nr]
                     }
+                    a = a!.next
                 }
             }
+            state = state!.next
         }
         
         // delete unused states
         lastState = firstState; lastStateNr = 0; // firstState has number 0
-        for var state = firstState!.next; state != nil; state = state!.next {
-            if used[state!.nr] { state!.nr = ++lastStateNr; lastState = state }
-            else { lastState!.next = state!.next }
+        var state2 = firstState!.next
+        while state2 != nil {
+            if used[state2!.nr] { lastStateNr += 1; state2!.nr = lastStateNr; lastState = state2 }
+            else { lastState!.next = state2!.next }
+            state2 = state2!.next
         }
     }
     
@@ -587,7 +624,8 @@ public class DFA {
     //  - any node after a chr, clas, opt, or alt, must get a new number
     //  - if a nested structure starts with an iteration the iter node must get a new number
     //  - if an iteration follows an iteration, it must get a new number
-    func NumberNodes(p: Node?, var state: State?, renumIter: Bool) {
+    func NumberNodes(p: Node?, state: State?, renumIter: Bool) {
+        var state = state
         guard let p = p else { return }
         if p.state != nil { return } // already visited;
         if state == nil || (p.typ == Node.iter && renumIter) { state = NewState() }
@@ -643,26 +681,29 @@ public class DFA {
     }
     
     // match string against current automaton; store it either as a fixedToken or as a litToken
-    public func MatchLiteral(var s: String, _ sym: Symbol) {
+    public func MatchLiteral(s: String, _ sym: Symbol) {
+        var s = s
         s = tab.Unescape(s.substring(1, s.count()-2))
         let len = s.count()
         var state = firstState
         var a : Action? = nil
-        var i: Int
-        for i=0;i<len;i++ { // try to match s against existing DFA
+        var i: Int = 0
+        while i < len { // try to match s against existing DFA
             a = FindAction(state!, ch: s[i])
             if a == nil { break }
             state = a!.target!.state
+            i += 1
         }
         // if s was not totally consumed or leads to a non-final state => make new DFA from it
         if i != len || state!.endOf == nil {
             state = firstState; i = 0; a = nil
             dirtyDFA = true
         }
-        for ; i < len; i++ { // make new DFA for s[i..len-1], ML: i is either 0 or len
+        while i < len { // make new DFA for s[i..len-1], ML: i is either 0 or len
             let to = NewState()
             NewTransition(state!, to: to, typ: Node.chr, sym: s[i].unicodeValue(), tc: Node.normalTrans)
             state = to
+            i += 1
         }
         let matchedSym = state!.endOf
         if state!.endOf == nil {
@@ -722,10 +763,14 @@ public class DFA {
         var changed: Bool
         repeat {
             changed = false
-            for var a = state.firstAction; a != nil; a = a!.next {
-                for var b = a!.next; b != nil; b = b!.next {
+            var a = state.firstAction
+            while a != nil {
+                var b = a!.next
+                while b != nil {
                     if Overlap(a!, b: b!) { SplitActions(state, a: a!, b: b!); changed = true }
+                     b = b!.next
                 }
+                a = a!.next
             }
         } while changed
     }
@@ -734,14 +779,17 @@ public class DFA {
         var ctx = false
         var targets = BitArray()
 		var endOf : Symbol?
-        for var action = state.firstAction; action != nil; action = action!.next {
+        var action = state.firstAction
+        while action != nil  {
             if action!.target!.next != nil {
                 GetTargetStates(action!, targets: &targets, endOf: &endOf, ctx: &ctx)
                 var melt = StateWithSet(targets)
                 if melt == nil {
                     let s = NewState(); s.endOf = endOf; s.ctx = ctx
-                    for var targ = action!.target; targ != nil; targ = targ!.next {
+                    var targ = action!.target
+                    while targ != nil {
                         s.MeltWith(targ!.state!)
+                        targ = targ!.next
                     }
                     MakeUnique(s)
                     melt = NewMelted(targets, state: s)
@@ -749,14 +797,19 @@ public class DFA {
                 action!.target!.next = nil
                 action!.target!.state = melt!.state
             }
+            action = action!.next
         }
     }
     
     func FindCtxStates() {
-        for var state = firstState; state != nil; state = state!.next {
-            for var a = state!.firstAction; a != nil; a = a!.next {
+        var state = firstState
+        while state != nil {
+            var a = state!.firstAction
+            while a != nil {
                 if a!.tc == Node.contextTrans { a!.target!.state!.ctx = true }
+                a = a!.next
             }
+            state = state!.next
         }
     }
     
@@ -765,11 +818,15 @@ public class DFA {
         lastSimState = lastState!.nr
         maxStates = 2 * lastSimState // heuristic for set size in Melted.set
         FindCtxStates()
-        for state = firstState; state != nil; state = state!.next {
+        state = firstState
+        while state != nil {
             MakeUnique(state!)
+            state = state!.next
         }
-        for state = firstState; state != nil; state = state!.next {
+        state = firstState
+        while state != nil {
             MeltStates(state!)
+            state = state!.next
         }
         DeleteRedundantStates()
         CombineShifts()
@@ -777,22 +834,28 @@ public class DFA {
 
     public func PrintStates() {
         trace.WriteLine();
-        trace.WriteLine("---------- states ----------");
-        for var state = firstState; state != nil; state = state!.next {
+        trace.WriteLine("---------- states ----------")
+        var state = firstState
+        while state != nil  {
             var first = true
             if state!.endOf == nil { trace.Write("               ") }
             else { trace.Write("E(\(tab.Name(state!.endOf!.name)))") }
             trace.Write("\(state!.nr):")
             if state!.firstAction == nil { trace.WriteLine() }
-            for var action = state!.firstAction; action != nil; action = action!.next {
+            var action = state!.firstAction
+            while action != nil {
                 if first { trace.Write(" "); first = false } else { trace.Write("                    ") }
                 if action!.typ == Node.clas { trace.Write((tab.classes[action!.sym]).name) }
                 else { trace.Write("\(Ch(action!.sym))") }
-                for var targ = action!.target; targ != nil; targ = targ!.next {
+                var targ = action!.target
+                while targ != nil {
                     trace.Write(" \(targ!.state!.nr)")
+                    targ = targ!.next
                 }
                 if action!.tc == Node.contextTrans { trace.WriteLine(" context") } else { trace.WriteLine() }
+                action = action!.next
             }
+            state = state!.next
         }
         trace.WriteLine();
         trace.WriteLine("---------- character classes ----------");
@@ -802,12 +865,14 @@ public class DFA {
     //---------------------------- actions --------------------------------
     
     public func FindAction(state: State, ch: Character) -> Action? {
-        for var a = state.firstAction; a != nil; a = a!.next {
+        var a = state.firstAction
+        while a != nil {
             if a!.typ == Node.chr && ch.unicodeValue() == a!.sym { return a }
             else if a!.typ == Node.clas {
                 let s = tab.CharClassSet(a!.sym)
                 if s[ch.unicodeValue()] { return a }
             }
+            a = a!.next
         }
         return nil
     }
@@ -816,7 +881,8 @@ public class DFA {
 		// compute the set of target states
 		targets = BitArray(maxStates); endOf = nil
 		ctx = false
-		for var t = a.target; t != nil; t = t!.next {
+        var t = a.target
+		while t != nil {
 			let stateNr = t!.state!.nr
 			if stateNr <= lastSimState { targets[stateNr] = true }
 			else { targets.or(MeltedSet(stateNr)) }
@@ -839,6 +905,7 @@ public class DFA {
 				//	 errors.count++;
 				// }
 			}
+            t = t!.next
 		}
 	}
 	
@@ -861,8 +928,10 @@ public class DFA {
     }
     
     func StateWithSet(s: BitArray) -> Melted?  {
-        for var m = firstMelted; m != nil; m = m!.next {
+        var m = firstMelted
+        while m != nil {
             if Sets.Equals(s, b: m!.set) { return m }
+             m = m!.next
         }
         return nil
     }
@@ -871,7 +940,8 @@ public class DFA {
     
     public var firstComment: Comment?	// list of comments
     
-    func CommentStr(var p: Node?) -> String {
+    func CommentStr(p: Node?) -> String {
+        var p = p
         var s = ""
         while let np = p {
             if np.typ == Node.chr {
@@ -983,7 +1053,8 @@ public class DFA {
             gen?.WriteLine("\t\t\t\trecEnd = pos; recKind = \(endOf!.n)")
         }
         var ctxEnd = state.ctx
-        for var action = state.firstAction; action != nil; action = action!.next {
+        var action = state.firstAction
+        while action != nil {
             if action === state.firstAction { gen?.Write("\t\t\t\tif ") }
             else { gen?.Write("\t\t\t\telse if ") }
             if action!.typ == Node.chr { gen?.Write(ChCond(Character(action!.sym))) }
@@ -996,6 +1067,7 @@ public class DFA {
             }
             gen?.Write(" AddCh(); state = \(action!.target!.state!.nr) ")
             gen?.WriteLine("}")
+            action = action!.next
         }
         if state.firstAction == nil {
             gen?.Write("\t\t\t\t")
@@ -1023,16 +1095,20 @@ public class DFA {
     }
     
     func WriteStartTab() {
-        for var action = firstState!.firstAction; action != nil; action = action!.next {
+        var action = firstState!.firstAction
+        while action != nil {
             let targetState = action!.target!.state!.nr
             if action!.typ == Node.chr {
                 gen?.WriteLine("\t\tresult[\(action!.sym)] = \(targetState)")
             } else {
                 let s = tab.CharClassSet(action!.sym)
-                for var r = s.head; r != nil; r = r!.next {
+                var r = s.head
+                while r != nil {
                     gen?.WriteLine("\t\tfor i in \(r!.from)...\(r!.to) { result[i] = \(targetState) }")
+                    r = r!.next
                 }
             }
+            action = action!.next
         }
         gen?.WriteLine("\t\tresult[Buffer.EOF] = -1")
     }
@@ -1075,7 +1151,7 @@ public class DFA {
         var comIdx = 0
         while com != nil {
             GenComment(com!, i: comIdx)
-            com = com!.next; comIdx++
+            com = com!.next; comIdx += 1
         }
         g.CopyFramePart("-->literals"); GenLiterals()
         g.CopyFramePart("-->scan1")
@@ -1089,14 +1165,16 @@ public class DFA {
                 gen?.Write(ChCond(com!.start[0]))
                 gen?.Write(" && Comment\(comIdx)()")
                 if com!.next != nil { gen?.Write(" || ") }
-                com = com!.next; comIdx++
+                com = com!.next; comIdx += 1
             }
             gen?.Write(" { return NextToken() }")
         }
         if hasCtxMoves { gen?.WriteLine(); gen?.Write("\t\tvar apx = 0") } /* pdt */
         g.CopyFramePart("-->scan3")
-        for var state = firstState!.next; state != nil; state = state!.next {
+        var state = firstState!.next
+        while state != nil {
             WriteState(state!)
+            state = state!.next
         }
         g.CopyFramePart("")
         if !tab.nsName.isEmpty { gen?.Write("}") }

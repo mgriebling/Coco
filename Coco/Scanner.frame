@@ -78,7 +78,7 @@ public class Buffer {
 		}
 		
 		buf = [UInt8](count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH, repeatedValue: 0)
-		if (fileLen > 0) { Pos = 0 } // setup buffer to position 0 (start)
+		if fileLen > 0 { Pos = 0 } // setup buffer to position 0 (start)
 		else { bufPos = 0 } // index 0 is already after the file, thus Pos = 0 is invalid
 	}
 	

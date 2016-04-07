@@ -92,15 +92,17 @@ public class Buffer {
 	}
 	
 	public func Read () -> Int {
+        let returnArg : Int
 		if bufPos < bufLen {
-			return Int(buf[bufPos++])
+            returnArg = Int(buf[bufPos]); bufPos += 1
 		} else if Pos < fileLen {
-			return Int(buf[bufPos++])
+			returnArg = Int(buf[bufPos]); bufPos += 1
 		} else if !stream.CanSeek && ReadNextStreamChunk() > 0 {
-			return Int(buf[bufPos++])
+			returnArg = Int(buf[bufPos]); bufPos += 1
 		} else {
-			return Buffer.EOF
+			returnArg = Buffer.EOF
 		}
+        return returnArg
 	}
 	
 	public func Peek () -> Int {
@@ -117,7 +119,7 @@ public class Buffer {
 		var buf = [CChar](count: end-beg+1, repeatedValue: 0)
 		let oldPos = Pos
 		Pos = beg
-		while Pos < end { buf[len++] = CChar(Read()) }
+        while Pos < end { buf[len] = CChar(Read()); len += 1 }
 		Pos = oldPos
 		return String.fromCString(buf)!
 	}
@@ -310,16 +312,16 @@ public class Scanner {
 	
 	func NextCh() {
 		if oldEols > 0 {
-			ch = EOL; oldEols--
+			ch = EOL; oldEols -= 1
 		} else {
 			let nl: Character = "\n"
 			pos = buffer!.Pos
 			// buffer reads unicode chars, if UTF8 has been detected
-			ch = Character(buffer!.Read()); col++; charPos++
+			ch = Character(buffer!.Read()); col += 1; charPos += 1
 			// replace isolated "\r" by "\n" in order to make
 			// eol handling uniform across Windows, Unix and Mac
 			if ch == "\r" && buffer!.Peek() != nl.unicodeValue() { ch = EOL }
-			if ch == EOL { line++; col = 0 }
+			if ch == EOL { line += 1; col = 0 }
 		}
 
 	}
@@ -337,9 +339,9 @@ public class Scanner {
 		NextCh()
 		if ch == "/" {
 			NextCh()
-			for ;; {
+			while true {
 				if ch == "\n" {
-					level--
+					level -= 1
 					if level == 0 { oldEols = line - line0; NextCh(); return true }
 					NextCh()
 				} else if ch == Buffer.EOF { return false }
@@ -356,18 +358,18 @@ public class Scanner {
 		NextCh()
 		if ch == "*" {
 			NextCh()
-			for ;; {
+			while true {
 				if ch == "*" {
 					NextCh()
 					if ch == "/" {
-						level--
+						level -= 1
 						if level == 0 { oldEols = line - line0; NextCh(); return true }
 						NextCh()
 					}
 				} else if ch == "/" {
 					NextCh()
 					if ch == "*" {
-						level++; NextCh()
+						level += 1; NextCh()
 					}
 				} else if ch == Buffer.EOF { return false }
 				else { NextCh() }
