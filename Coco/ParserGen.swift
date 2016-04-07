@@ -115,9 +115,11 @@ public class ParserGen {
                     gen?.WriteLine(); Indent(indent)
                     if ch == CR { ch = buffer.Read() } // skip CR
                     if ch == LF { ch = buffer.Read() } // skip LF
-                    for _ in 1...pos.col where ch == " " || ch == "\t" {
+                    var i = 1
+                    while i <= pos.col && (ch == " " || ch == "\t") {
                         // skip blanks at beginning of line
                         ch = buffer.Read()
+                        i += 1
                     }
                     if buffer.Pos > pos.end { break done }
                 }

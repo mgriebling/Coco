@@ -969,16 +969,16 @@ public class DFA {
     //------------------------ scanner generation ----------------------
     
     func GenComBody(com: Comment) {
-        gen?.WriteLine(  "\t\t\tfor ;; {")
+        gen?.WriteLine(  "\t\t\twhile true {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
-            gen?.WriteLine("\t\t\t\t\tlevel--")
+            gen?.WriteLine("\t\t\t\t\tlevel -= 1")
             gen?.WriteLine("\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
             gen?.WriteLine("\t\t\t\t\tNextCh()")
         } else {
             gen?.WriteLine("\t\t\t\t\tNextCh()")
             gen?.WriteLine("\t\t\t\t\tif \(ChCond(com.stop[1])) {")
-            gen?.WriteLine("\t\t\t\t\t\tlevel--")
+            gen?.WriteLine("\t\t\t\t\t\tlevel -= 1")
             gen?.WriteLine("\t\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
             gen?.WriteLine("\t\t\t\t\t\tNextCh()")
             gen?.WriteLine("\t\t\t\t\t}")
@@ -986,11 +986,11 @@ public class DFA {
         if com.nested {
             gen?.Write    ("\t\t\t\t}"); gen?.Write(" else if \(ChCond(com.start[0])) "); gen?.WriteLine("{")
             if com.start.count() == 1 {
-                gen?.WriteLine("\t\t\t\t\tlevel++; NextCh()")
+                gen?.WriteLine("\t\t\t\t\tlevel += 1; NextCh()")
             } else {
                 gen?.WriteLine("\t\t\t\t\tNextCh()");
                 gen?.Write    ("\t\t\t\t\tif \(ChCond(com.start[1])) "); gen?.WriteLine("{")
-                gen?.WriteLine("\t\t\t\t\t\tlevel++; NextCh()")
+                gen?.WriteLine("\t\t\t\t\t\tlevel += 1; NextCh()")
                 gen?.WriteLine("\t\t\t\t\t}")
             }
         }

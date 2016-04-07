@@ -77,7 +77,7 @@ public class Buffer {
 		}
 		
 		buf = [UInt8](count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH, repeatedValue: 0)
-		if (fileLen > 0) { Pos = 0 } // setup buffer to position 0 (start)
+		if fileLen > 0 { Pos = 0 } // setup buffer to position 0 (start)
 		else { bufPos = 0 } // index 0 is already after the file, thus Pos = 0 is invalid
 	}
 	
@@ -92,17 +92,17 @@ public class Buffer {
 	}
 	
 	public func Read () -> Int {
-        let returnArg : Int
+        let returnVal : Int
 		if bufPos < bufLen {
-            returnArg = Int(buf[bufPos]); bufPos += 1
+            returnVal = Int(buf[bufPos]); bufPos += 1
 		} else if Pos < fileLen {
-			returnArg = Int(buf[bufPos]); bufPos += 1
+			returnVal = Int(buf[bufPos]); bufPos += 1
 		} else if !stream.CanSeek && ReadNextStreamChunk() > 0 {
-			returnArg = Int(buf[bufPos]); bufPos += 1
+			returnVal = Int(buf[bufPos]); bufPos += 1
 		} else {
-			returnArg = Buffer.EOF
+			returnVal = Buffer.EOF
 		}
-        return returnArg
+        return returnVal
 	}
 	
 	public func Peek () -> Int {
@@ -119,7 +119,7 @@ public class Buffer {
 		var buf = [CChar](count: end-beg+1, repeatedValue: 0)
 		let oldPos = Pos
 		Pos = beg
-        while Pos < end { buf[len] = CChar(Read()); len += 1 }
+    while Pos < end { buf[len] = CChar(Read()); len += 1 }
 		Pos = oldPos
 		return String.fromCString(buf)!
 	}
