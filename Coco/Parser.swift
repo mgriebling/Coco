@@ -29,53 +29,53 @@ import Foundation
 
 
 
-public class Parser {
-	public let _EOF = 0
-	public let _ident = 1
-	public let _number = 2
-	public let _string = 3
-	public let _badString = 4
-	public let _char = 5
-	public let _COMPILER = 6
-	public let _IGNORECASE = 7
-	public let _CHARACTERS = 8
-	public let _TOKENS = 9
-	public let _PRAGMAS = 10
-	public let _COMMENTS = 11
-	public let _FROM = 12
-	public let _TO = 13
-	public let _NESTED = 14
-	public let _IGNORE = 15
-	public let _PRODUCTIONS = 16
-	public let _END = 19
-	public let _ANY = 23
-	public let _WEAK = 29
-	public let _SYNC = 36
-	public let _IF = 37
-	public let _CONTEXT = 38
-	public let maxT = 41
-	public let _ddtSym = 42
-	public let _optionSym = 43
+open class Parser {
+	open let _EOF = 0
+	open let _ident = 1
+	open let _number = 2
+	open let _string = 3
+	open let _badString = 4
+	open let _char = 5
+	open let _COMPILER = 6
+	open let _IGNORECASE = 7
+	open let _CHARACTERS = 8
+	open let _TOKENS = 9
+	open let _PRAGMAS = 10
+	open let _COMMENTS = 11
+	open let _FROM = 12
+	open let _TO = 13
+	open let _NESTED = 14
+	open let _IGNORE = 15
+	open let _PRODUCTIONS = 16
+	open let _END = 19
+	open let _ANY = 23
+	open let _WEAK = 29
+	open let _SYNC = 36
+	open let _IF = 37
+	open let _CONTEXT = 38
+	open let maxT = 41
+	open let _ddtSym = 42
+	open let _optionSym = 43
 
 	static let _T = true
 	static let _x = false
 	static let minErrDist = 2
 	let minErrDist : Int = Parser.minErrDist
 
-	public var scanner: Scanner
-	public var errors: Errors
+	open var scanner: Scanner
+	open var errors: Errors
 
-	public var t: Token             // last recognized token
-	public var la: Token            // lookahead token
+	open var t: Token             // last recognized token
+	open var la: Token            // lookahead token
 	var errDist = Parser.minErrDist
 
 	let id = 0
 	let str = 1
 	
-	public var trace: NSOutputStream? // other Coco objects referenced in this ATG
-	public var tab = Tab()
-	public var dfa: DFA?
-	public var pgen: ParserGen?
+	open var trace: OutputStream? // other Coco objects referenced in this ATG
+	open var tab = Tab()
+	open var dfa: DFA?
+	open var pgen: ParserGen?
 	
 	var genScanner = false
 	var tokenString = ""            // used in declarations of literal tokens
@@ -93,12 +93,12 @@ public class Parser {
         la = t
     }
     
-    func SynErr (n: Int) {
+    func SynErr (_ n: Int) {
         if errDist >= minErrDist { errors.SynErr(la.line, col: la.col, n: n) }
         errDist = 0
     }
     
-    public func SemErr (msg: String) {
+    open func SemErr (_ msg: String) {
         if errDist >= minErrDist { errors.SemErr(t.line, col: t.col, s: msg) }
         errDist = 0
     }
@@ -119,15 +119,15 @@ public class Parser {
 		}
 	}
 	
-    func Expect (n: Int) {
+    func Expect (_ n: Int) {
         if la.kind == n { Get() } else { SynErr(n) }
     }
     
-    func StartOf (s: Int) -> Bool {
+    func StartOf (_ s: Int) -> Bool {
         return set(s, la.kind)
     }
     
-    func ExpectWeak (n: Int, _ follow: Int) {
+    func ExpectWeak (_ n: Int, _ follow: Int) {
         if la.kind == n {
 			Get()
 		} else {
@@ -136,7 +136,7 @@ public class Parser {
         }
     }
     
-    func WeakSeparator(n: Int, _ syFol: Int, _ repFol: Int) -> Bool {
+    func WeakSeparator(_ n: Int, _ syFol: Int, _ repFol: Int) -> Bool {
         var kind = la.kind
         if kind == n { Get(); return true }
         else if StartOf(repFol) { return false }
@@ -296,11 +296,11 @@ public class Parser {
 		Expect(17 /* "=" */)
 		Set(&s)
 		if s.Elements() == 0 { SemErr("character set must not be empty") }
-		tab.NewCharClass(name, s) 
+		_ = tab.NewCharClass(name, s)
 		Expect(18 /* "." */)
 	}
 
-	func TokenDecl(typ: Int) {
+	func TokenDecl(_ typ: Int) {
 		var name = ""; var kind = 0; var sym: Symbol?; var g: Graph? 
 		Sym(&name, &kind)
 		sym = tab.FindSym(name)
@@ -339,7 +339,7 @@ public class Parser {
 		}
 	}
 
-	func TokenExpr(inout g: Graph?) {
+	func TokenExpr(_ g: inout Graph?) {
 		var g2: Graph? 
 		TokenTerm(&g)
 		var first = true 
@@ -350,7 +350,7 @@ public class Parser {
 		}
 	}
 
-	func Set(inout s: CharSet) {
+	func Set(_ s: inout CharSet) {
 		var s2 = CharSet() 
 		SimSet(&s)
 		while la.kind == 20 /* "+" */ || la.kind == 21 /* "-" */ {
@@ -366,7 +366,7 @@ public class Parser {
 		}
 	}
 
-	func AttrDecl(sym: Symbol) {
+	func AttrDecl(_ sym: Symbol) {
 		if la.kind == 24 /* "<" */ {
 			Get()
 			let beg = la.pos; let col = la.col; let line = la.line 
@@ -400,7 +400,7 @@ public class Parser {
 		} else { SynErr(45) }
 	}
 
-	func SemText(inout pos: Position?) {
+	func SemText(_ pos: inout Position?) {
 		Expect(39 /* "(." */)
 		let beg = la.pos; let col = la.col; let line = la.line 
 		while StartOf(13) {
@@ -418,7 +418,7 @@ public class Parser {
 		pos = Position(beg, t.pos, col, line) 
 	}
 
-	func Expression(inout g: Graph?) {
+	func Expression(_ g: inout Graph?) {
 		var g2: Graph? 
 		Term(&g)
 		var first = true 
@@ -429,7 +429,7 @@ public class Parser {
 		}
 	}
 
-	func SimSet(inout s: CharSet) {
+	func SimSet(_ s: inout CharSet) {
 		var n1 = 0; var n2 = 0 
 		s = CharSet() 
 		if la.kind == _ident {
@@ -459,7 +459,7 @@ public class Parser {
 		} else { SynErr(46) }
 	}
 
-	func Char(inout n: Int) {
+	func Char(_ n: inout Int) {
 		Expect(_char)
 		var name = t.val; n = 0
 		name = tab.Unescape(name.substring(1, name.count()-2))
@@ -468,7 +468,7 @@ public class Parser {
 		if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 } 
 	}
 
-	func Sym(inout name: String, inout _ kind: Int) {
+	func Sym(_ name: inout String, _ kind: inout Int) {
 		name = "???"; kind = id 
 		if la.kind == _ident {
 			Get()
@@ -482,12 +482,12 @@ public class Parser {
 				name = "\"" + t.val.substring(1, t.val.count()-2) + "\"" 
 			}
 			kind = str
-			if dfa!.ignoreCase { name = name.lowercaseString }
+			if dfa!.ignoreCase { name = name.lowercased() }
 			if name.contains(" ") { SemErr("literal tokens must not contain blanks") } 
 		} else { SynErr(47) }
 	}
 
-	func Term(inout g: Graph?) {
+	func Term(_ g: inout Graph?) {
 		var g2: Graph?; var rslv: Node? = nil
 		g = nil 
 		if StartOf(17) {
@@ -512,7 +512,7 @@ public class Parser {
 		} 
 	}
 
-	func Resolver(inout pos: Position?) {
+	func Resolver(_ pos: inout Position?) {
 		Expect(_IF)
 		Expect(30 /* "(" */)
 		let beg = la.pos; let col = la.col; let line = la.line 
@@ -520,7 +520,7 @@ public class Parser {
 		pos = Position(beg, t.pos, col, line) 
 	}
 
-	func Factor(inout g: Graph?) {
+	func Factor(_ g: inout Graph?) {
 		var name = ""; var kind = 0; var pos: Position?; var weak = false
 		g = nil
 		
@@ -601,7 +601,7 @@ public class Parser {
 		
 	}
 
-	func Attribs(p: Node) {
+	func Attribs(_ p: Node) {
 		if la.kind == 24 /* "<" */ {
 			Get()
 			let beg = la.pos; let col = la.col; let line = la.line 
@@ -643,7 +643,7 @@ public class Parser {
 		Expect(31 /* ")" */)
 	}
 
-	func TokenTerm(inout g: Graph?) {
+	func TokenTerm(_ g: inout Graph?) {
 		var g2: Graph? 
 		TokenFactor(&g)
 		while StartOf(7) {
@@ -660,7 +660,7 @@ public class Parser {
 		}
 	}
 
-	func TokenFactor(inout g: Graph?) {
+	func TokenFactor(_ g: inout Graph?) {
 		var name = ""; var kind = 0 
 		g = nil 
 		if la.kind == _ident || la.kind == _string || la.kind == _char {
@@ -701,7 +701,7 @@ public class Parser {
 
 
 
-    public func Parse() {
+    open func Parse() {
         la = Token()
         la.val = ""
         Get()
@@ -710,7 +710,7 @@ public class Parser {
 
 	}
 
-    func set (x: Int, _ y: Int) -> Bool { return Parser._set[x][y] }
+    func set (_ x: Int, _ y: Int) -> Bool { return Parser._set[x][y] }
     static let _set: [[Bool]] = [
 		[_T,_T,_x,_T, _x,_T,_x,_x, _x,_x,_T,_T, _x,_x,_x,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _x,_x,_x],
 		[_x,_T,_T,_T, _T,_T,_x,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_T,_T, _T,_T,_x],
@@ -738,19 +738,19 @@ public class Parser {
 } // end Parser
 
 
-public class Errors {
-    public var count = 0                                 // number of errors detected
-    private let errorStream = Darwin.stderr              // error messages go to this stream
-    public var errMsgFormat = "-- line %i col %i: %@"    // 0=line, 1=column, 2=text
+open class Errors {
+    open var count = 0                                 // number of errors detected
+    fileprivate let errorStream = Darwin.stderr              // error messages go to this stream
+    open var errMsgFormat = "-- line %i col %i: %@"    // 0=line, 1=column, 2=text
     
-    func Write(s: String) { fputs(s, errorStream) }
-    func WriteLine(format: String, line: Int, col: Int, s: String) {
+    func Write(_ s: String) { fputs(s, errorStream) }
+    func WriteLine(_ format: String, line: Int, col: Int, s: String) {
         let str = String(format: format, line, col, s)
         WriteLine(str)
     }
-    func WriteLine(s: String) { Write(s + "\n") }
+    func WriteLine(_ s: String) { Write(s + "\n") }
     
-    public func SynErr (line: Int, col: Int, n: Int) {
+    open func SynErr (_ line: Int, col: Int, n: Int) {
         var s: String
         switch n {
 		case 0: s = "EOF expected"
@@ -812,21 +812,21 @@ public class Errors {
         count += 1
 	}
 
-    public func SemErr (line: Int, col: Int, s: String) {
+    open func SemErr (_ line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s);
         count += 1
     }
     
-    public func SemErr (s: String) {
+    open func SemErr (_ s: String) {
         WriteLine(s)
         count += 1
     }
     
-    public func Warning (line: Int, col: Int, s: String) {
+    open func Warning (_ line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s)
     }
     
-    public func Warning(s: String) {
+    open func Warning(_ s: String) {
         WriteLine(s)
     }
 } // Errors

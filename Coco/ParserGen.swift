@@ -29,7 +29,7 @@
 
 import Foundation
 
-public class ParserGen {
+open class ParserGen {
     
     let maxTerm = 3		// sets of size < maxTerm are enumerated
     let CR : Character = "\r"
@@ -40,17 +40,17 @@ public class ParserGen {
     let altErr = 1
     let syncErr = 2
     
-    public var usingPos: Position? // "using" definitions from the attributed grammar
+    open var usingPos: Position? // "using" definitions from the attributed grammar
     
     var errorNr : Int           // highest parser error number
     var curSy : Symbol          // symbol whose production is currently generated
-    var fram: NSInputStream?    // parser frame file
-	var gen: NSOutputStream?	// generated parser source file
+    var fram: InputStream?    // parser frame file
+	var gen: OutputStream?	// generated parser source file
     var err = StringWriter()    // generated parser error messages
     var symSet = [BitArray]()
     
     var tab : Tab               // other Coco objects
-    var trace: NSOutputStream
+    var trace: OutputStream
     var errors: Errors
     var buffer: Buffer
     
@@ -65,12 +65,12 @@ public class ParserGen {
         curSy = Symbol()
     }
     
-    func Indent (n: Int) {
+    func Indent (_ n: Int) {
 		if n == 0 { return }  // why doesn't Swift just not iterate
         for _ in 1...n { gen?.Write("\t") }
     }
     
-    func Overlaps(s1: BitArray, _ s2: BitArray) -> Bool {
+    func Overlaps(_ s1: BitArray, _ s2: BitArray) -> Bool {
         let len = s1.count
         for i in 0..<len {
             if s1[i] && s2[i] {
@@ -81,7 +81,7 @@ public class ParserGen {
     }
     
     // use a switch if more than 5 alternatives and none starts with a resolver, and no LL1 warning
-    func UseSwitch (p: Node?) -> Bool {
+    func UseSwitch (_ p: Node?) -> Bool {
         var s1, s2: BitArray
         var p = p
         if p!.typ != Node.alt { return false }
@@ -100,7 +100,7 @@ public class ParserGen {
         return nAlts > 5;
     }
     
-    func CopySourcePart (pos: Position?, indent: Int) {
+    func CopySourcePart (_ pos: Position?, indent: Int) {
         // Copy text described by pos from atg to gen
         var ch: Int
         if let pos = pos {
@@ -131,7 +131,7 @@ public class ParserGen {
         }
     }
     
-    func GenErrorMsg (errTyp: Int, sym: Symbol) {
+    func GenErrorMsg (_ errTyp: Int, sym: Symbol) {
         errorNr += 1
         err.Write("\t\tcase \(errorNr): s = \"")
         switch errTyp {
@@ -145,7 +145,7 @@ public class ParserGen {
         err.WriteLine("\"")
     }
 
-    func NewCondSet (s: BitArray) -> Int {
+    func NewCondSet (_ s: BitArray) -> Int {
         for i in 1..<symSet.count { // skip symSet[0] (reserved for union of SYNC sets)
             if Sets.Equals(s, b: symSet[i]) { return i }
         }
@@ -153,22 +153,22 @@ public class ParserGen {
         return symSet.count - 1
     }
     
-    func isValidName (sym: Symbol) -> Bool {
-        let name = sym.name.stringByReplacingOccurrencesOfString("\"", withString: "")
-        for (num, ch) in name.characters.enumerate() {
+    func isValidName (_ sym: Symbol) -> Bool {
+        let name = sym.name.replacingOccurrences(of: "\"", with: "")
+        for (num, ch) in name.characters.enumerated() {
             if num == 0 && !ch.isLetter() { return false }
             else if !ch.isAlphanumeric() { return false }
         }
         return true
     }
     
-    func GenToken (sym: Symbol) {
+    func GenToken (_ sym: Symbol) {
         if sym.name[0].isLetter() { gen?.Write("_" + sym.name) }
-        else if isValidName(sym) { gen?.Write("_" + sym.name.stringByReplacingOccurrencesOfString("\"", withString: "")) }
+        else if isValidName(sym) { gen?.Write("_" + sym.name.replacingOccurrences(of: "\"", with: "")) }
         else { gen?.Write("\(sym.n) /* \(sym.name) */") }
     }
     
-    func GenCond (s: BitArray, p: Node) {
+    func GenCond (_ s: BitArray, p: Node) {
         if p.typ == Node.rslv { CopySourcePart(p.pos, indent: 0) }
         else {
             var n = Sets.Elements(s)
@@ -187,7 +187,7 @@ public class ParserGen {
         }
     }
     
-    func PutCaseLabels (s: BitArray) {
+    func PutCaseLabels (_ s: BitArray) {
         var oneLabel = false
         gen?.Write("case ");
         for sym in tab.terminals {
@@ -199,7 +199,7 @@ public class ParserGen {
         gen?.Write(": ")
     }
 
-    func GenCode (p: Node?, indent: Int, isChecked: BitArray ) {
+    func GenCode (_ p: Node?, indent: Int, isChecked: BitArray ) {
         var p2: Node?
         var p = p
         var s1, s2: BitArray
@@ -317,7 +317,7 @@ public class ParserGen {
             if sym.name[0].isLetter() {
                 gen?.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
             } else if isValidName(sym) {
-                gen?.WriteLine("\tpublic let _" + sym.name.stringByReplacingOccurrencesOfString("\"", withString: "") + " = \(sym.n)")
+                gen?.WriteLine("\tpublic let _" + sym.name.replacingOccurrences(of: "\"", with: "") + " = \(sym.n)")
             }
         }
     }
@@ -349,7 +349,7 @@ public class ParserGen {
     }
     
     func InitSets() {
-        for (i, s) in symSet.enumerate() {
+        for (i, s) in symSet.enumerated() {
             gen?.Write("\t\t[")
             var j = 0
             for sym in tab.terminals {
@@ -361,7 +361,7 @@ public class ParserGen {
         }
     }
 
-    public func WriteParser () {
+    open func WriteParser () {
         let g = Generator(tab: tab)
         let oldPos = buffer.Pos  // Pos is modified by CopySourcePart
         symSet.append(tab.allSyncSets)
@@ -398,7 +398,7 @@ public class ParserGen {
         buffer.Pos = oldPos
     }
     
-    public func WriteStatistics () {
+    open func WriteStatistics () {
         trace.WriteLine();
         trace.WriteLine("\(tab.terminals.count) terminals")
         trace.WriteLine("\(tab.terminals.count + tab.pragmas.count + tab.nonterminals.count) symbols")
@@ -409,13 +409,13 @@ public class ParserGen {
     
 } // end ParserGen
 
-public class StringWriter {
+open class StringWriter {
     
     var stream: String = ""
 
-	public func Write(s: String) { print(s, terminator: "", toStream: &stream) }
-	public func WriteLine(s: String = "") { Write(s + "\n") }
+	open func Write(_ s: String) { print(s, terminator: "", to: &stream) }
+	open func WriteLine(_ s: String = "") { Write(s + "\n") }
 	
-    public var string : String { return stream }
+    open var string : String { return stream }
     
 }

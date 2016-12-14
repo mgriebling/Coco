@@ -33,32 +33,32 @@ import Foundation
 //  State
 //-----------------------------------------------------------------------------
 
-public class State {				// state of finite automaton
-    public var nr: Int = 0			// state number
-    public var firstAction: Action? // to first action of this state
-    public var endOf: Symbol? 		// recognized token if state is final
-    public var ctx: Bool = false	// true if state is reached via contextTrans
-    public var next: State?
+open class State {				// state of finite automaton
+    open var nr: Int = 0			// state number
+    open var firstAction: Action? // to first action of this state
+    open var endOf: Symbol? 		// recognized token if state is final
+    open var ctx: Bool = false	// true if state is reached via contextTrans
+    open var next: State?
     
-    public func AddAction(act: Action) {
+    open func AddAction(_ act: Action) {
         var lasta: Action? = nil
         var a : Action? = firstAction
-        while let an = a where act.typ >= an.typ { lasta = an; a = an.next }
+        while let an = a , act.typ >= an.typ { lasta = an; a = an.next }
         // collecting classes at the beginning gives better performance
         act.next = a
         if a === firstAction { firstAction = act } else { lasta!.next = act }
     }
     
-    public func DetachAction(act: Action) {
+    open func DetachAction(_ act: Action) {
         var lasta: Action? = nil
         var a : Action? = firstAction
-        while let an = a where an !== act {lasta = an; a = an.next }
+        while let an = a , an !== act {lasta = an; a = an.next }
         if let an = a {
             if an === firstAction { firstAction = an.next } else { lasta!.next = an.next }
         }
     }
     
-    public func MeltWith(s: State) { // copy actions of s to state
+    open func MeltWith(_ s: State) { // copy actions of s to state
         var action = s.firstAction
         while action != nil {
             let a = Action(typ: action!.typ, sym: action!.sym, tc: action!.tc)
@@ -74,21 +74,21 @@ public class State {				// state of finite automaton
 //  Action
 //-----------------------------------------------------------------------------
 
-public class Action {			// action of finite automaton
-    public var typ: Int 		// type of action symbol: clas, chr
-    public var sym: Int 		// action symbol
-    public var tc: Int			// transition code: normalTrans, contextTrans
-    public var target: Target? 	// states reached from this action
-    public var next: Action?
+open class Action {			// action of finite automaton
+    open var typ: Int 		// type of action symbol: clas, chr
+    open var sym: Int 		// action symbol
+    open var tc: Int			// transition code: normalTrans, contextTrans
+    open var target: Target? 	// states reached from this action
+    open var next: Action?
     
     public init(typ: Int, sym: Int, tc:Int) {
         self.typ = typ; self.sym = sym; self.tc = tc
     }
     
-    public func AddTarget(t: Target) { // add t to the action.targets
+    open func AddTarget(_ t: Target) { // add t to the action.targets
         var last: Target? = nil
         var p: Target? = target
-        while let pn = p where t.state!.nr >= pn.state!.nr {
+        while let pn = p , t.state!.nr >= pn.state!.nr {
             if t.state === pn.state { return }
             last = pn; p = pn.next
         }
@@ -96,7 +96,7 @@ public class Action {			// action of finite automaton
         if p === target { target = t } else { last!.next = t }
     }
     
-    public func AddTargets(a: Action) { // add copy of a.targets to action.targets
+    open func AddTargets(_ a: Action) { // add copy of a.targets to action.targets
         var p = a.target
         while p != nil {
             let t = Target(s: p!.state!)
@@ -106,7 +106,7 @@ public class Action {			// action of finite automaton
         if a.tc == Node.contextTrans { tc = Node.contextTrans }
     }
     
-    public func Symbols(tab: Tab) -> CharSet {
+    open func Symbols(_ tab: Tab) -> CharSet {
         var s: CharSet
         if typ == Node.clas {
             s = tab.CharClassSet(sym).Clone()
@@ -116,7 +116,7 @@ public class Action {			// action of finite automaton
         return s
     }
     
-    public func ShiftWith(s: CharSet, tab: Tab) {
+    open func ShiftWith(_ s: CharSet, tab: Tab) {
         if s.Elements() == 1 {
             typ = Node.chr; sym = s.First()
         } else {
@@ -131,9 +131,9 @@ public class Action {			// action of finite automaton
 //  Target
 //-----------------------------------------------------------------------------
 
-public class Target {				// set of states that are reached by an action
-    public var state: State? 		// target state
-    public var next: Target?
+open class Target {				// set of states that are reached by an action
+    open var state: State? 		// target state
+    open var next: Target?
     
     public init (s: State) {
         state = s
@@ -144,10 +144,10 @@ public class Target {				// set of states that are reached by an action
 //  Melted
 //-----------------------------------------------------------------------------
 
-public class Melted {					// info about melted states
-    public var set: BitArray 			// set of old states
-    public var state: State? 			// new state
-    public var next: Melted?
+open class Melted {					// info about melted states
+    open var set: BitArray 			// set of old states
+    open var state: State? 			// new state
+    open var next: Melted?
     
     public init(set: BitArray, state: State) {
         self.set = set; self.state = state
@@ -158,11 +158,11 @@ public class Melted {					// info about melted states
 //  Comment
 //-----------------------------------------------------------------------------
 
-public class Comment {					// info about comment syntax
-    public var start: String
-    public var stop: String
-    public var nested: Bool
-    public var next: Comment?
+open class Comment {					// info about comment syntax
+    open var start: String
+    open var stop: String
+    open var nested: Bool
+    open var next: Comment?
     
     public init(start:String, stop:String, nested:Bool) {
         self.start = start; self.stop = stop; self.nested = nested
@@ -173,18 +173,18 @@ public class Comment {					// info about comment syntax
 //  CharSet
 //-----------------------------------------------------------------------------
 
-public class CharSet {
+open class CharSet {
     
-    public class Range {
-        public var from: Int
-        public var to: Int
-        public var next: Range?
+    open class Range {
+        open var from: Int
+        open var to: Int
+        open var next: Range?
         public init(from: Int, to:Int) { self.from = from; self.to = to }
     }
     
-    public var head: Range?
+    open var head: Range?
     
-    public subscript(i: Int) -> Bool {
+    open subscript(i: Int) -> Bool {
         get {
             var p = head
             while p != nil {
@@ -196,10 +196,10 @@ public class CharSet {
         }
     }
     
-    public func Set(i: Int) {
+    open func Set(_ i: Int) {
         var cur = head
         var prev: Range? = nil
-        while let ncur = cur where i >= ncur.from-1 {
+        while let ncur = cur , i >= ncur.from-1 {
             if i <= ncur.to + 1 { // (cur.from-1) <= i <= (cur.to+1)
                 if i == ncur.from - 1 { ncur.from -= 1 }
                 else if i == ncur.to + 1 {
@@ -216,7 +216,7 @@ public class CharSet {
         if prev == nil { head = n } else { prev!.next = n }
     }
     
-    public func Clone() -> CharSet {
+    open func Clone() -> CharSet {
         let s = CharSet()
         var prev: Range? = nil
         var cur = head
@@ -229,29 +229,29 @@ public class CharSet {
         return s
     }
     
-    public func Equals(s: CharSet) -> Bool {
+    open func Equals(_ s: CharSet) -> Bool {
         var p = head
         var q = s.head
-        while let pn = p, qn = q {
+        while let pn = p, let qn = q {
             if pn.from != qn.from || pn.to != qn.to { return false }
             p = pn.next; q = qn.next
         }
         return p === q
     }
     
-    public func Elements() -> Int {
+    open func Elements() -> Int {
         var n = 0
         var p = head
         while p != nil { n += p!.to - p!.from + 1;  p = p!.next }
         return n
     }
     
-    public func First() -> Int {
+    open func First() -> Int {
         if let head = head { return head.from }
         return -1
     }
     
-    public func Or(s: CharSet) {
+    open func Or(_ s: CharSet) {
         var p = s.head
         while p != nil {
             for i in p!.from...p!.to { Set(i) }
@@ -259,7 +259,7 @@ public class CharSet {
         }
     }
     
-    public func And(s: CharSet) {
+    open func And(_ s: CharSet) {
         let x = CharSet()
         var p = head
         while p != nil  {
@@ -271,7 +271,7 @@ public class CharSet {
         head = x.head
     }
     
-    public func Subtract(s: CharSet) {
+    open func Subtract(_ s: CharSet) {
         let x = CharSet()
         var p = head
         while p != nil {
@@ -283,7 +283,7 @@ public class CharSet {
         head = x.head;
     }
     
-    public func Includes(s: CharSet) -> Bool {
+    open func Includes(_ s: CharSet) -> Bool {
         var p = s.head
         while p != nil  {
             for i in p!.from...p!.to {
@@ -294,7 +294,7 @@ public class CharSet {
         return true;
     }
     
-    public func Intersects(s: CharSet) -> Bool {
+    open func Intersects(_ s: CharSet) -> Bool {
         var p = s.head
         while p != nil {
             for i in p!.from...p!.to {
@@ -305,7 +305,7 @@ public class CharSet {
         return false;
     }
     
-    public func Fill() {
+    open func Fill() {
         head = Range(from: Int(unichar.min), to: Int(unichar.max))
     }
 }
@@ -314,52 +314,52 @@ public class CharSet {
 //  Generator
 //-----------------------------------------------------------------------------
 class Generator {
-    private let EOF = -1
+    fileprivate let EOF = -1
     
-    private var fram: NSInputStream?
-    private var gen: NSOutputStream?
-    private let tab: Tab
-    private var frameFile: String = ""
+    fileprivate var fram: InputStream?
+    fileprivate var gen: OutputStream?
+    fileprivate let tab: Tab
+    fileprivate var frameFile: String = ""
     
     init(tab: Tab) {
         self.tab = tab
     }
     
-    func fileExists (name: String) -> Bool {
-        let fileManager = NSFileManager.defaultManager()
-        return fileManager.fileExistsAtPath(name)
+    func fileExists (_ name: String) -> Bool {
+        let fileManager = FileManager.default
+        return fileManager.fileExists(atPath: name)
     }
 	
-	func fileDelete (name: String) throws {
-		let fileManager = NSFileManager.defaultManager()
-		try fileManager.removeItemAtPath(name)
+	func fileDelete (_ name: String) throws {
+		let fileManager = FileManager.default
+		try fileManager.removeItem(atPath: name)
 	}
 	
-    func fileCopy (from: String, to: String) throws {
-        let fileManager = NSFileManager.defaultManager()
-        try fileManager.copyItemAtPath(from, toPath: to)
+    func fileCopy (_ from: String, to: String) throws {
+        let fileManager = FileManager.default
+        try fileManager.copyItem(atPath: from, toPath: to)
     }
     
-    func OpenFrame(frame: String) -> NSInputStream {
-        if !tab.frameDir.isEmpty { frameFile = (tab.frameDir as NSString).stringByAppendingPathComponent(frame) }
-        if frameFile.isEmpty || !fileExists(frameFile) { frameFile = (tab.srcDir as NSString).stringByAppendingPathComponent(frame) }
+    func OpenFrame(_ frame: String) -> InputStream {
+        if !tab.frameDir.isEmpty { frameFile = (tab.frameDir as NSString).appendingPathComponent(frame) }
+        if frameFile.isEmpty || !fileExists(frameFile) { frameFile = (tab.srcDir as NSString).appendingPathComponent(frame) }
         if frameFile.isEmpty || !fileExists(frameFile) { assert(false, "Cannot find : " + frame) }
         
-        let fram = NSInputStream(fileAtPath: frameFile)
+        let fram = InputStream(fileAtPath: frameFile)
 		fram?.open()
         assert(fram != nil && fram!.hasBytesAvailable, "Cannot open frame file: " + frameFile)
         self.fram = fram!
         return fram!
     }
     
-    func OpenGen(target: String) -> NSOutputStream? {
-        let fn = (tab.outDir as NSString).stringByAppendingPathComponent(target)
+    func OpenGen(_ target: String) -> OutputStream? {
+        let fn = (tab.outDir as NSString).appendingPathComponent(target)
         do {
             if fileExists(fn) {
 				if fileExists(fn + ".old") { try fileDelete(fn + ".old") }
 				try fileCopy(fn, to: fn + ".old")
 			}
-            gen = NSOutputStream(toFileAtPath: fn, append: false)
+            gen = OutputStream(toFileAtPath: fn, append: false)
 			gen?.open()
         } catch _ {
             assert(false, "Cannot generate file: " + fn)
@@ -369,12 +369,12 @@ class Generator {
     
     func GenCopyright() {
         var copyFr = ""
-        if !tab.frameDir.isEmpty { copyFr = (tab.frameDir as NSString).stringByAppendingPathComponent("Copyright.frame") }
-        if copyFr.isEmpty || !fileExists(copyFr) { copyFr = (tab.srcDir as NSString).stringByAppendingPathComponent("Copyright.frame") }
+        if !tab.frameDir.isEmpty { copyFr = (tab.frameDir as NSString).appendingPathComponent("Copyright.frame") }
+        if copyFr.isEmpty || !fileExists(copyFr) { copyFr = (tab.srcDir as NSString).appendingPathComponent("Copyright.frame") }
         if copyFr.isEmpty || !fileExists(copyFr) { return }
         
         let scannerFram = fram
-        if let lfram = NSInputStream(fileAtPath: copyFr) {
+        if let lfram = InputStream(fileAtPath: copyFr) {
             fram = lfram
 			fram?.open()
             CopyFramePart("")
@@ -384,16 +384,16 @@ class Generator {
         }
     }
     
-    func SkipFramePart(stop: String) {
+    func SkipFramePart(_ stop: String) {
         CopyFramePart(stop, generateOutput: false)
     }
     
-    func CopyFramePart(stop: String) {
+    func CopyFramePart(_ stop: String) {
         CopyFramePart(stop, generateOutput: true)
     }
     
     // if stop == nil, copies until end of file
-    private func CopyFramePart(stop: String, generateOutput: Bool) {
+    fileprivate func CopyFramePart(_ stop: String, generateOutput: Bool) {
         var startCh : Int = 0
         var endOfStopString = 0
         
@@ -411,7 +411,7 @@ class Generator {
                     ch = framRead(); i += 1
                 } while ch == stop[i].unicodeValue()
                 // stop[0..i-1] found; continue with last read character
-                if generateOutput { gen!.Write((stop as NSString).substringToIndex(i)) }
+                if generateOutput { gen!.Write((stop as NSString).substring(to: i)) }
             } else {
                 if generateOutput { gen!.Write(String(Character(ch))) }
                 ch = framRead()
@@ -421,8 +421,8 @@ class Generator {
         assert(stop.isEmpty, "Incomplete or corrupt frame file: " + frameFile)
     }
     
-    private func framRead() -> Int {
-        var buffer = [UInt8](count: 4, repeatedValue: 0)
+    fileprivate func framRead() -> Int {
+        var buffer = [UInt8](repeating: 0, count: 4)
         if fram!.read(&buffer, maxLength: 1) == 1 {
             return Int(buffer[0])
         } else {
@@ -436,25 +436,25 @@ class Generator {
 //  DFA
 //-----------------------------------------------------------------------------
 
-public class DFA {
-    private var maxStates = 0
-    private var lastStateNr: Int        // highest state number
-    private var firstState: State?
-    private var lastState: State?       // last allocated state
-    private var lastSimState = 0        // last non melted state
-	private var fram : NSInputStream?	// scanner frame input
-	private var gen : NSOutputStream?	// generated scanner file
-	private var curSy : Symbol?			// current token to be recognized (in FindTrans)
-    private var dirtyDFA: Bool          // DFA may become nondeterministic in MatchLiteral
+open class DFA {
+    fileprivate var maxStates = 0
+    fileprivate var lastStateNr: Int        // highest state number
+    fileprivate var firstState: State?
+    fileprivate var lastState: State?       // last allocated state
+    fileprivate var lastSimState = 0        // last non melted state
+	fileprivate var fram : InputStream?	// scanner frame input
+	fileprivate var gen : OutputStream?	// generated scanner file
+	fileprivate var curSy : Symbol?			// current token to be recognized (in FindTrans)
+    fileprivate var dirtyDFA: Bool          // DFA may become nondeterministic in MatchLiteral
     
-    public var ignoreCase: Bool         // true if input should be treated case-insensitively
-    public var hasCtxMoves: Bool        // DFA has context transitions
+    open var ignoreCase: Bool         // true if input should be treated case-insensitively
+    open var hasCtxMoves: Bool        // DFA has context transitions
     
     // other Coco objects
-    private var parser: Parser
-    private var tab: Tab
-    private var errors: Errors
-    private var trace: NSOutputStream
+    fileprivate var parser: Parser
+    fileprivate var tab: Tab
+    fileprivate var errors: Errors
+    fileprivate var trace: OutputStream
     
     public init (parser: Parser) {
         self.parser = parser
@@ -470,7 +470,7 @@ public class DFA {
     }
     
     //---------- Output primitives
-    private func Ch(ch: Int) -> String {
+    fileprivate func Ch(_ ch: Int) -> String {
         let lch = Character(ch)
         if lch == "\"" || lch == "\\" || lch ==  "\n" || lch ==  "\r" || lch ==  "\t" {
             return "\"" + tab.Escape(String(lch)) + "\""
@@ -479,11 +479,11 @@ public class DFA {
         } else { return "\"\(lch)\"" }
     }
     
-    private func ChCond(ch: Character) -> String {
+    fileprivate func ChCond(_ ch: Character) -> String {
         return "ch == \(Ch(ch.unicodeValue()))"
     }
     
-    private func PutRange(s: CharSet) {
+    fileprivate func PutRange(_ s: CharSet) {
         var r = s.head
         while r != nil {
             if r!.from == r!.to { gen?.Write("ch == " + Ch(r!.from)) }
@@ -503,7 +503,7 @@ public class DFA {
         return s
     }
     
-    func NewTransition(from: State, to: State, typ: Int, sym: Int, tc: Int) {
+    func NewTransition(_ from: State, to: State, typ: Int, sym: Int, tc: Int) {
         let t = Target(s: to)
         let a = Action(typ: typ, sym: sym, tc: tc); a.target = t
         from.AddAction(a)
@@ -534,7 +534,7 @@ public class DFA {
         }
     }
     
-    func FindUsedStates(state: State, used:BitArray) {
+    func FindUsedStates(_ state: State, used:BitArray) {
         if used[state.nr] { return }
         used[state.nr] = true
         var a = state.firstAction
@@ -545,7 +545,7 @@ public class DFA {
     }
     
     func DeleteRedundantStates() {
-        var newState = [State](count: lastStateNr+1, repeatedValue: State())
+        var newState = [State](repeating: State(), count: lastStateNr+1)
         let used = BitArray(lastStateNr+1)
         FindUsedStates(firstState!, used: used)
         // combine equal final states
@@ -586,13 +586,13 @@ public class DFA {
         }
     }
     
-    func TheState(p: Node?) -> State {
+    func TheState(_ p: Node?) -> State {
         var state: State
         if p == nil { state = NewState(); state.endOf = curSy; return state }
         else { return p!.state! }
     }
     
-    func Step(from: State, p: Node?, stepped: BitArray) {
+    func Step(_ from: State, p: Node?, stepped: BitArray) {
         guard let p = p else { return }
         stepped[p.n] = true
         switch p.typ {
@@ -624,7 +624,7 @@ public class DFA {
     //  - any node after a chr, clas, opt, or alt, must get a new number
     //  - if a nested structure starts with an iteration the iter node must get a new number
     //  - if an iteration follows an iteration, it must get a new number
-    func NumberNodes(p: Node?, state: State?, renumIter: Bool) {
+    func NumberNodes(_ p: Node?, state: State?, renumIter: Bool) {
         var state = state
         guard let p = p else { return }
         if p.state != nil { return } // already visited;
@@ -648,8 +648,8 @@ public class DFA {
         }
     }
     
-    func FindTrans (p: Node?, start: Bool, marked: BitArray) {
-        guard let p = p where !marked[p.n] else { return }
+    func FindTrans (_ p: Node?, start: Bool, marked: BitArray) {
+        guard let p = p , !marked[p.n] else { return }
         marked[p.n] = true
         if start {
             Step(p.state!, p: p, stepped: BitArray(tab.nodes.count)) // start of group of equally numbered nodes
@@ -667,7 +667,7 @@ public class DFA {
         }
     }
     
-    public func ConvertToStates(p: Node, _ sym: Symbol) {
+    open func ConvertToStates(_ p: Node, _ sym: Symbol) {
         curSy = sym;
         if Tab.DelGraph(p) {
             parser.SemErr("token might be empty")
@@ -681,7 +681,7 @@ public class DFA {
     }
     
     // match string against current automaton; store it either as a fixedToken or as a litToken
-    public func MatchLiteral(s: String, _ sym: Symbol) {
+    open func MatchLiteral(_ s: String, _ sym: Symbol) {
         var s = s
         s = tab.Unescape(s.substring(1, s.count()-2))
         let len = s.count()
@@ -717,7 +717,7 @@ public class DFA {
         }
     }
     
-    func SplitActions(state: State, a: Action, b: Action) {
+    func SplitActions(_ state: State, a: Action, b: Action) {
         var c: Action
         var setc: CharSet
         let seta = a.Symbols(tab)
@@ -747,7 +747,7 @@ public class DFA {
         }
     }
     
-    func Overlap(a: Action, b: Action) -> Bool {
+    func Overlap(_ a: Action, b: Action) -> Bool {
         var seta, setb: CharSet
         if a.typ == Node.chr {
             if b.typ == Node.chr { return a.sym == b.sym }
@@ -759,7 +759,7 @@ public class DFA {
         }
     }
     
-    func MakeUnique(state: State) {
+    func MakeUnique(_ state: State) {
         var changed: Bool
         repeat {
             changed = false
@@ -775,7 +775,7 @@ public class DFA {
         } while changed
     }
     
-    func MeltStates(state: State) {
+    func MeltStates(_ state: State) {
         var ctx = false
         var targets = BitArray()
 		var endOf : Symbol?
@@ -813,7 +813,7 @@ public class DFA {
         }
     }
     
-    public func MakeDeterministic() {
+    open func MakeDeterministic() {
         var state: State?
         lastSimState = lastState!.nr
         maxStates = 2 * lastSimState // heuristic for set size in Melted.set
@@ -832,7 +832,7 @@ public class DFA {
         CombineShifts()
     }
 
-    public func PrintStates() {
+    open func PrintStates() {
         trace.WriteLine();
         trace.WriteLine("---------- states ----------")
         var state = firstState
@@ -864,7 +864,7 @@ public class DFA {
     
     //---------------------------- actions --------------------------------
     
-    public func FindAction(state: State, ch: Character) -> Action? {
+    open func FindAction(_ state: State, ch: Character) -> Action? {
         var a = state.firstAction
         while a != nil {
             if a!.typ == Node.chr && ch.unicodeValue() == a!.sym { return a }
@@ -877,7 +877,7 @@ public class DFA {
         return nil
     }
     
-	public func GetTargetStates(a: Action, inout targets: BitArray, inout endOf: Symbol?, inout ctx: Bool) {
+	open func GetTargetStates(_ a: Action, targets: inout BitArray, endOf: inout Symbol?, ctx: inout Bool) {
 		// compute the set of target states
 		targets = BitArray(maxStates); endOf = nil
 		ctx = false
@@ -913,13 +913,13 @@ public class DFA {
 	
     var firstMelted: Melted?	// head of melted state list
 	
-    func NewMelted(set: BitArray, state: State) -> Melted {
+    func NewMelted(_ set: BitArray, state: State) -> Melted {
         let m = Melted(set: set, state: state)
         m.next = firstMelted; firstMelted = m
         return m
     }
 	
-    func MeltedSet(nr: Int) -> BitArray {
+    func MeltedSet(_ nr: Int) -> BitArray {
         var m = firstMelted
         while m != nil {
             if m!.state!.nr == nr { return m!.set } else { m = m!.next }
@@ -927,7 +927,7 @@ public class DFA {
         assert(false, "compiler error in Melted.Set")
     }
     
-    func StateWithSet(s: BitArray) -> Melted?  {
+    func StateWithSet(_ s: BitArray) -> Melted?  {
         var m = firstMelted
         while m != nil {
             if Sets.Equals(s, b: m!.set) { return m }
@@ -938,9 +938,9 @@ public class DFA {
     
     //------------------------ comments --------------------------------
     
-    public var firstComment: Comment?	// list of comments
+    open var firstComment: Comment?	// list of comments
     
-    func CommentStr(p: Node?) -> String {
+    func CommentStr(_ p: Node?) -> String {
         var p = p
         var s = ""
         while let np = p {
@@ -960,7 +960,7 @@ public class DFA {
         return s
     }
     
-    public func NewComment(from:Node, _ to: Node, _ nested: Bool) {
+    open func NewComment(_ from:Node, _ to: Node, _ nested: Bool) {
         let c = Comment(start: CommentStr(from), stop: CommentStr(to), nested: nested)
         c.next = firstComment; firstComment = c
     }
@@ -968,7 +968,7 @@ public class DFA {
     
     //------------------------ scanner generation ----------------------
     
-    func GenComBody(com: Comment) {
+    func GenComBody(_ com: Comment) {
         gen?.WriteLine(  "\t\t\twhile true {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
         if com.stop.count() == 1 {
@@ -999,7 +999,7 @@ public class DFA {
         gen?.WriteLine(    "\t\t\t}")
     }
     
-    func GenComment(com: Comment, i: Int) {
+    func GenComment(_ com: Comment, i: Int) {
         gen?.WriteLine();
         gen?.Write    ("\tfunc Comment\(i)() -> Bool "); gen?.WriteLine("{");
         gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line; let col0 = col; let charPos0 = charPos")
@@ -1019,7 +1019,7 @@ public class DFA {
         gen?.WriteLine("\t}")
     }
     
-    func SymName(sym: Symbol) -> String {
+    func SymName(_ sym: Symbol) -> String {
         if sym.name[0].isLetter() { // real name value is stored in Tab.literals
             for e in tab.literals {
                 if e.1 === sym { return e.0 }
@@ -1037,7 +1037,7 @@ public class DFA {
 		for sym in tab.terminals + tab.pragmas {
             if sym.tokenKind == Symbol.litToken {
                 var name = SymName(sym)
-                if ignoreCase { name = name.lowercaseString }
+                if ignoreCase { name = name.lowercased() }
                 // sym.name stores literals with quotes, e.g. "\"Literal\""
                 gen?.WriteLine("\t\t\tcase \(name): t.kind = \(sym.n)")
             }
@@ -1046,7 +1046,7 @@ public class DFA {
         gen?.Write("\t\t}")
     }
     
-    func WriteState(state: State) {
+    func WriteState(_ state: State) {
         let endOf = state.endOf
         gen?.WriteLine("\t\t\tcase \(state.nr):")
         if (endOf != nil && state.firstAction != nil) {
@@ -1113,7 +1113,7 @@ public class DFA {
         gen?.WriteLine("\t\tresult[Buffer.EOF] = -1")
     }
     
-    public func WriteScanner() {
+    open func WriteScanner() {
         let g = Generator(tab: tab)
         fram = g.OpenFrame("Scanner.frame")
         gen = g.OpenGen("Scanner.swift")

@@ -48,27 +48,27 @@ public struct Position {  // position of source code stretch (e.g. semantic acti
 // Symbol
 //=====================================================================
 
-public class Symbol {
+open class Symbol {
 	
 	// token kinds
-	public static let fixedToken    = 0 // e.g. "a" ("b" | "c") (structure of literals)
-	public static let classToken    = 1 // e.g. digit {digit}   (at least one char class)
-	public static let litToken      = 2 // e.g. "while"
-	public static let classLitToken = 3 // e.g. letter {letter} but without literals that have the same structure
+	open static let fixedToken    = 0 // e.g. "a" ("b" | "c") (structure of literals)
+	open static let classToken    = 1 // e.g. digit {digit}   (at least one char class)
+	open static let litToken      = 2 // e.g. "while"
+	open static let classLitToken = 3 // e.g. letter {letter} but without literals that have the same structure
 	
-	public var n = 0                // symbol number
-	public var typ = 0              // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
-	public var name = ""            // symbol name
-	public var graph: Node?         // nt: to first node of syntax graph
-	public var tokenKind = 0        // t:  token kind (fixedToken, classToken, ...)
-	public var deletable = false    // nt: true if nonterminal is deletable
-	public var firstReady = false   // nt: true if terminal start symbols have already been computed
-	public var first = BitArray()   // nt: terminal start symbols
-	public var follow = BitArray()  // nt: terminal followers
-	public var nts = BitArray()     // nt: Tab.nonterminals whose followers have to be added to this sym
-	public var line = 0             // source text line number of item in this node
-	public var attrPos: Position?   // nt: position of attributes in source text (or nil)
-	public var semPos: Position?    // pr: pos of semantic action in source text (or nil)
+	open var n = 0                // symbol number
+	open var typ = 0              // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
+	open var name = ""            // symbol name
+	open var graph: Node?         // nt: to first node of syntax graph
+	open var tokenKind = 0        // t:  token kind (fixedToken, classToken, ...)
+	open var deletable = false    // nt: true if nonterminal is deletable
+	open var firstReady = false   // nt: true if terminal start symbols have already been computed
+	open var first = BitArray()   // nt: terminal start symbols
+	open var follow = BitArray()  // nt: terminal followers
+	open var nts = BitArray()     // nt: Tab.nonterminals whose followers have to be added to this sym
+	open var line = 0             // source text line number of item in this node
+	open var attrPos: Position?   // nt: position of attributes in source text (or nil)
+	open var semPos: Position?    // pr: pos of semantic action in source text (or nil)
 	// nt: pos of local declarations in source text (or nil)
 	
 	public init(_ typ: Int, _ name: String, _ line: Int) {
@@ -84,42 +84,42 @@ public class Symbol {
 // Node
 //=====================================================================
 
-public class Node {
+open class Node {
 	// constants for node kinds
-	public static let t    =  1  // terminal symbol
-	public static let pr   =  2  // pragma
-	public static let nt   =  3  // nonterminal symbol
-	public static let clas =  4  // character class
-	public static let chr  =  5  // character
-	public static let wt   =  6  // weak terminal symbol
-	public static let any  =  7  //
-	public static let eps  =  8  // empty
-	public static let sync =  9  // synchronization symbol
-	public static let sem  = 10  // semantic action: (. .)
-	public static let alt  = 11  // alternative: |
-	public static let iter = 12  // iteration: { }
-	public static let opt  = 13  // option: [ ]
-	public static let rslv = 14  // resolver expr
+	open static let t    =  1  // terminal symbol
+	open static let pr   =  2  // pragma
+	open static let nt   =  3  // nonterminal symbol
+	open static let clas =  4  // character class
+	open static let chr  =  5  // character
+	open static let wt   =  6  // weak terminal symbol
+	open static let any  =  7  //
+	open static let eps  =  8  // empty
+	open static let sync =  9  // synchronization symbol
+	open static let sem  = 10  // semantic action: (. .)
+	open static let alt  = 11  // alternative: |
+	open static let iter = 12  // iteration: { }
+	open static let opt  = 13  // option: [ ]
+	open static let rslv = 14  // resolver expr
 	
-	public static let normalTrans  = 0		// transition codes
-	public static let contextTrans = 1
+	open static let normalTrans  = 0		// transition codes
+	open static let contextTrans = 1
 	
-	public var n = 0                // node number
-	public var typ = 0              // t, nt, wt, chr, clas, any, eps, sem, sync, alt, iter, opt, rslv
-	public var next:Node?     		// to successor node
-	public var down:Node?     		// alt: to next alternative
-	public var sub:Node?            // alt, iter, opt: to first node of substructure
-	public var up = false 			// true: "next" leads to successor in enclosing structure
-	public var sym: Symbol?   		// nt, t, wt: symbol represented by this node
-	public var val = 0      		// chr:  ordinal character value
+	open var n = 0                // node number
+	open var typ = 0              // t, nt, wt, chr, clas, any, eps, sem, sync, alt, iter, opt, rslv
+	open var next:Node?     		// to successor node
+	open var down:Node?     		// alt: to next alternative
+	open var sub:Node?            // alt, iter, opt: to first node of substructure
+	open var up = false 			// true: "next" leads to successor in enclosing structure
+	open var sym: Symbol?   		// nt, t, wt: symbol represented by this node
+	open var val = 0      		// chr:  ordinal character value
 	// clas: index of character class
-	public var code = 0     		// chr, clas: transition code
-	public var set = BitArray()		// any, sync: the set represented by this node
-	public var pos: Position?		// nt, t, wt: pos of actual attributes
+	open var code = 0     		// chr, clas: transition code
+	open var set = BitArray()		// any, sync: the set represented by this node
+	open var pos: Position?		// nt, t, wt: pos of actual attributes
 	// sem:       pos of semantic action in source text
 	// rslv:       pos of resolver in source text
-	public var line = 0      		// source text line number of item in this node
-	public var state: State?    	// DFA state corresponding to this node
+	open var line = 0      		// source text line number of item in this node
+	open var state: State?    	// DFA state corresponding to this node
 	// (only used in DFA.ConvertToStates)
 	
 	public init(_ typ: Int, _ sym: Symbol?, _ line: Int) {
@@ -131,9 +131,9 @@ public class Node {
 // Graph
 //=====================================================================
 
-public class Graph {
-	public var l: Node?	// left end of graph = head
-	public var r: Node?	// right end of graph = list of nodes to be linked to successor graph
+open class Graph {
+	open var l: Node?	// left end of graph = head
+	open var r: Node?	// right end of graph = list of nodes to be linked to successor graph
 	
 	public init() {
 		l = nil; r = nil
@@ -152,9 +152,9 @@ public class Graph {
 // Sets
 //=====================================================================
 
-public class Sets {
+open class Sets {
 	
-	public static func Elements(s: BitArray) -> Int {
+	open static func Elements(_ s: BitArray) -> Int {
 		var n = 0
 		for item in s {
 			if item { n += 1 }
@@ -162,7 +162,7 @@ public class Sets {
 		return n
 	}
 	
-	public static func Equals(a: BitArray, b: BitArray) -> Bool {
+	open static func Equals(_ a: BitArray, b: BitArray) -> Bool {
 		let max = a.count
 		for i in 0..<max {
 			if a[i] != b[i] { return false }
@@ -170,7 +170,7 @@ public class Sets {
 		return true
 	}
 	
-	public static func Intersect(a: BitArray, b: BitArray) -> Bool { // a * b != {}
+	open static func Intersect(_ a: BitArray, b: BitArray) -> Bool { // a * b != {}
 		let max = a.count
 		for i in 0..<max {
 			if a[i] && b[i] { return true }
@@ -178,7 +178,7 @@ public class Sets {
 		return false
 	}
 	
-	public static func Subtract(inout a: BitArray, b: BitArray) { // a = a - b
+	open static func Subtract(_ a: inout BitArray, b: BitArray) { // a = a - b
 		let c = b.Clone()
 		c.not()
         a.and(c)
@@ -186,62 +186,69 @@ public class Sets {
 	
 }
 
-public class BitArray : CollectionType {
+open class BitArray : Collection {
     
     var array: [Bool]
     
     // CollectionType protocol conformance
-    public typealias Type = Int
-    public var startIndex: Int { return 0 }
-    public var endIndex: Int { return array.count }
+//    public typealias `Type` = Int
+    open var startIndex: Int { return 0 }
+    open var endIndex: Int { return array.count }
     
 	public init(_ size: Int, value: Bool = false) {
-        array = [Bool](count: size, repeatedValue: value)
+        array = [Bool](repeating: value, count: size)
     }
     
     init() {
         array = [Bool]()
     }
     
-    public var count: Int { return array.count }
+    open var count: Int { return array.count }
     
-    public subscript (index: Int) -> Bool {
+    public func index(after i: Int) -> Int {
+        if i >= startIndex && i < endIndex  {
+            return i+1
+        }
+        return startIndex
+    }
+    
+    open subscript (index: Int) -> Bool {
         get { return array[index] }
         set { array[index] = newValue }
     }
     
-    public func and (b: BitArray) {
+    open func and (_ b: BitArray) {
         let max = array.count
         for i in 0..<max {
             array[i] = array[i] && b[i]
         }
     }
     
-    public func or (b: BitArray) {
+    open func or (_ b: BitArray) {
         let max = array.count
         for i in 0..<max {
             array[i] = array[i] || b[i]
         }
     }
 	
-	public func Clone () -> BitArray {
+	open func Clone () -> BitArray {
 		let copy = BitArray(count)
 		copy.array = array
 		return copy
 	}
     
-    public func not () {
+    open func not () {
         let max = array.count
         for i in 0..<max {
             array[i] = !array[i]
         }
     }
     
-    public func equals (b: BitArray) -> Bool {
+    open func equals (_ b: BitArray) -> Bool {
         return array == b.array
     }
     
-    public func SetAll (value: Bool) {
+    open func SetAll (_ value: Bool) {
         for i in 0..<array.count { array[i] = value }
     }
     
@@ -251,24 +258,24 @@ public class BitArray : CollectionType {
 // CharClass
 //=====================================================================
 
-public class CharClass {
-	public var n = 0            // class number
-	public var name: String		// class name
-	public var set: CharSet		// set representing the class
+open class CharClass {
+	open var n = 0            // class number
+	open var name: String		// class name
+	open var set: CharSet		// set representing the class
 	
 	public init(name: String, s: CharSet) {
 		self.name = name; self.set = s
 	}
 }
 
-extension NSOutputStream {
+extension OutputStream {
 	
-	func Write (s: String) {
-		let data: NSData = s.dataUsingEncoding(NSUTF8StringEncoding)!
-		self.write(UnsafePointer(data.bytes), maxLength: data.length)
+	func Write (_ s: String) {
+		let data: Data = s.data(using: String.Encoding.utf8)!
+		self.write((data as NSData).bytes.bindMemory(to: UInt8.self, capacity: data.count), maxLength: data.count)
 	}
 	
-	func WriteLine (s: String = "") { Write(s + "\n") }
+	func WriteLine (_ s: String = "") { Write(s + "\n") }
 	
 }
 
@@ -276,35 +283,35 @@ extension NSOutputStream {
 // Tab
 //=====================================================================
 
-public class Tab {
-	public var semDeclPos = Position()          // position of global semantic declarations
-	public var ignored = CharSet()              // characters ignored by the scanner
-    public var ddt : [Bool]                     // debug and test switches
-	public var gramSy : Symbol?                 // root nonterminal: filled by ATG
-	public var eofSy = Symbol()                 // end of file symbol
-	public var noSym = Symbol()                 // used in case of an error
-	public var allSyncSets = BitArray()			// union of all synchronisation sets
-	public var literals:[String: Symbol]        // symbols that are used as literals
+open class Tab {
+	open var semDeclPos = Position()          // position of global semantic declarations
+	open var ignored = CharSet()              // characters ignored by the scanner
+    open var ddt : [Bool]                     // debug and test switches
+	open var gramSy : Symbol?                 // root nonterminal: filled by ATG
+	open var eofSy = Symbol()                 // end of file symbol
+	open var noSym = Symbol()                 // used in case of an error
+	open var allSyncSets = BitArray()			// union of all synchronisation sets
+	open var literals:[String: Symbol]        // symbols that are used as literals
 	
-	public var srcName = ""                     // name of the atg file (including path)
-	public var srcDir = ""                      // directory path of the atg file
-	public var nsName = ""                      // namespace for generated files
-	public var frameDir = ""                    // directory containing the frame files
-	public var outDir = ""                      // directory for generated files
-	public var checkEOF = true                  // should coco generate a check for EOF at
+	open var srcName = ""                     // name of the atg file (including path)
+	open var srcDir = ""                      // directory path of the atg file
+	open var nsName = ""                      // namespace for generated files
+	open var frameDir = ""                    // directory containing the frame files
+	open var outDir = ""                      // directory for generated files
+	open var checkEOF = true                  // should coco generate a check for EOF at
 	//   the end of Parser.Parse():
-	public var emitLines=false                  // emit #line pragmas for semantic actions
+	open var emitLines=false                  // emit #line pragmas for semantic actions
 	//   in the generated parser
 	
 	var visited = BitArray()					// mark list for graph traversals
 	var curSy = Symbol()                        // current symbol in computation of sets
 	
 	var parser: Parser?                         // other Coco objects
-	var trace : NSOutputStream?
+	var trace : OutputStream?
 	var errors: Errors?
 	
 	public init(parser: Parser?) {
-        ddt = [Bool](count: 10, repeatedValue: false)
+        ddt = [Bool](repeating: false, count: 10)
 		self.parser = parser
         if parser != nil {
             trace = parser!.trace
@@ -324,13 +331,13 @@ public class Tab {
 	//  Symbol list management
 	//---------------------------------------------------------------------
 	
-	public var terminals = [Symbol]()
-	public var pragmas = [Symbol]()
-	public var nonterminals = [Symbol]()
+	open var terminals = [Symbol]()
+	open var pragmas = [Symbol]()
+	open var nonterminals = [Symbol]()
 	
 	let tKind = ["fixedToken", "classToken", "litToken", "classLitToken"]
 	
-	public func NewSym(typ: Int, _ name: String, _ line: Int) -> Symbol {
+	open func NewSym(_ typ: Int, _ name: String, _ line: Int) -> Symbol {
         var name = name
 		if name.count() == 2 && name[0] == "\"" {
 			parser!.SemErr("empty token not allowed"); name = "???"
@@ -345,7 +352,7 @@ public class Tab {
 		return sym
 	}
 	
-	public func FindSym(name: String) -> Symbol? {
+	open func FindSym(_ name: String) -> Symbol? {
 		for s in terminals {
 			if s.name == name { return s }
 		}
@@ -355,12 +362,12 @@ public class Tab {
 		return nil
 	}
 	
-	func Num(p: Node?) -> Int {
+	func Num(_ p: Node?) -> Int {
 		if let p = p { return p.n }
 		else { return 0 }
 	}
 	
-	func PrintSym(sym: Symbol) {
+	func PrintSym(_ sym: Symbol) {
 		trace?.Write("\(sym.n) \(Name(sym.name)) \(Tab.nTyp[sym.typ])")
 		if (sym.attrPos == nil) { trace?.Write(" false ") } else { trace?.Write(" true  ") }
 		if (sym.typ == Node.nt) {
@@ -372,7 +379,7 @@ public class Tab {
 		trace?.WriteLine("\(sym.line) \(tKind[sym.tokenKind])")
 	}
 	
-	public func PrintSymbolTable() {
+	open func PrintSymbolTable() {
 		trace?.WriteLine("Symbol Table:")
 		trace?.WriteLine("------------"); trace?.WriteLine()
 		trace?.WriteLine(" nr name          typ  hasAt graph  del    line tokenKind")
@@ -388,7 +395,7 @@ public class Tab {
 		trace?.WriteLine()
 	}
 	
-	public func PrintSet(s: BitArray, indent: Int) {
+	open func PrintSet(_ s: BitArray, indent: Int) {
 		var col = indent
 		var len: Int
 		for sym in terminals {
@@ -412,31 +419,31 @@ public class Tab {
 	//  Syntax graph management
 	//---------------------------------------------------------------------
 	
-	public var nodes = [Node]()
-	public static let nTyp = ["    ", "t   ", "pr  ", "nt  ", "clas", "chr ", "wt  ", "any ", "eps ",
+	open var nodes = [Node]()
+	open static let nTyp = ["    ", "t   ", "pr  ", "nt  ", "clas", "chr ", "wt  ", "any ", "eps ",
 		"sync", "sem ", "alt ", "iter", "opt ", "rslv"]
 	var dummyNode: Node
 	
-	public func NewNode(typ: Int, _ sym: Symbol?, _ line: Int) -> Node {
+	open func NewNode(_ typ: Int, _ sym: Symbol?, _ line: Int) -> Node {
 		let node = Node(typ, sym, line)
 		node.n = nodes.count
 		nodes.append(node)
 		return node
 	}
 	
-	public func NewNode(typ: Int, sub: Node) -> Node {
+	open func NewNode(_ typ: Int, sub: Node) -> Node {
 		let node = NewNode(typ, nil, 0)
 		node.sub = sub
 		return node
 	}
 	
-	public func NewNode(typ: Int, val: Int, line: Int) -> Node {
+	open func NewNode(_ typ: Int, val: Int, line: Int) -> Node {
 		let node = NewNode(typ, nil, line)
 		node.val = val
 		return node
 	}
 	
-	public func MakeFirstAlt(g: Graph) {
+	open func MakeFirstAlt(_ g: Graph) {
 		g.l = NewNode(Node.alt, sub: g.l!); g.l!.line = g.l!.sub!.line
 		g.r!.up = true
 		g.l!.next = g.r
@@ -444,7 +451,7 @@ public class Tab {
 	}
 	
 	// The result will be in g1
-	public func MakeAlternative(g1: Graph, _ g2: Graph) {
+	open func MakeAlternative(_ g1: Graph, _ g2: Graph) {
 		g2.l = NewNode(Node.alt, sub: g2.l!); g2.l!.line = g2.l!.sub!.line
 		g2.l!.up = true
 		g2.r!.up = true
@@ -458,7 +465,7 @@ public class Tab {
 	}
 	
 	// The result will be in g1
-	public func MakeSequence(g1: Graph, _ g2: Graph) {
+	open func MakeSequence(_ g1: Graph, _ g2: Graph) {
 		var p = g1.r!.next; g1.r!.next = g2.l // link head node
 		while p != nil {  // link substructure
 			let q = p!.next; p!.next = g2.l
@@ -467,7 +474,7 @@ public class Tab {
 		g1.r = g2.r
 	}
 	
-	public func MakeIteration(g: Graph) {
+	open func MakeIteration(_ g: Graph) {
 		g.l = NewNode(Node.iter, sub: g.l!)
 		g.r!.up = true
 		var p = g.r
@@ -478,14 +485,14 @@ public class Tab {
 		}
 	}
 	
-	public func MakeOption(g: Graph) {
+	open func MakeOption(_ g: Graph) {
 		g.l = NewNode(Node.opt, sub: g.l!)
 		g.r!.up = true
 		g.l!.next = g.r
 		g.r = g.l
 	}
 	
-	public func Finish(g: Graph) {
+	open func Finish(_ g: Graph) {
 		var p = g.r
 		while p != nil {
 			let q = p!.next; p!.next = nil
@@ -493,12 +500,12 @@ public class Tab {
 		}
 	}
 	
-	public func DeleteNodes() {
+	open func DeleteNodes() {
 		nodes = [Node]()
 		dummyNode = NewNode(Node.eps, nil, 0)
 	}
 	
-	public func StrToGraph(str: String) -> Graph {
+	open func StrToGraph(_ str: String) -> Graph {
 		let s = Unescape(str.substring(1, str.count()-2))
 		if s.count() == 0 { parser!.SemErr("empty token not allowed") }
 		let g = Graph()
@@ -511,7 +518,7 @@ public class Tab {
 		return g
 	}
 	
-	public func SetContextTrans(p: Node?) { // set transition code in the graph rooted at p
+	open func SetContextTrans(_ p: Node?) { // set transition code in the graph rooted at p
         var p = p
 		while p != nil {
 			if let np = p {
@@ -530,15 +537,15 @@ public class Tab {
 	
 	//------------ graph deletability check -----------------
 	
-	public static func DelGraph(p: Node?) -> Bool {
+	open static func DelGraph(_ p: Node?) -> Bool {
 		return p == nil || DelNode(p) && DelGraph(p!.next)
 	}
 	
-	public static func DelSubGraph(p: Node?) -> Bool {
+	open static func DelSubGraph(_ p: Node?) -> Bool {
 		return p == nil || DelNode(p) && (p!.up || DelSubGraph(p!.next));
 	}
 	
-	public static func DelNode(p: Node?) -> Bool {
+	open static func DelNode(_ p: Node?) -> Bool {
 		guard let p = p else { return false }
 		if (p.typ == Node.nt) { return p.sym!.deletable }
 		else if (p.typ == Node.alt) { return DelSubGraph(p.sub) || p.down != nil && DelSubGraph(p.down) }
@@ -548,20 +555,20 @@ public class Tab {
 	
 	//----------------- graph printing ----------------------
 	
-	func Ptr(p: Node?, up: Bool) -> String {
+	func Ptr(_ p: Node?, up: Bool) -> String {
 		let ptr = p == nil ? "0" : String(p!.n)
 		return (up) ? "-" + ptr : ptr
 	}
 	
-	func Pos(pos: Position?) -> String {
+	func Pos(_ pos: Position?) -> String {
 		if pos == nil { return "     " } else { return "\(pos!.beg)" }
 	}
 	
-	public func Name(name: String) -> String {
-		return name.stringByPaddingToLength(12, withString: " ", startingAtIndex: 0)
+	open func Name(_ name: String) -> String {
+		return name.padding(toLength: 12, withPad: " ", startingAt: 0)
 	}
 	
-	public func PrintNodes() {
+	open func PrintNodes() {
 		trace?.WriteLine("Graph nodes:");
 		trace?.WriteLine("----------------------------------------------------");
 		trace?.WriteLine("   n type name          next  down   sub   pos  line");
@@ -601,10 +608,10 @@ public class Tab {
 	//  Character class management
 	//---------------------------------------------------------------------
 	
-	public var classes = [CharClass]()
-	public var dummyName : Character = "A"
+	open var classes = [CharClass]()
+	open var dummyName : Character = "A"
 	
-	public func NewCharClass(name: String, _ s: CharSet) -> CharClass {
+	open func NewCharClass(_ name: String, _ s: CharSet) -> CharClass {
         var name = name
 		if name == "#" { name = "#" + String(dummyName); dummyName += 1 }
 		let c = CharClass(name: name, s: s)
@@ -613,33 +620,33 @@ public class Tab {
 		return c
 	}
 	
-	public func FindCharClass(name: String) -> CharClass? {
+	open func FindCharClass(_ name: String) -> CharClass? {
 		for c in classes {
 			if c.name == name { return c }
 		}
 		return nil
 	}
 	
-	public func FindCharClass(s: CharSet) -> CharClass? {
+	open func FindCharClass(_ s: CharSet) -> CharClass? {
 		for c in classes {
 			if s.Equals(c.set) { return c }
 		}
 		return nil
 	}
 	
-	public func CharClassSet(i: Int) -> CharSet {
+	open func CharClassSet(_ i: Int) -> CharSet {
 		return classes[i].set
 	}
 	
 	//----------- character class printing
 	
-	func Ch(ch: Int) -> String {
+	func Ch(_ ch: Int) -> String {
         let lch = Character(ch)
 		if lch < " " || ch >= 127 || lch == "\"" || lch == "\\" { return String(ch) }
 		else { return "'\(lch)'" }
 	}
 	
-    func WriteCharSet(s: CharSet) {
+    func WriteCharSet(_ s: CharSet) {
         var r = s.head
         while r != nil {
             if r!.from < r!.to { trace?.Write(Ch(r!.from) + ".." + Ch(r!.to) + " ") }
@@ -648,7 +655,7 @@ public class Tab {
         }
     }
 	
-	public func WriteCharClasses () {
+	open func WriteCharClasses () {
 		for c in classes {
 			trace?.Write("\(c.name): ")
 			WriteCharSet(c.set);
@@ -663,7 +670,7 @@ public class Tab {
 	//---------------------------------------------------------------------
 	
 	/* Computes the first set for the graph rooted at p */
-	func First0(p: Node?, mark: BitArray) -> BitArray {
+	func First0(_ p: Node?, mark: BitArray) -> BitArray {
         var p = p
 		let fs = BitArray(terminals.count)
 		while p != nil && !mark[p!.n] {
@@ -689,7 +696,7 @@ public class Tab {
 		return fs
 	}
 	
-    public func First(p: Node?) -> BitArray {
+    open func First(_ p: Node?) -> BitArray {
         let fs = First0(p, mark: BitArray(nodes.count))
         if (ddt[3]) {
             trace?.WriteLine()
@@ -711,9 +718,9 @@ public class Tab {
 		}
 	}
 	
-    func CompFollow(p: Node?) {
+    func CompFollow(_ p: Node?) {
         var p = p
-        while let np = p where !visited[np.n] {
+        while let np = p , !visited[np.n] {
             visited[np.n] = true
             if np.typ == Node.nt {
                 let s = First(np.next)
@@ -730,7 +737,7 @@ public class Tab {
         }
     }
 	
-    func Complete(sym: Symbol) {
+    func Complete(_ sym: Symbol) {
 		if !visited[sym.n] {
 			visited[sym.n] = true
 			for s in nonterminals {
@@ -761,7 +768,7 @@ public class Tab {
 		}
 	}
 	
-    func LeadingAny(p: Node?) -> Node? {
+    func LeadingAny(_ p: Node?) -> Node? {
         guard let p = p else { return nil }
         var a: Node? = nil
         if p.typ == Node.any { a = p }
@@ -774,7 +781,7 @@ public class Tab {
         return a
     }
     
-    func FindAS(p: Node?) { // find ANY sets
+    func FindAS(_ p: Node?) { // find ANY sets
         var p = p
         var a: Node?
         while let np = p {
@@ -820,21 +827,21 @@ public class Tab {
         for sym in nonterminals { FindAS(sym.graph) }
 	}
 	
-    public func Expected(p: Node?, curSy: Symbol) -> BitArray {
+    open func Expected(_ p: Node?, curSy: Symbol) -> BitArray {
         let s = First(p)
         if Tab.DelGraph(p) { s.or(curSy.follow) }
         return s
     }
     
     // does not look behind resolvers; only called during LL(1) test and in CheckRes
-    public func Expected0 (p: Node, curSy: Symbol) -> BitArray {
+    open func Expected0 (_ p: Node, curSy: Symbol) -> BitArray {
         if p.typ == Node.rslv { return BitArray(terminals.count) }
         else { return Expected(p, curSy: curSy) }
     }
 	
-	func CompSync(p: Node?) {
+	func CompSync(_ p: Node?) {
         var p = p
-		while let pn = p where !visited[pn.n] {
+		while let pn = p , !visited[pn.n] {
 			visited[pn.n] = true
 			if (pn.typ == Node.sync) {
 				let s = Expected(pn.next!, curSy: curSy)
@@ -860,7 +867,7 @@ public class Tab {
 		}
 	}
 	
-	public func SetupAnys() {
+	open func SetupAnys() {
 		for p in nodes {
 			if p.typ == Node.any {
 				p.set = BitArray(terminals.count, value:true)
@@ -869,7 +876,7 @@ public class Tab {
 		}
 	}
 	
-	public func CompDeletableSymbols() {
+	open func CompDeletableSymbols() {
 		var changed: Bool
 		repeat {
 			changed = false
@@ -884,12 +891,12 @@ public class Tab {
 		}
 	}
 	
-	public func RenumberPragmas() {
+	open func RenumberPragmas() {
 		var n = terminals.count
         for sym in pragmas { sym.n = n; n += 1 }
 	}
 	
-	public func CompSymbolSets() {
+	open func CompSymbolSets() {
 		CompDeletableSymbols();
 		CompFirstSets()
 		CompAnySets()
@@ -923,7 +930,7 @@ public class Tab {
 	//  String handling
 	//---------------------------------------------------------------------
 	
-	func Hex2Char(s: String) -> Character {
+	func Hex2Char(_ s: String) -> Character {
 		var val = 0
 		for i in 0..<s.count() {
 			let ch = s[i]
@@ -938,12 +945,12 @@ public class Tab {
 		return Character(val)
 	}
 	
-	func Char2Hex(ch: Character) -> String {
+	func Char2Hex(_ ch: Character) -> String {
 		let s = String(format: "\\u%04X", ch.unicodeValue())
 		return s
 	}
 	
-	public func Unescape (s: String) -> String {
+	open func Unescape (_ s: String) -> String {
 		/* replaces escape sequences in s by their Unicode values. */
 		var buf = ""
 		var i = 0
@@ -963,8 +970,8 @@ public class Tab {
 				case "v": buf += "\u{0b}"; i += 2
 				case "u", "x":
 					if i+6 <= s.count() {
-						let sn : NSString = s
-						buf.append(Hex2Char(sn.substringWithRange(NSMakeRange(i+2, 4)))); i += 6
+						let sn : NSString = s as NSString
+						buf.append(Hex2Char(sn.substring(with: NSMakeRange(i+2, 4)))); i += 6
 					} else {
 						parser?.SemErr("bad escape sequence in string or character"); i = s.count()
 					}
@@ -978,7 +985,7 @@ public class Tab {
 		return buf
 	}
 	
-	public func Escape (s: String) -> String {
+	open func Escape (_ s: String) -> String {
 		var buf = ""
 		for ch in s.characters {
 			switch(ch) {
@@ -1000,7 +1007,7 @@ public class Tab {
 	//  Grammar checks
 	//---------------------------------------------------------------------
 	
-	public func GrammarOk() -> Bool {
+	open func GrammarOk() -> Bool {
 		let ok = NtsComplete() && AllNtReached() && NoCircularProductions() && AllNtToTerm()
 		if ok { CheckResolvers(); CheckLL1() }
 		return ok
@@ -1018,7 +1025,7 @@ public class Tab {
 
 	}
 
-	func GetSingles(p: Node?, inout singles: [Symbol]) {
+	func GetSingles(_ p: Node?, singles: inout [Symbol]) {
 		guard let np = p else { return }  // end of graph
 		if np.typ == Node.nt {
 			if np.up || Tab.DelGraph(np.next) { singles.append(np.sym!) }
@@ -1031,7 +1038,7 @@ public class Tab {
 		if !np.up && Tab.DelNode(np) { GetSingles(np.next, singles: &singles) }
 	}
 	
-	public func NoCircularProductions() -> Bool {
+	open func NoCircularProductions() -> Bool {
 		var list = [CNode]()
 		for sym in nonterminals {
 			var singles = [Symbol]()
@@ -1068,7 +1075,7 @@ public class Tab {
 
 	//--------------- check for LL(1) errors ----------------------
 	
-	func LL1Error(cond: Int, sym: Symbol?) {
+	func LL1Error(_ cond: Int, sym: Symbol?) {
 		var s = "  LL1 warning in " + curSy.name + ": ";
 		if sym != nil { s += sym!.name + " is " }
 		switch (cond) {
@@ -1081,13 +1088,13 @@ public class Tab {
 		errors?.Warning(s)
 	}
 	
-	func CheckOverlap(s1: BitArray, s2: BitArray, cond: Int) {
+	func CheckOverlap(_ s1: BitArray, s2: BitArray, cond: Int) {
 		for sym in terminals {
 			if s1[sym.n] && s2[sym.n] { LL1Error(cond, sym: sym) }
 		}
 	}
 
-	func CheckAlts(p: Node?) {
+	func CheckAlts(_ p: Node?) {
         var p = p
 		var s1: BitArray
 		var s2: BitArray
@@ -1119,7 +1126,7 @@ public class Tab {
 		}
 	}
 
-	public func CheckLL1() {
+	open func CheckLL1() {
 		for sym in nonterminals {
 			curSy = sym
 			CheckAlts(curSy.graph)
@@ -1128,11 +1135,11 @@ public class Tab {
 
 	//------------- check if resolvers are legal  --------------------
 	
-	func ResErr(p:Node, msg: String) {
+	func ResErr(_ p:Node, msg: String) {
 		errors?.Warning(p.line, col: p.pos!.col, s: msg)
 	}
 
-	func CheckRes(p: Node?, rslvAllowed: Bool) {
+	func CheckRes(_ p: Node?, rslvAllowed: Bool) {
         var p = p
         var rslvAllowed = rslvAllowed
 		while let np = p {
@@ -1181,7 +1188,7 @@ public class Tab {
 		}
 	}
 	
-	public func CheckResolvers() {
+	open func CheckResolvers() {
 		for sym in nonterminals {
 			curSy = sym
 			CheckRes(curSy.graph, rslvAllowed: false)
@@ -1190,7 +1197,7 @@ public class Tab {
 	
 	//------------- check if every nts has a production --------------------
 	
-	public func NtsComplete() -> Bool {
+	open func NtsComplete() -> Bool {
 		var complete = true
 		for sym in nonterminals {
 			if sym.graph == nil {
@@ -1203,7 +1210,7 @@ public class Tab {
 
 	//-------------- check if every nts can be reached  -----------------
 	
-	func MarkReachedNts(p: Node?) {
+	func MarkReachedNts(_ p: Node?) {
         var p = p
 		while let np = p {
 			if np.typ == Node.nt && !visited[np.sym!.n] { // new nt reached
@@ -1218,7 +1225,7 @@ public class Tab {
 		}
 	}
 
-	public func AllNtReached() -> Bool {
+	open func AllNtReached() -> Bool {
 		var ok = true
 		visited = BitArray(nonterminals.count)
 		visited[gramSy!.n] = true
@@ -1234,7 +1241,7 @@ public class Tab {
 
 	//--------- check if every nts can be derived to terminals  ------------
 	
-	func IsTerm(p: Node?, mark: BitArray) -> Bool { // true if graph can be derived to terminals
+	func IsTerm(_ p: Node?, mark: BitArray) -> Bool { // true if graph can be derived to terminals
         var p = p
 		while let np = p {
             if (np.typ == Node.nt && !mark[np.sym!.n]) { return false }
@@ -1246,7 +1253,7 @@ public class Tab {
 		return true;
 	}
 	
-    public func AllNtToTerm() -> Bool {
+    open func AllNtToTerm() -> Bool {
         var changed = false
         var ok = true
         let mark = BitArray(nonterminals.count)
@@ -1272,7 +1279,7 @@ public class Tab {
 	//  Cross reference list
 	//---------------------------------------------------------------------
 	
-	public func XRef() {
+	open func XRef() {
         var xref = [String:NSMutableArray]()  // NSMutableArray allows an updatable object link to be used
         var list : NSMutableArray?
         
@@ -1280,7 +1287,7 @@ public class Tab {
 		for sym in nonterminals {
             list = xref[sym.name]
             if list == nil { list = NSMutableArray(); xref[sym.name] = list }
-			list?.addObject(-sym.line)
+			list?.add(-sym.line)
 		}
         
 		// collect lines where symbols have been referenced
@@ -1289,7 +1296,7 @@ public class Tab {
                 let name = n.sym!.name
                 list = xref[name]
                 if list == nil { list = NSMutableArray(); xref[name] = list }
-                list?.addObject(n.line)
+                list?.add(n.line)
 			}
 		}
         
@@ -1297,7 +1304,7 @@ public class Tab {
 		trace?.WriteLine()
 		trace?.WriteLine("Cross reference list:")
 		trace?.WriteLine("--------------------"); trace?.WriteLine()
-        for (name, list) in xref.sort({ $0.0 < $1.0 }) {
+        for (name, list) in xref.sorted(by: { $0.0 < $1.0 }) {
 			trace?.Write("  \(Name(name))")
 			var col = 14
 			for line in list {
@@ -1312,8 +1319,8 @@ public class Tab {
 		trace?.WriteLine(); trace?.WriteLine()
 	}
 	
-    public func SetDDT(s: String) {
-        for ch in s.uppercaseString.characters {
+    open func SetDDT(_ s: String) {
+        for ch in s.uppercased().characters {
             if "0" <= ch && ch <= "9" {
                 ddt[ch - "0"] = true
             } else {
@@ -1332,8 +1339,8 @@ public class Tab {
         }
     }
 	
-    public func SetOption(s:String) {
-		let option = s.componentsSeparatedByString("=")   // Split(new char[] {"="}, 2);
+    open func SetOption(_ s:String) {
+		let option = s.components(separatedBy: "=")   // Split(new char[] {"="}, 2);
 		let name = option[0]
         let value = option[1]
 		if "$namespace" == name {

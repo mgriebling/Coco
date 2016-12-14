@@ -44,9 +44,9 @@
 
 import Foundation
 
-public class Coco {
+open class Coco {
     
-    public static func Main (arg: [String]) {
+    open static func Main (_ arg: [String]) {
         print("Coco/R (April 7, 2016)")
         var srcName : NSString = ""
         var nsName = ""
@@ -62,19 +62,19 @@ public class Coco {
             else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].Trim() }
             else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].Trim() }
             else if (arg[i] == "-lines") { emitLines = true }
-            else { srcName = arg[i] }
+            else { srcName = arg[i] as NSString }
             i += 1
         }
         
         if arg.count > 1 && srcName.length != 0 {
             do {
-                let srcDir = srcName.stringByDeletingLastPathComponent
+                let srcDir = srcName.deletingLastPathComponent
                 
                 let scanner = Scanner(fileName: String(srcName))
                 let parser = Parser(scanner: scanner)
                 
-                traceFileName = (srcDir as NSString).stringByAppendingPathComponent("trace.txt")
-                parser.trace = NSOutputStream(toFileAtPath: traceFileName, append: false)
+                traceFileName = (srcDir as NSString).appendingPathComponent("trace.txt")
+                parser.trace = OutputStream(toFileAtPath: traceFileName, append: false)
                 parser.trace?.open()
                 parser.tab = Tab(parser: parser)
                 parser.dfa = DFA(parser: parser)
@@ -91,9 +91,9 @@ public class Coco {
                 parser.Parse()
                 
                 parser.trace?.close()
-                let fs = NSFileManager.defaultManager()
-                let f = try fs.attributesOfItemAtPath(traceFileName)
-                if f["NSFileSize"] as? NSNumber == 0 { try fs.removeItemAtPath(traceFileName) }
+                let fs = FileManager.default
+                let f = try fs.attributesOfItem(atPath: traceFileName)
+                if f[.size] as? NSNumber == 0 { try fs.removeItem(atPath: traceFileName) }
                 else { print("trace output is in " + traceFileName) }
                 print("\(parser.errors.count) errors detected")
             } catch _ {

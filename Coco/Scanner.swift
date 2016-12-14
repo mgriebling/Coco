@@ -29,31 +29,31 @@ import Foundation
 
 
 
-public class Token {
-	public var kind = 0		 // token kind
-	public var pos = 0		 // token position in bytes in the source text (starting at 0)
-	public var charPos = 0	 // token position in characters in the source text (starting at 0)
-	public var col = 0		 // token column (starting at 1)
-	public var line = 0		 // token line (starting at 1)
-	public var val = ""		 // token value
-	public var next: Token?  // ML 2005-03-11 Tokens are kept in linked list
+open class Token {
+	open var kind = 0		 // token kind
+	open var pos = 0		 // token position in bytes in the source text (starting at 0)
+	open var charPos = 0	 // token position in characters in the source text (starting at 0)
+	open var col = 0		 // token column (starting at 1)
+	open var line = 0		 // token line (starting at 1)
+	open var val = ""		 // token value
+	open var next: Token?  // ML 2005-03-11 Tokens are kept in linked list
 }
 
-extension NSInputStream {
+extension InputStream {
 	var CanSeek: Bool { return false }
 }
 
 //-----------------------------------------------------------------------------------
 // Buffer
 //-----------------------------------------------------------------------------------
-public class Buffer {
+open class Buffer {
 	// This Buffer supports the following cases:
 	// 1) seekable stream (file)
 	//    a) whole stream in buffer
 	//    b) part of stream in buffer
 	// 2) non seekable stream (network, console)
 	
-	public static let EOF = Int(UInt8.max) + 1
+	open static let EOF = Int(UInt8.max) + 1
 	static let MIN_BUFFER_LENGTH = 1024 // 1KB
 	let MIN_BUFFER_LENGTH : Int = Buffer.MIN_BUFFER_LENGTH
 	let MAX_BUFFER_LENGTH = Buffer.MIN_BUFFER_LENGTH * 64 // 64KB
@@ -62,10 +62,10 @@ public class Buffer {
 	var bufLen: Int				// length of buffer
 	var fileLen: Int			// length of input stream (may change if the stream is no file)
 	var bufPos: Int	= 0			// current position in buffer
-	var stream: NSInputStream	// input stream (seekable)
+	var stream: InputStream	// input stream (seekable)
 	var isUserStream: Bool		// was the stream opened by the user?
 	
-	public init (s: NSInputStream, isUserStream: Bool) {
+	public init (s: InputStream, isUserStream: Bool) {
 		stream = s; self.isUserStream = isUserStream
 		
 		if stream.CanSeek {
@@ -76,12 +76,12 @@ public class Buffer {
 			fileLen = 0; bufLen = 0; bufStart = 0
 		}
 		
-		buf = [UInt8](count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH, repeatedValue: 0)
+		buf = [UInt8](repeating: 0, count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH)
 		if fileLen > 0 { Pos = 0 } // setup buffer to position 0 (start)
 		else { bufPos = 0 } // index 0 is already after the file, thus Pos = 0 is invalid
 	}
 	
-	private init (b: Buffer) { // called in UTF8Buffer constructor
+	fileprivate init (b: Buffer) { // called in UTF8Buffer constructor
 		buf = b.buf
 		bufStart = b.bufStart
 		bufLen = b.bufLen
@@ -91,7 +91,7 @@ public class Buffer {
 		isUserStream = b.isUserStream
 	}
 	
-	public func Read () -> Int {
+	open func Read () -> Int {
         let returnVal : Int
 		if bufPos < bufLen {
             returnVal = Int(buf[bufPos]); bufPos += 1
@@ -105,7 +105,7 @@ public class Buffer {
         return returnVal
 	}
 	
-	public func Peek () -> Int {
+	open func Peek () -> Int {
 		let curPos = Pos
 		let ch = Read()
 		Pos = curPos
@@ -114,17 +114,17 @@ public class Buffer {
 	
 	// beg .. begin, zero-based, inclusive, in byte
 	// end .. end, zero-based, exclusive, in byte
-	public func GetString (beg: Int, end: Int) -> String {
+	open func GetString (_ beg: Int, end: Int) -> String {
 		var len = 0
-		var buf = [CChar](count: end-beg+1, repeatedValue: 0)
+		var buf = [CChar](repeating: 0, count: end-beg+1)
 		let oldPos = Pos
 		Pos = beg
     while Pos < end { buf[len] = CChar(Read()); len += 1 }
 		Pos = oldPos
-		return String.fromCString(buf)!
+		return String(cString: buf)
 	}
 	
-	public var Pos: Int {
+	open var Pos: Int {
 		get { return bufPos + bufStart }
 		set {
 			if newValue >= fileLen && !stream.CanSeek {
@@ -155,7 +155,7 @@ public class Buffer {
 	// Read the next chunk of bytes from the stream, increases the buffer
 	// if needed and updates the fields fileLen and bufLen.
 	// Returns the number of bytes read.
-	private func ReadNextStreamChunk() -> Int {
+	fileprivate func ReadNextStreamChunk() -> Int {
 		let free = buf.count - bufLen
 		var read = 0
 		if free == 0 {
@@ -163,7 +163,7 @@ public class Buffer {
 			// we can neither seek in the stream, nor can we
 			// foresee the maximum length, thus we must adapt
 			// the buffer size on demand.
-			var newBuf = [UInt8](count:bufLen * 2, repeatedValue: 0)  // [bufLen * 2];
+			var newBuf = [UInt8](repeating: 0, count: bufLen * 2)  // [bufLen * 2];
 			newBuf[0..<bufLen] = buf[0..<bufLen]
 			read = stream.read(&buf, maxLength:bufLen)
 			newBuf[bufLen..<bufLen*2] = buf[0..<bufLen]
@@ -183,9 +183,9 @@ public class Buffer {
 //-----------------------------------------------------------------------------------
 // UTF8Buffer
 //-----------------------------------------------------------------------------------
-public class UTF8Buffer: Buffer {
+open class UTF8Buffer: Buffer {
 	
-	public override func Read() -> Int {
+	open override func Read() -> Int {
 		var ch: Int
 		repeat {
 			ch = super.Read()
@@ -221,7 +221,7 @@ public class UTF8Buffer: Buffer {
 //-----------------------------------------------------------------------------------
 // Scanner
 //-----------------------------------------------------------------------------------
-public class Scanner {
+open class Scanner {
 	let EOL : Character = "\n"
 	let eofSym = 0 /* pdt */
 	let maxT = 41
@@ -271,7 +271,7 @@ public class Scanner {
 	var tlen = 0          // length of current token
 	
 	public init(fileName: String) {
-		if let stream = NSInputStream(fileAtPath: fileName) {
+		if let stream = InputStream(fileAtPath: fileName) {
 			stream.open()
 			if stream.hasBytesAvailable {
 				buffer = Buffer(s: stream, isUserStream: false)
@@ -284,7 +284,7 @@ public class Scanner {
 		Init()
 	}
 	
-	public init (s: NSInputStream) {
+	public init (s: InputStream) {
         s.open()
         if s.hasBytesAvailable {
             buffer = Buffer(s: s, isUserStream: true)
@@ -534,7 +534,7 @@ public class Scanner {
 		return t
 	}
 
-	private func SetScannerBehindT() {
+	fileprivate func SetScannerBehindT() {
 		buffer!.Pos = t.pos
 		NextCh()
 		line = t.line; col = t.col; charPos = t.charPos
@@ -542,7 +542,7 @@ public class Scanner {
 	}
 	
 	// get the next token (possibly a token already seen during peeking)
-	public func Scan () -> Token {
+	open func Scan () -> Token {
 		if tokens.next == nil {
 			return NextToken()
 		} else {
@@ -552,7 +552,7 @@ public class Scanner {
 	}
 	
 	// peek for the next token, ignore pragmas
-	public func Peek () -> Token {
+	open func Peek () -> Token {
 		repeat {
 			if pt.next == nil {
 				pt.next = NextToken()
@@ -563,7 +563,7 @@ public class Scanner {
 	}
 	
 	// make sure that peeking starts at the current scan position
-	public func ResetPeek () { pt = tokens }
+	open func ResetPeek () { pt = tokens }
 
 } // end Scanner
 

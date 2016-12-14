@@ -32,41 +32,41 @@ public extension String {
 	
 	public subscript (n: Int) -> Character {
 		get {
-			let s = self.startIndex.advancedBy(n)
+			let s = self.characters.index(self.startIndex, offsetBy: n)
 			if s < self.endIndex {
 				return self[s]
 			}
 			return "\0"
 		}
 		set {
-			let s = self.startIndex.advancedBy(n)
+			let s = self.characters.index(self.startIndex, offsetBy: n)
 			if s < self.endIndex {
-				self = self.substringToIndex(s) + "\(newValue)" + self.substringFromIndex(s.successor())
+                self = self.substring(to: s) + "\(newValue)" + self.substring(from: s)
 			}
 		}
 	}
 	
 	public func count() -> Int { return self.characters.count }
 	
-	public func stringByTrimmingTrailingCharactersInSet (characterSet: NSCharacterSet) -> String {
-		if let rangeOfLastWantedCharacter = self.rangeOfCharacterFromSet(characterSet.invertedSet, options:.BackwardsSearch) {
-			return self.substringToIndex(rangeOfLastWantedCharacter.endIndex)
+	public func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
+		if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
+			return self.substring(to: rangeOfLastWantedCharacter.upperBound)
 		}
 		return ""
 	}
     
-    public func substring (from: Int, _ length: Int) -> String {
-        let str : NSString = self
-        return str.substringWithRange(NSMakeRange(from, length))
+    public func substring (_ from: Int, _ length: Int) -> String {
+        let str : NSString = self as NSString
+        return str.substring(with: NSMakeRange(from, length))
     }
     
-    public func contains (s: String) -> Bool {
-        let str : NSString = self
-        return str.containsString(s)
+    public func contains (_ s: String) -> Bool {
+        let str : NSString = self as NSString
+        return str.contains(s)
     }
     
     public func Trim() -> String {
-        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+        return self.trimmingCharacters(in: CharacterSet.whitespaces)
     }
 	
 }
@@ -81,26 +81,26 @@ public extension Character {
 	}
     
     public func isLetter() -> Bool {
-        let cSet = NSCharacterSet.letterCharacterSet()
-        return cSet.characterIsMember(self.toUnichar())
+        let cSet = CharacterSet.letters
+        return cSet.contains(UnicodeScalar(self.toUnichar())!)
     }
     
     public func isAlphanumeric() -> Bool {
-        let cSet = NSCharacterSet.alphanumericCharacterSet()
-        return cSet.characterIsMember(self.toUnichar())
+        let cSet = CharacterSet.alphanumerics
+        return cSet.contains(UnicodeScalar(self.toUnichar())!)
     }
     
     public var lowercase : Character {
         let s = String(self)
-        return s.lowercaseString.characters.first!
+        return s.lowercased().characters.first!
     }
 	
 	init(_ int: Int) {
-		let s = String(UnicodeScalar(int))
+		let s = String(describing: UnicodeScalar(int))
 		self = s[0]
 	}
 	
-	public func add (n: Int) -> Character {
+	public func add (_ n: Int) -> Character {
 		let newCharacter = self.unicodeValue() + n
 		return Character(newCharacter)
 	}
@@ -119,7 +119,7 @@ func != (l: Character, r: Int) -> Bool { return r != l }
 func + (c: Character, inc: Int) -> Character { return c.add(inc) }
 func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
 func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
-func += (inout c: Character, inc: Int) { c = c + inc }
-func -= (inout c: Character, inc: Int) { c = c - inc }
+func += (c: inout Character, inc: Int) { c = c + inc }
+func -= (c: inout Character, inc: Int) { c = c - inc }
 postfix func -- (c: Character) -> Character { return c - 1 }
 postfix func ++ (c: Character) -> Character { return c + 1 }
