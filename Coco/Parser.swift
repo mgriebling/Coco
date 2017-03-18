@@ -29,53 +29,53 @@ import Foundation
 
 
 
-open class Parser {
-	open let _EOF = 0
-	open let _ident = 1
-	open let _number = 2
-	open let _string = 3
-	open let _badString = 4
-	open let _char = 5
-	open let _COMPILER = 6
-	open let _IGNORECASE = 7
-	open let _CHARACTERS = 8
-	open let _TOKENS = 9
-	open let _PRAGMAS = 10
-	open let _COMMENTS = 11
-	open let _FROM = 12
-	open let _TO = 13
-	open let _NESTED = 14
-	open let _IGNORE = 15
-	open let _PRODUCTIONS = 16
-	open let _END = 19
-	open let _ANY = 23
-	open let _WEAK = 29
-	open let _SYNC = 36
-	open let _IF = 37
-	open let _CONTEXT = 38
-	open let maxT = 41
-	open let _ddtSym = 42
-	open let _optionSym = 43
+public class Parser {
+	public let _EOF = 0
+	public let _ident = 1
+	public let _number = 2
+	public let _string = 3
+	public let _badString = 4
+	public let _char = 5
+	public let _COMPILER = 6
+	public let _IGNORECASE = 7
+	public let _CHARACTERS = 8
+	public let _TOKENS = 9
+	public let _PRAGMAS = 10
+	public let _COMMENTS = 11
+	public let _FROM = 12
+	public let _TO = 13
+	public let _NESTED = 14
+	public let _IGNORE = 15
+	public let _PRODUCTIONS = 16
+	public let _END = 19
+	public let _ANY = 23
+	public let _WEAK = 29
+	public let _SYNC = 36
+	public let _IF = 37
+	public let _CONTEXT = 38
+	public let maxT = 41
+	public let _ddtSym = 42
+	public let _optionSym = 43
 
 	static let _T = true
 	static let _x = false
 	static let minErrDist = 2
 	let minErrDist : Int = Parser.minErrDist
 
-	open var scanner: Scanner
-	open var errors: Errors
+	public var scanner: Scanner
+	public var errors: Errors
 
-	open var t: Token             // last recognized token
-	open var la: Token            // lookahead token
+	public var t: Token             // last recognized token
+	public var la: Token            // lookahead token
 	var errDist = Parser.minErrDist
 
 	let id = 0
 	let str = 1
 	
-	open var trace: OutputStream? // other Coco objects referenced in this ATG
-	open var tab = Tab()
-	open var dfa: DFA?
-	open var pgen: ParserGen?
+	public var trace: OutputStream? // other Coco objects referenced in this ATG
+	public var tab = Tab()
+	public var dfa: DFA?
+	public var pgen: ParserGen?
 	
 	var genScanner = false
 	var tokenString = ""            // used in declarations of literal tokens
@@ -98,7 +98,7 @@ open class Parser {
         errDist = 0
     }
     
-    open func SemErr (_ msg: String) {
+    public func SemErr (_ msg: String) {
         if errDist >= minErrDist { errors.SemErr(t.line, col: t.col, s: msg) }
         errDist = 0
     }
@@ -296,7 +296,7 @@ open class Parser {
 		Expect(17 /* "=" */)
 		Set(&s)
 		if s.Elements() == 0 { SemErr("character set must not be empty") }
-		_ = tab.NewCharClass(name, s)
+		_ = tab.NewCharClass(name, s) 
 		Expect(18 /* "." */)
 	}
 
@@ -701,7 +701,7 @@ open class Parser {
 
 
 
-    open func Parse() {
+    public func Parse() {
         la = Token()
         la.val = ""
         Get()
@@ -738,10 +738,10 @@ open class Parser {
 } // end Parser
 
 
-open class Errors {
-    open var count = 0                                 // number of errors detected
-    fileprivate let errorStream = Darwin.stderr              // error messages go to this stream
-    open var errMsgFormat = "-- line %i col %i: %@"    // 0=line, 1=column, 2=text
+public class Errors {
+    public var count = 0                                 // number of errors detected
+    private let errorStream = Darwin.stderr              // error messages go to this stream
+    public var errMsgFormat = "-- line %i col %i: %@"    // 0=line, 1=column, 2=text
     
     func Write(_ s: String) { fputs(s, errorStream) }
     func WriteLine(_ format: String, line: Int, col: Int, s: String) {
@@ -750,7 +750,7 @@ open class Errors {
     }
     func WriteLine(_ s: String) { Write(s + "\n") }
     
-    open func SynErr (_ line: Int, col: Int, n: Int) {
+    public func SynErr (_ line: Int, col: Int, n: Int) {
         var s: String
         switch n {
 		case 0: s = "EOF expected"
@@ -812,21 +812,21 @@ open class Errors {
         count += 1
 	}
 
-    open func SemErr (_ line: Int, col: Int, s: String) {
+    public func SemErr (_ line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s);
         count += 1
     }
     
-    open func SemErr (_ s: String) {
+    public func SemErr (_ s: String) {
         WriteLine(s)
         count += 1
     }
     
-    open func Warning (_ line: Int, col: Int, s: String) {
+    public func Warning (_ line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s)
     }
     
-    open func Warning(_ s: String) {
+    public func Warning(_ s: String) {
         WriteLine(s)
     }
 } // Errors

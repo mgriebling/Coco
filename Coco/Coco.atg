@@ -37,7 +37,7 @@ COMPILER Coco
 let id = 0
 let str = 1
 
-public var trace: NSOutputStream? // other Coco objects referenced in this ATG
+public var trace: OutputStream? // other Coco objects referenced in this ATG
 public var tab = Tab()
 public var dfa: DFA?
 public var pgen: ParserGen?
@@ -184,13 +184,13 @@ SetDecl                         (. var s = CharSet() .)
                                    if c != nil { SemErr("name declared twice") }
                                  .)
   '=' Set<&s>					(.	if s.Elements() == 0 { SemErr("character set must not be empty") }
-									tab.NewCharClass(name, s) .)
+									_ = tab.NewCharClass(name, s) .)
   '.'
 .
 
 /*------------------------------------------------------------------------------------*/
 
-Set<inout s: CharSet>           (. var s2 = CharSet() .)
+Set<_ s: inout CharSet>           (. var s2 = CharSet() .)
 =
   SimSet<&s>
   { '+' SimSet<&s2>				(. s.Or(s2) .)
@@ -200,7 +200,7 @@ Set<inout s: CharSet>           (. var s2 = CharSet() .)
 
 /*------------------------------------------------------------------------------------*/
 
-SimSet<inout s: CharSet>        (. var n1 = 0; var n2 = 0 .)
+SimSet<_ s: inout CharSet>        (. var n1 = 0; var n2 = 0 .)
 =                               (. s = CharSet() .)
 ( ident                         (. let c = tab.FindCharClass(t.val)
                                    if c == nil { SemErr("undefined name") } else { s.Or(c!.set) }
@@ -220,7 +220,7 @@ SimSet<inout s: CharSet>        (. var n1 = 0; var n2 = 0 .)
 
 /*--------------------------------------------------------------------------------------*/
 
-Char<inout n: Int>
+Char<_ n: inout Int>
 =
   char                          (. var name = t.val; n = 0
                                    name = tab.Unescape(name.substring(1, name.count()-2))
@@ -231,7 +231,7 @@ Char<inout n: Int>
 
 /*------------------------------------------------------------------------------------*/
 
-TokenDecl<typ: Int>              (. var name = ""; var kind = 0; var sym: Symbol?; var g: Graph? .)
+TokenDecl<_ typ: Int>              (. var name = ""; var kind = 0; var sym: Symbol?; var g: Graph? .)
 =
   Sym<&name, &kind>              (. sym = tab.FindSym(name)
                                     if sym != nil { SemErr("name declared twice") }
@@ -264,7 +264,7 @@ TokenDecl<typ: Int>              (. var name = ""; var kind = 0; var sym: Symbol
 
 /*------------------------------------------------------------------------------------*/
 
-AttrDecl<sym: Symbol>
+AttrDecl<_ sym: Symbol>
 =
   '<'                           (.  let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY
@@ -284,7 +284,7 @@ AttrDecl<sym: Symbol>
 
 /*------------------------------------------------------------------------------------*/
 
-Expression<inout g: Graph?>      (. var g2: Graph? .)
+Expression<_ g: inout Graph?>      (. var g2: Graph? .)
 = 
   Term<&g>						 (. var first = true .)
   {                             WEAK
@@ -296,7 +296,7 @@ Expression<inout g: Graph?>      (. var g2: Graph? .)
 
 /*------------------------------------------------------------------------------------*/
 
-Term<inout g: Graph?>           (. var g2: Graph?; var rslv: Node? = nil
+Term<_ g: inout Graph?>           (. var g2: Graph?; var rslv: Node? = nil
 								   g = nil .)
 =
 ( [                             (. rslv = tab.NewNode(Node.rslv, nil, la.line) .)
@@ -315,7 +315,7 @@ Term<inout g: Graph?>           (. var g2: Graph?; var rslv: Node? = nil
 
 /*------------------------------------------------------------------------------------*/
 
-Factor<inout g: Graph?>          (. var name = ""; var kind = 0; var pos: Position?; var weak = false
+Factor<_ g: inout Graph?>          (. var name = ""; var kind = 0; var pos: Position?; var weak = false
                                     g = nil
                                  .)
 =
@@ -371,7 +371,7 @@ Factor<inout g: Graph?>          (. var name = ""; var kind = 0; var pos: Positi
 
 /*------------------------------------------------------------------------------------*/
 
-Resolver<inout pos: Position?>
+Resolver<_ pos: inout Position?>
 =
   "IF" "("                       (. let beg = la.pos; let col = la.col; let line = la.line .)
   Condition                      (. pos = Position(beg, t.pos, col, line) .)
@@ -383,7 +383,7 @@ Condition = { "(" Condition | ANY } ")" .
 
 /*------------------------------------------------------------------------------------*/
 
-TokenExpr<inout g: Graph?>		(. var g2: Graph? .)
+TokenExpr<_ g: inout Graph?>	(. var g2: Graph? .)
 =
   TokenTerm<&g>					(. var first = true .)
   { WEAK
@@ -395,7 +395,7 @@ TokenExpr<inout g: Graph?>		(. var g2: Graph? .)
 
 /*------------------------------------------------------------------------------------*/
 
-TokenTerm<inout g: Graph?>		(. var g2: Graph? .)
+TokenTerm<_ g: inout Graph?>	(. var g2: Graph? .)
 =
   TokenFactor<&g>
   { TokenFactor<&g2>			(. tab.MakeSequence(g!, g2!) .)
@@ -409,7 +409,7 @@ TokenTerm<inout g: Graph?>		(. var g2: Graph? .)
 
 /*------------------------------------------------------------------------------------*/
 
-TokenFactor<inout g: Graph?>    (. var name = ""; var kind = 0 .)
+TokenFactor<_ g: inout Graph?>   (. var name = ""; var kind = 0 .)
 =
                                 (. g = nil .)
 ( Sym<&name, &kind>             (. if kind == id {
@@ -436,20 +436,20 @@ TokenFactor<inout g: Graph?>    (. var name = ""; var kind = 0 .)
 
 /*------------------------------------------------------------------------------------*/
 
-Sym<inout name: String, inout _ kind: Int>
+Sym<_ name: inout String, _ kind: inout Int>
 =                               (. name = "???"; kind = id .)
 ( ident                         (. kind = id; name = t.val .)
 | (string                       (. name = t.val .)
   | char                        (. name = "\"" + t.val.substring(1, t.val.count()-2) + "\"" .)
   )                             (. kind = str
-                                   if dfa!.ignoreCase { name = name.lowercaseString }
+                                   if dfa!.ignoreCase { name = name.lowercased() }
                                    if name.contains(" ") { SemErr("literal tokens must not contain blanks") } .)
 )
 .
 
 /*------------------------------------------------------------------------------------*/
 
-Attribs<p: Node>
+Attribs<_ p: Node>
 =
   '<'                           (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY 
@@ -465,7 +465,7 @@ Attribs<p: Node>
 
 /*------------------------------------------------------------------------------------*/
 
-SemText<inout pos: Position?>
+SemText<_ pos: inout Position?>
 =
   "(."                          (. let beg = la.pos; let col = la.col; let line = la.line .)
   { ANY

@@ -40,7 +40,7 @@ public class Token {
 	public var next: Token?  // ML 2005-03-11 Tokens are kept in linked list
 }
 
-extension NSInputStream {
+extension InputStream {
 	var CanSeek: Bool { return false }
 }
 
@@ -63,10 +63,10 @@ public class Buffer {
 	var bufLen: Int				// length of buffer
 	var fileLen: Int			// length of input stream (may change if the stream is no file)
 	var bufPos: Int	= 0			// current position in buffer
-	var stream: NSInputStream	// input stream (seekable)
+	var stream: InputStream     // input stream (seekable)
 	var isUserStream: Bool		// was the stream opened by the user?
 	
-	public init (s: NSInputStream, isUserStream: Bool) {
+	public init (s: InputStream, isUserStream: Bool) {
 		stream = s; self.isUserStream = isUserStream
 		
 		if stream.CanSeek {
@@ -77,12 +77,12 @@ public class Buffer {
 			fileLen = 0; bufLen = 0; bufStart = 0
 		}
 		
-		buf = [UInt8](count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH, repeatedValue: 0)
+		buf = [UInt8](repeating: 0, count: bufLen>0 ? bufLen : MIN_BUFFER_LENGTH)
 		if fileLen > 0 { Pos = 0 } // setup buffer to position 0 (start)
 		else { bufPos = 0 } // index 0 is already after the file, thus Pos = 0 is invalid
 	}
 	
-	private init (b: Buffer) { // called in UTF8Buffer constructor
+	fileprivate init (b: Buffer) { // called in UTF8Buffer constructor
 		buf = b.buf
 		bufStart = b.bufStart
 		bufLen = b.bufLen
@@ -115,14 +115,14 @@ public class Buffer {
 	
 	// beg .. begin, zero-based, inclusive, in byte
 	// end .. end, zero-based, exclusive, in byte
-	public func GetString (beg: Int, end: Int) -> String {
+	public func GetString (_ beg: Int, end: Int) -> String {
 		var len = 0
-		var buf = [CChar](count: end-beg+1, repeatedValue: 0)
+		var buf = [CChar](repeating: 0, count: end-beg+1)
 		let oldPos = Pos
 		Pos = beg
-    while Pos < end { buf[len] = CChar(Read()); len += 1 }
+        while Pos < end { buf[len] = CChar(Read()); len += 1 }
 		Pos = oldPos
-		return String.fromCString(buf)!
+		return String(cString: buf)
 	}
 	
 	public var Pos: Int {
@@ -164,7 +164,7 @@ public class Buffer {
 			// we can neither seek in the stream, nor can we
 			// foresee the maximum length, thus we must adapt
 			// the buffer size on demand.
-			var newBuf = [UInt8](count:bufLen * 2, repeatedValue: 0)  // [bufLen * 2];
+			var newBuf = [UInt8](repeating: 0, count:bufLen * 2)  // [bufLen * 2];
 			newBuf[0..<bufLen] = buf[0..<bufLen]
 			read = stream.read(&buf, maxLength:bufLen)
 			newBuf[bufLen..<bufLen*2] = buf[0..<bufLen]
@@ -191,8 +191,8 @@ public class UTF8Buffer: Buffer {
 		repeat {
 			ch = super.Read()
 			// until we find a utf8 start (0xxxxxxx or 11xxxxxx)
-		} while ch >= 128 && (ch & 0xC0) != 0xC0 && ch != Buffer.EOF
-		if ch < 128 || ch == Buffer.EOF {
+		} while ch >= 128 && (ch & 0xC0) != 0xC0 && ch != Character(Buffer.EOF)
+		if ch < 128 || ch == Character(Buffer.EOF) {
 			// nothing to do, first 127 chars are the same in ascii and utf8
 			// 0xxxxxxx or end of file character
 		} else if (ch & 0xF0) == 0xF0 {
@@ -249,10 +249,10 @@ public class Scanner {
 	var tlen = 0          // length of current token
 	
 	public init(fileName: String) {
-		if let stream = NSInputStream(fileAtPath: fileName) {
+		if let stream = InputStream(fileAtPath: fileName) {
 			stream.open()
 			if stream.hasBytesAvailable {
-				buffer = Buffer(s: stream, isUserStream: false)
+                buffer = Buffer(s:stream, isUserStream: false)
 			} else {
 				assert(false, "Cannot open file " + fileName)
 			}
@@ -262,10 +262,10 @@ public class Scanner {
 		Init()
 	}
 	
-	public init (s: NSInputStream) {
+	public init (s: InputStream) {
         s.open()
         if s.hasBytesAvailable {
-            buffer = Buffer(s: s, isUserStream: true)
+            buffer = Buffer(s:s, isUserStream: true)
 		} else {
 			assert(false, "Cannot open user stream")
 		}
@@ -305,7 +305,7 @@ public class Scanner {
 	}
 
 	func AddCh() {
-		if ch != Buffer.EOF {
+		if ch != Character(Buffer.EOF) {
 -->casing2
 			NextCh()
 		}

@@ -994,7 +994,7 @@ open class DFA {
                 gen?.WriteLine("\t\t\t\t\t}")
             }
         }
-        gen?.WriteLine(    "\t\t\t\t} else if ch == Buffer.EOF { return false }")
+        gen?.WriteLine(    "\t\t\t\t} else if ch == Character(Buffer.EOF) { return false }")
         gen?.WriteLine(    "\t\t\t\telse { NextCh() }")
         gen?.WriteLine(    "\t\t\t}")
     }
@@ -1138,7 +1138,7 @@ open class DFA {
         WriteStartTab();
         g.CopyFramePart("-->casing1")
         if ignoreCase {
-            gen?.WriteLine("\t\tif ch != Buffer.EOF {")
+            gen?.WriteLine("\t\tif ch != Character(Buffer.EOF) {")
             gen?.WriteLine("\t\t\tvalCh = ch")
             gen?.WriteLine("\t\t\tch = ch.lowercase")
             gen?.WriteLine("\t\t}")

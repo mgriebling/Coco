@@ -54,12 +54,12 @@ public class Parser {
         la = t
     }
     
-    func SynErr (n: Int) {
+    func SynErr (_ n: Int) {
         if errDist >= minErrDist { errors.SynErr(la.line, col: la.col, n: n) }
         errDist = 0
     }
     
-    public func SemErr (msg: String) {
+    public func SemErr (_ msg: String) {
         if errDist >= minErrDist { errors.SemErr(t.line, col: t.col, s: msg) }
         errDist = 0
     }
@@ -74,15 +74,15 @@ public class Parser {
 		}
 	}
 	
-    func Expect (n: Int) {
+    func Expect (_ n: Int) {
         if la.kind == n { Get() } else { SynErr(n) }
     }
     
-    func StartOf (s: Int) -> Bool {
+    func StartOf (_ s: Int) -> Bool {
         return set(s, la.kind)
     }
     
-    func ExpectWeak (n: Int, _ follow: Int) {
+    func ExpectWeak (_ n: Int, _ follow: Int) {
         if la.kind == n {
 			Get()
 		} else {
@@ -91,7 +91,7 @@ public class Parser {
         }
     }
     
-    func WeakSeparator(n: Int, _ syFol: Int, _ repFol: Int) -> Bool {
+    func WeakSeparator(_ n: Int, _ syFol: Int, _ repFol: Int) -> Bool {
         var kind = la.kind
         if kind == n { Get(); return true }
         else if StartOf(repFol) { return false }
@@ -114,7 +114,7 @@ public class Parser {
 -->parseRoot
 	}
 
-    func set (x: Int, _ y: Int) -> Bool { return Parser._set[x][y] }
+    func set (_ x: Int, _ y: Int) -> Bool { return Parser._set[x][y] }
     static let _set: [[Bool]] = [
 -->initialization
 	]
@@ -126,14 +126,14 @@ public class Errors {
     private let errorStream = Darwin.stderr              // error messages go to this stream
     public var errMsgFormat = "-- line %i col %i: %@"    // 0=line, 1=column, 2=text
     
-    func Write(s: String) { fputs(s, errorStream) }
-    func WriteLine(format: String, line: Int, col: Int, s: String) {
+    func Write(_ s: String) { fputs(s, errorStream) }
+    func WriteLine(_ format: String, line: Int, col: Int, s: String) {
         let str = String(format: format, line, col, s)
         WriteLine(str)
     }
-    func WriteLine(s: String) { Write(s + "\n") }
+    func WriteLine(_ s: String) { Write(s + "\n") }
     
-    public func SynErr (line: Int, col: Int, n: Int) {
+    public func SynErr (_ line: Int, col: Int, n: Int) {
         var s: String
         switch n {
 -->errors
@@ -143,21 +143,21 @@ public class Errors {
         count += 1
 	}
 
-    public func SemErr (line: Int, col: Int, s: String) {
+    public func SemErr (_ line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s);
         count += 1
     }
     
-    public func SemErr (s: String) {
+    public func SemErr (_ s: String) {
         WriteLine(s)
         count += 1
     }
     
-    public func Warning (line: Int, col: Int, s: String) {
+    public func Warning (_ line: Int, col: Int, s: String) {
         WriteLine(errMsgFormat, line: line, col: col, s: s)
     }
     
-    public func Warning(s: String) {
+    public func Warning(_ s: String) {
         WriteLine(s)
     }
 } // Errors

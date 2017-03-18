@@ -32,16 +32,18 @@ public extension String {
 	
 	public subscript (n: Int) -> Character {
 		get {
-			let s = self.characters.index(self.startIndex, offsetBy: n)
-			if s < self.endIndex {
-				return self[s]
+			let s = self.characters.index(self.characters.startIndex, offsetBy: n)
+			if s < self.characters.endIndex {
+				return self.characters[s]
 			}
 			return "\0"
 		}
 		set {
-			let s = self.characters.index(self.startIndex, offsetBy: n)
-			if s < self.endIndex {
-                self = self.substring(to: s) + "\(newValue)" + self.substring(from: s)
+            let len = self.characters.count
+			if n < len {
+                let lastCharacters = self.characters.dropFirst(n)
+                self.characters = self.characters.dropLast(len-n) + [newValue] + lastCharacters
+//                self = self.substring(to: s) + "\(newValue)" + self.substring(from: s)
 			}
 		}
 	}
@@ -96,8 +98,8 @@ public extension Character {
     }
 	
 	init(_ int: Int) {
-		let s = String(describing: UnicodeScalar(int))
-		self = s[0]
+        let s = UnicodeScalar(int)
+		self = Character(s!)
 	}
 	
 	public func add (_ n: Int) -> Character {
