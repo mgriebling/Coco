@@ -43,7 +43,6 @@ public extension String {
 			if n < len {
                 let lastCharacters = self.characters.dropFirst(n)
                 self.characters = self.characters.dropLast(len-n) + [newValue] + lastCharacters
-//                self = self.substring(to: s) + "\(newValue)" + self.substring(from: s)
 			}
 		}
 	}
@@ -58,12 +57,12 @@ public extension String {
 	}
     
     public func substring (_ from: Int, _ length: Int) -> String {
-        let str : NSString = self as NSString
+        let str = self as NSString
         return str.substring(with: NSMakeRange(from, length))
     }
     
     public func contains (_ s: String) -> Bool {
-        let str : NSString = self as NSString
+        let str = self as NSString
         return str.contains(s)
     }
     
