@@ -122,5 +122,5 @@ func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
 func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
 func += (c: inout Character, inc: Int) { c = c + inc }
 func -= (c: inout Character, inc: Int) { c = c - inc }
-postfix func -- (c: Character) -> Character { return c - 1 }
-postfix func ++ (c: Character) -> Character { return c + 1 }
+//postfix func -- (c: Character) -> Character { return c - 1 }
+//postfix func ++ (c: Character) -> Character { return c + 1 }
