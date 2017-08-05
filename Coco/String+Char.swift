@@ -66,7 +66,7 @@ public extension String {
         return str.contains(s)
     }
     
-    public func Trim() -> String {
+    public func trim() -> String {
         return self.trimmingCharacters(in: CharacterSet.whitespaces)
     }
 	
@@ -110,6 +110,19 @@ public extension Character {
 		// Caution: this won't work for multi-char Characters
 		return [unichar](String(self).utf16).first!
 	}
+    
+    // Need this because source files are unicode encoded so "A" and "Ä" are considered equivalent otherwise
+    static func >= (lhs: Character, rhs: Character) -> Bool {
+        let lhsValue = lhs.unicodeValue()
+        let rhsValue = rhs.unicodeValue()
+        return lhsValue >= rhsValue
+    }
+    
+    static func <= (lhs: Character, rhs: Character) -> Bool {
+        let lhsValue = lhs.unicodeValue()
+        let rhsValue = rhs.unicodeValue()
+        return lhsValue <= rhsValue
+    }
 	
 }
 
