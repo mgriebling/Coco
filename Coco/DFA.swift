@@ -1030,7 +1030,7 @@ open class DFA {
     
     func GenLiterals () {
         if ignoreCase {
-            gen?.WriteLine("\t\tswitch t.val.lowercaseString {")
+            gen?.WriteLine("\t\tswitch t.val.lowercased() {")
         } else {
             gen?.WriteLine("\t\tswitch t.val {")
         }
@@ -1061,7 +1061,7 @@ open class DFA {
             else { PutRange(tab.CharClassSet(action!.sym)) }
             gen?.Write(" {")
             if action!.tc == Node.contextTrans {
-                gen?.Write("apx++; "); ctxEnd = false
+                gen?.Write("apx += 1; "); ctxEnd = false
             } else if (state.ctx) {
                 gen?.Write("apx = 0; ")
             }
@@ -1132,7 +1132,7 @@ open class DFA {
         gen?.WriteLine("\tlet maxT = \(tab.terminals.count - 1)")
         gen?.WriteLine("\tlet noSym = \(tab.noSym.n)")
         if ignoreCase {
-            gen?.Write("\tvar valCh : Character       // current input character (for token.val)")
+            gen?.Write("\tvar valCh : Character = \"\\0\"  // current input character (for token.val)")
         }
         g.CopyFramePart("-->initialization")
         WriteStartTab();
