@@ -110,30 +110,15 @@ public extension Character {
 		// Caution: this won't work for multi-char Characters
 		return [unichar](String(self).utf16).first!
 	}
-    
-    // Need this because source files are unicode encoded so "A" and "Ä" are considered equivalent otherwise
-    static func >= (lhs: Character, rhs: Character) -> Bool {
-        let lhsValue = lhs.unicodeValue()
-        let rhsValue = rhs.unicodeValue()
-        return lhsValue >= rhsValue
-    }
-    
-    static func <= (lhs: Character, rhs: Character) -> Bool {
-        let lhsValue = lhs.unicodeValue()
-        let rhsValue = rhs.unicodeValue()
-        return lhsValue <= rhsValue
-    }
-	
-}
 
-func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue() }
-func == (l: Character, r: Int) -> Bool { return r == l }
-func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue() }
-func != (l: Character, r: Int) -> Bool { return r != l }
-func + (c: Character, inc: Int) -> Character { return c.add(inc) }
-func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
-func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
-func += (c: inout Character, inc: Int) { c = c + inc }
-func -= (c: inout Character, inc: Int) { c = c - inc }
-//postfix func -- (c: Character) -> Character { return c - 1 }
-//postfix func ++ (c: Character) -> Character { return c + 1 }
+    static public func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue() }
+    static public func == (l: Character, r: Int) -> Bool { return r == l }
+    static public func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue() }
+    static public func != (l: Character, r: Int) -> Bool { return r != l }
+    static public func + (c: Character, inc: Int) -> Character { return c.add(inc) }
+    static public func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
+    static public func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
+    static public func += (c: inout Character, inc: Int) { c = c + inc }
+    static public func -= (c: inout Character, inc: Int) { c = c - inc }
+    
+}

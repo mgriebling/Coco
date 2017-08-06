@@ -54,7 +54,7 @@ public class Buffer {
 	//    b) part of stream in buffer
 	// 2) non seekable stream (network, console)
 	
-	public static let EOF = Int(UInt8.max) + 1
+	public static let EOF = 3   // EOT mark
 	static let MIN_BUFFER_LENGTH = 1024 // 1KB
 	let MIN_BUFFER_LENGTH : Int = Buffer.MIN_BUFFER_LENGTH
 	let MAX_BUFFER_LENGTH = Buffer.MIN_BUFFER_LENGTH * 64 // 64KB

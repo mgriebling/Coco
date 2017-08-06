@@ -57,10 +57,10 @@ open class Coco {
         var emitLines = false
         var i = 0
         while i < arg.count {
-            if (arg[i] == "-namespace" && i < arg.count - 1) { i += 1; nsName = arg[i].Trim() }
-            else if (arg[i] == "-frames" && i < arg.count - 1) { i += 1; frameDir = arg[i].Trim() }
-            else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].Trim() }
-            else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].Trim() }
+            if (arg[i] == "-namespace" && i < arg.count - 1) { i += 1; nsName = arg[i].trim() }
+            else if (arg[i] == "-frames" && i < arg.count - 1) { i += 1; frameDir = arg[i].trim() }
+            else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].trim() }
+            else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].trim() }
             else if (arg[i] == "-lines") { emitLines = true }
             else { srcName = arg[i] as NSString }
             i += 1
