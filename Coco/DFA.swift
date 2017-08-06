@@ -398,7 +398,7 @@ class Generator {
         var endOfStopString = 0
         
         if !stop.isEmpty {
-            startCh = stop[0].unicodeValue()
+            startCh = stop[0].unicodeValue
             endOfStopString = stop.count() - 1
         }
         
@@ -409,7 +409,7 @@ class Generator {
                 repeat {
                     if i == endOfStopString { return } // stop[0..i] found
                     ch = framRead(); i += 1
-                } while ch == stop[i].unicodeValue()
+                } while ch == stop[i].unicodeValue
                 // stop[0..i-1] found; continue with last read character
                 if generateOutput { gen!.Write((stop as NSString).substring(to: i)) }
             } else {
@@ -480,7 +480,7 @@ open class DFA {
     }
     
     fileprivate func ChCond(_ ch: Character) -> String {
-        return "ch == \(Ch(ch.unicodeValue()))"
+        return "ch == \(Ch(ch.unicodeValue))"
     }
     
     fileprivate func PutRange(_ s: CharSet) {
@@ -701,7 +701,7 @@ open class DFA {
         }
         while i < len { // make new DFA for s[i..len-1], ML: i is either 0 or len
             let to = NewState()
-            NewTransition(state!, to: to, typ: Node.chr, sym: s[i].unicodeValue(), tc: Node.normalTrans)
+            NewTransition(state!, to: to, typ: Node.chr, sym: s[i].unicodeValue, tc: Node.normalTrans)
             state = to
             i += 1
         }
@@ -867,10 +867,10 @@ open class DFA {
     open func FindAction(_ state: State, ch: Character) -> Action? {
         var a = state.firstAction
         while a != nil {
-            if a!.typ == Node.chr && ch.unicodeValue() == a!.sym { return a }
+            if a!.typ == Node.chr && ch.unicodeValue == a!.sym { return a }
             else if a!.typ == Node.clas {
                 let s = tab.CharClassSet(a!.sym)
-                if s[ch.unicodeValue()] { return a }
+                if s[ch.unicodeValue] { return a }
             }
             a = a!.next
         }

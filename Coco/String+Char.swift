@@ -74,50 +74,30 @@ public extension String {
 
 public extension Character {
 
-	public func unicodeValue() -> Int {
-		for s in String(self).unicodeScalars {
-			return Int(s.value)
-		}
-		return 0
-	}
+    public var unicodeValue : Int { return Int(unicodeScalar.value) }
+    public var unicodeScalar : UnicodeScalar { return String(self).unicodeScalars.first ?? "\0" }
     
-    public func isLetter() -> Bool {
-        let cSet = CharacterSet.letters
-        return cSet.contains(UnicodeScalar(self.toUnichar())!)
-    }
+    public func isLetter() -> Bool { return CharacterSet.letters.contains(unicodeScalar) }
+    public func isAscii() -> Bool { return unicodeScalar.isASCII }
     
-    public func isAlphanumeric() -> Bool {
-        let cSet = CharacterSet.alphanumerics
-        return cSet.contains(UnicodeScalar(self.toUnichar())!)
-    }
+    public func isAlphanumeric() -> Bool { return CharacterSet.alphanumerics.contains(unicodeScalar) }
     
     public var lowercase : Character {
-        let s = String(self)
-        return s.lowercased().characters.first!
+        let s = String(self).lowercased(with: Locale.current)
+        return s.characters.first ?? self
     }
 	
-	init(_ int: Int) {
-        let s = UnicodeScalar(int)
-		self = Character(s!)
-	}
+	init(_ int: Int) { self = Character(UnicodeScalar(int)!) }
 	
-	public func add (_ n: Int) -> Character {
-		let newCharacter = self.unicodeValue() + n
-		return Character(newCharacter)
-	}
-	
-	public func toUnichar () -> unichar {
-		// Caution: this won't work for multi-char Characters
-		return [unichar](String(self).utf16).first!
-	}
+	public func add (_ n: Int) -> Character { return Character(self.unicodeValue + n) }
 
-    static public func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue() }
+    static public func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue }
     static public func == (l: Character, r: Int) -> Bool { return r == l }
-    static public func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue() }
+    static public func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue }
     static public func != (l: Character, r: Int) -> Bool { return r != l }
     static public func + (c: Character, inc: Int) -> Character { return c.add(inc) }
     static public func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
-    static public func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
+    static public func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue).unicodeValue }
     static public func += (c: inout Character, inc: Int) { c = c + inc }
     static public func -= (c: inout Character, inc: Int) { c = c - inc }
     

@@ -324,7 +324,7 @@ public class Scanner {
 			ch = Character(buffer!.Read()); col += 1; charPos += 1
 			// replace isolated "\r" by "\n" in order to make
 			// eol handling uniform across Windows, Unix and Mac
-			if ch == "\r" && buffer!.Peek() != nl.unicodeValue() { ch = EOL }
+			if ch == "\r" && buffer!.Peek() != nl.unicodeValue { ch = EOL }
 			if ch == EOL { line += 1; col = 0 }
 		}
 
@@ -417,7 +417,7 @@ public class Scanner {
 		var recEnd = pos
 		t = Token()
 		t.pos = pos; t.col = col; t.line = line; t.charPos = charPos
-		var state = Scanner.start[ch.unicodeValue()] ?? 0
+		var state = Scanner.start[ch.unicodeValue] ?? 0
 		tval = ""; AddCh()
 		
 		loop: repeat {

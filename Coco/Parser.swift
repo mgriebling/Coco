@@ -446,8 +446,8 @@ public class Parser {
 			var name = t.val
 			name = tab.Unescape(name.substring(1, name.count()-2))
 			for ch in name.characters {
-			if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue()) }
-			else { s.Set(ch.unicodeValue()) }
+			if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue) }
+			else { s.Set(ch.unicodeValue) }
 			} 
 		} else if la.kind == _char {
 			Char(&n1)
@@ -467,7 +467,7 @@ public class Parser {
 		Expect(_char)
 		var name = t.val; n = 0
 		name = tab.Unescape(name.substring(1, name.count()-2))
-		if name.count() == 1 { n = name[0].unicodeValue() }
+		if name.count() == 1 { n = name[0].unicodeValue }
 		else { SemErr("unacceptable character value") }
 		if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 } 
 	}

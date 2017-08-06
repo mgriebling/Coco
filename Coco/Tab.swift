@@ -511,7 +511,7 @@ open class Tab {
 		let g = Graph()
 		g.r = dummyNode
 		for i in 0..<s.count() {
-			let p = NewNode(Node.chr, val: s[i].unicodeValue(), line: 0)
+			let p = NewNode(Node.chr, val: s[i].unicodeValue, line: 0)
 			g.r!.next = p; g.r = p
 		}
 		g.l = dummyNode.next; dummyNode.next = nil
@@ -946,7 +946,7 @@ open class Tab {
 	}
 	
 	func Char2Hex(_ ch: Character) -> String {
-		let s = String(format: "\\u%04X", ch.unicodeValue())
+		let s = String(format: "\\u%04X", ch.unicodeValue)
 		return s
 	}
 	

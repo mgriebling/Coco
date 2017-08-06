@@ -208,8 +208,8 @@ SimSet<_ s: inout CharSet>        (. var n1 = 0; var n2 = 0 .)
 | string                        (.	var name = t.val
 									name = tab.Unescape(name.substring(1, name.count()-2))
 									for ch in name.characters {
-									     if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue()) }
-									     else { s.Set(ch.unicodeValue()) }
+									     if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue) }
+									     else { s.Set(ch.unicodeValue) }
 									} .)
 | Char<&n1>						(. s.Set(n1) .)
   [ ".." Char<&n2>				(. for i in n1...n2 { s.Set(i) } .)
@@ -224,7 +224,7 @@ Char<_ n: inout Int>
 =
   char                          (. var name = t.val; n = 0
                                    name = tab.Unescape(name.substring(1, name.count()-2))
-                                   if name.count() == 1 { n = name[0].unicodeValue() }
+                                   if name.count() == 1 { n = name[0].unicodeValue }
                                    else { SemErr("unacceptable character value") }
                                    if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 } .)
 .
