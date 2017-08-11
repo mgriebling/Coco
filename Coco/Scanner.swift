@@ -278,7 +278,7 @@ public class Scanner {
 		if let stream = InputStream(fileAtPath: fileName) {
 			stream.open()
 			if stream.hasBytesAvailable {
-                buffer = Buffer(s:stream, isUserStream: false)
+                buffer = UTF8Buffer(s:stream, isUserStream: false)
 			} else {
 				assert(false, "Cannot open file " + fileName)
 			}
@@ -291,7 +291,7 @@ public class Scanner {
 	public init (s: InputStream) {
         s.open()
         if s.hasBytesAvailable {
-            buffer = Buffer(s:s, isUserStream: true)
+            buffer = UTF8Buffer(s:s, isUserStream: true)
 		} else {
 			assert(false, "Cannot open user stream")
 		}
