@@ -987,7 +987,7 @@ open class Tab {
 	
 	open func Escape (_ s: String) -> String {
 		var buf = ""
-		for ch in s.characters {
+		for ch in s {
 			switch(ch) {
 			case "\\": buf += "\\\\"
 			case "'": buf += "\\'"
@@ -1320,7 +1320,7 @@ open class Tab {
 	}
 	
     open func SetDDT(_ s: String) {
-        for ch in s.uppercased().characters {
+        for ch in s.uppercased() {
             if "0" <= ch && ch <= "9" {
                 ddt[ch - "0"] = true
             } else {

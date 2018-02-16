@@ -32,26 +32,26 @@ public extension String {
 	
 	public subscript (n: Int) -> Character {
 		get {
-			let s = self.characters.index(self.characters.startIndex, offsetBy: n)
-			if s < self.characters.endIndex {
-				return self.characters[s]
+			let s = self.index(self.startIndex, offsetBy: n)
+			if s < self.endIndex {
+				return self[s]
 			}
 			return "\0"
 		}
 		set {
-            let len = self.characters.count
+            let len = self.count
 			if n < len {
-                let lastCharacters = self.characters.dropFirst(n)
-                self.characters = self.characters.dropLast(len-n) + [newValue] + lastCharacters
+                let lastCharacters = String(self.dropFirst(n))
+                self = self.dropLast(len-n) + [newValue] + lastCharacters
 			}
 		}
 	}
 	
-	public func count() -> Int { return self.characters.count }
+	public func count() -> Int { return self.count }
 	
 	public func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
 		if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
-			return self.substring(to: rangeOfLastWantedCharacter.upperBound)
+			return String(self[...rangeOfLastWantedCharacter.upperBound])
 		}
 		return ""
 	}
@@ -84,7 +84,7 @@ public extension Character {
     
     public var lowercase : Character {
         let s = String(self).lowercased(with: Locale.current)
-        return s.characters.first ?? self
+        return s.first ?? self
     }
 	
 	init(_ int: Int) { self = Character(UnicodeScalar(int)!) }

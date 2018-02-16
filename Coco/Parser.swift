@@ -445,7 +445,7 @@ public class Parser {
 			Get()
 			var name = t.val
 			name = tab.Unescape(name.substring(1, name.count()-2))
-			for ch in name.characters {
+			for ch in name {
 			if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue) }
 			else { s.Set(ch.unicodeValue) }
 			} 

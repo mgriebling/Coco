@@ -155,7 +155,7 @@ open class ParserGen {
     
     func isValidName (_ sym: Symbol) -> Bool {
         let name = sym.name.replacingOccurrences(of: "\"", with: "")
-        for (num, ch) in name.characters.enumerated() {
+        for (num, ch) in name.enumerated() {
             if num == 0 && !ch.isLetter() { return false }
             else if !ch.isAlphanumeric() { return false }
         }
