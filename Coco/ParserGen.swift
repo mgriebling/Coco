@@ -269,6 +269,12 @@ open class ParserGen {
                 }
                 Indent(indent)
                 if equal {
+                    if useSwitch {
+                        gen?.WriteLine("default:")
+                        Indent(indent + 1)
+                        gen?.WriteLine("break")
+                        Indent(indent)
+                    }
                     gen?.WriteLine("}")
                 } else {
                     GenErrorMsg(altErr, sym: curSy)
