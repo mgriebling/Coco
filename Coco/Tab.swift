@@ -51,10 +51,10 @@ public struct Position {  // position of source code stretch (e.g. semantic acti
 open class Symbol {
 	
 	// token kinds
-	open static let fixedToken    = 0 // e.g. "a" ("b" | "c") (structure of literals)
-	open static let classToken    = 1 // e.g. digit {digit}   (at least one char class)
-	open static let litToken      = 2 // e.g. "while"
-	open static let classLitToken = 3 // e.g. letter {letter} but without literals that have the same structure
+	public static let fixedToken    = 0 // e.g. "a" ("b" | "c") (structure of literals)
+	public static let classToken    = 1 // e.g. digit {digit}   (at least one char class)
+	public static let litToken      = 2 // e.g. "while"
+	public static let classLitToken = 3 // e.g. letter {letter} but without literals that have the same structure
 	
 	open var n = 0                // symbol number
 	open var typ = 0              // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
@@ -86,23 +86,23 @@ open class Symbol {
 
 open class Node {
 	// constants for node kinds
-	open static let t    =  1  // terminal symbol
-	open static let pr   =  2  // pragma
-	open static let nt   =  3  // nonterminal symbol
-	open static let clas =  4  // character class
-	open static let chr  =  5  // character
-	open static let wt   =  6  // weak terminal symbol
-	open static let any  =  7  //
-	open static let eps  =  8  // empty
-	open static let sync =  9  // synchronization symbol
-	open static let sem  = 10  // semantic action: (. .)
-	open static let alt  = 11  // alternative: |
-	open static let iter = 12  // iteration: { }
-	open static let opt  = 13  // option: [ ]
-	open static let rslv = 14  // resolver expr
+	public static let t    =  1  // terminal symbol
+	public static let pr   =  2  // pragma
+	public static let nt   =  3  // nonterminal symbol
+	public static let clas =  4  // character class
+	public static let chr  =  5  // character
+	public static let wt   =  6  // weak terminal symbol
+	public static let any  =  7  //
+	public static let eps  =  8  // empty
+	public static let sync =  9  // synchronization symbol
+	public static let sem  = 10  // semantic action: (. .)
+	public static let alt  = 11  // alternative: |
+	public static let iter = 12  // iteration: { }
+	public static let opt  = 13  // option: [ ]
+	public static let rslv = 14  // resolver expr
 	
-	open static let normalTrans  = 0		// transition codes
-	open static let contextTrans = 1
+	public static let normalTrans  = 0		// transition codes
+	public static let contextTrans = 1
 	
 	open var n = 0                // node number
 	open var typ = 0              // t, nt, wt, chr, clas, any, eps, sem, sync, alt, iter, opt, rslv
@@ -154,7 +154,7 @@ open class Graph {
 
 open class Sets {
 	
-	open static func Elements(_ s: BitArray) -> Int {
+	public static func Elements(_ s: BitArray) -> Int {
 		var n = 0
 		for item in s {
 			if item { n += 1 }
@@ -162,7 +162,7 @@ open class Sets {
 		return n
 	}
 	
-	open static func Equals(_ a: BitArray, b: BitArray) -> Bool {
+	public static func Equals(_ a: BitArray, b: BitArray) -> Bool {
 		let max = a.count
 		for i in 0..<max {
 			if a[i] != b[i] { return false }
@@ -170,7 +170,7 @@ open class Sets {
 		return true
 	}
 	
-	open static func Intersect(_ a: BitArray, b: BitArray) -> Bool { // a * b != {}
+	public static func Intersect(_ a: BitArray, b: BitArray) -> Bool { // a * b != {}
 		let max = a.count
 		for i in 0..<max {
 			if a[i] && b[i] { return true }
@@ -178,7 +178,7 @@ open class Sets {
 		return false
 	}
 	
-	open static func Subtract(_ a: inout BitArray, b: BitArray) { // a = a - b
+	public static func Subtract(_ a: inout BitArray, b: BitArray) { // a = a - b
 		let c = b.Clone()
 		c.not()
         a.and(c)
@@ -420,7 +420,7 @@ open class Tab {
 	//---------------------------------------------------------------------
 	
 	open var nodes = [Node]()
-	open static let nTyp = ["    ", "t   ", "pr  ", "nt  ", "clas", "chr ", "wt  ", "any ", "eps ",
+	public static let nTyp = ["    ", "t   ", "pr  ", "nt  ", "clas", "chr ", "wt  ", "any ", "eps ",
 		"sync", "sem ", "alt ", "iter", "opt ", "rslv"]
 	var dummyNode: Node
 	
@@ -537,15 +537,15 @@ open class Tab {
 	
 	//------------ graph deletability check -----------------
 	
-	open static func DelGraph(_ p: Node?) -> Bool {
+	public static func DelGraph(_ p: Node?) -> Bool {
 		return p == nil || DelNode(p) && DelGraph(p!.next)
 	}
 	
-	open static func DelSubGraph(_ p: Node?) -> Bool {
+	public static func DelSubGraph(_ p: Node?) -> Bool {
 		return p == nil || DelNode(p) && (p!.up || DelSubGraph(p!.next));
 	}
 	
-	open static func DelNode(_ p: Node?) -> Bool {
+	public static func DelNode(_ p: Node?) -> Bool {
 		guard let p = p else { return false }
 		if (p.typ == Node.nt) { return p.sym!.deletable }
 		else if (p.typ == Node.alt) { return DelSubGraph(p.sub) || p.down != nil && DelSubGraph(p.down) }

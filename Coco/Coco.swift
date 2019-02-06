@@ -46,7 +46,7 @@ import Foundation
 
 open class Coco {
     
-    open static func Main (_ arg: [String]) {
+    public static func Main (_ arg: [String]) {
         print("Coco/R (April 7, 2016)")
         var srcName : NSString = ""
         var nsName = ""
