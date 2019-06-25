@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2FBAB0C11F39DF3B005180B1 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBAB0BF1F39DF3B005180B1 /* Parser.swift */; };
-		2FBAB0C21F39DF3B005180B1 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBAB0C01F39DF3B005180B1 /* Scanner.swift */; };
+		2FE3A21F22C26895008CE2FC /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE3A21D22C26895008CE2FC /* Parser.swift */; };
+		2FE3A22022C26895008CE2FC /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE3A21E22C26895008CE2FC /* Scanner.swift */; };
 		2FED1DC91B84CF9100001383 /* String+Char.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DC81B84CF9100001383 /* String+Char.swift */; };
 		2FED1DCB1B84E21A00001383 /* Tab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FED1DCA1B84E21A00001383 /* Tab.swift */; };
 		472BB2A51B8F22F9009B0F12 /* Coco.swift in Sources */ = {isa = PBXBuildFile; fileRef = 472BB2A41B8F22F9009B0F12 /* Coco.swift */; };
@@ -31,9 +31,9 @@
 
 /* Begin PBXFileReference section */
 		2FA973E21CB69730000EFCC6 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		2FBAB0BF1F39DF3B005180B1 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
-		2FBAB0C01F39DF3B005180B1 /* Scanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
 		2FD7041B1B8E36D000301A9C /* Copyright.frame */ = {isa = PBXFileReference; lastKnownFileType = text; path = Copyright.frame; sourceTree = "<group>"; };
+		2FE3A21D22C26895008CE2FC /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
+		2FE3A21E22C26895008CE2FC /* Scanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
 		2FED1DC81B84CF9100001383 /* String+Char.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Char.swift"; sourceTree = "<group>"; };
 		2FED1DCA1B84E21A00001383 /* Tab.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tab.swift; sourceTree = "<group>"; };
 		472BB2A41B8F22F9009B0F12 /* Coco.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Coco.swift; sourceTree = "<group>"; };
@@ -90,8 +90,8 @@
 			children = (
 				476C34531B848C8300EE75C6 /* main.swift */,
 				472BB2A41B8F22F9009B0F12 /* Coco.swift */,
-				2FBAB0BF1F39DF3B005180B1 /* Parser.swift */,
-				2FBAB0C01F39DF3B005180B1 /* Scanner.swift */,
+				2FE3A21D22C26895008CE2FC /* Parser.swift */,
+				2FE3A21E22C26895008CE2FC /* Scanner.swift */,
 				47CF4B461B8886BF00D55BC0 /* DFA.swift */,
 				47425F9D1B89E450002D9963 /* ParserGen.swift */,
 				2FED1DCA1B84E21A00001383 /* Tab.swift */,
@@ -127,21 +127,22 @@
 		476C34481B848C8300EE75C6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = "Computer Inspirations";
 				TargetAttributes = {
 					476C344F1B848C8300EE75C6 = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 0920;
+						LastSwiftMigration = 1020;
 					};
 				};
 			};
 			buildConfigurationList = 476C344B1B848C8300EE75C6 /* Build configuration list for PBXProject "Coco" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 476C34471B848C8300EE75C6;
 			productRefGroup = 476C34511B848C8300EE75C6 /* Products */;
@@ -160,12 +161,12 @@
 			files = (
 				2FED1DC91B84CF9100001383 /* String+Char.swift in Sources */,
 				472BB2A51B8F22F9009B0F12 /* Coco.swift in Sources */,
-				2FBAB0C21F39DF3B005180B1 /* Scanner.swift in Sources */,
 				47425F9E1B89E450002D9963 /* ParserGen.swift in Sources */,
+				2FE3A22022C26895008CE2FC /* Scanner.swift in Sources */,
 				2FED1DCB1B84E21A00001383 /* Tab.swift in Sources */,
 				47CF4B471B8886BF00D55BC0 /* DFA.swift in Sources */,
+				2FE3A21F22C26895008CE2FC /* Parser.swift in Sources */,
 				476C34541B848C8300EE75C6 /* main.swift in Sources */,
-				2FBAB0C11F39DF3B005180B1 /* Parser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,8 +279,7 @@
 			buildSettings = {
 				CURRENT_PROJECT_VERSION = V1.0.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -288,8 +288,7 @@
 			buildSettings = {
 				CURRENT_PROJECT_VERSION = V1.0.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
