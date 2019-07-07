@@ -339,7 +339,7 @@ open class Tab {
 	
 	open func NewSym(_ typ: Int, _ name: String, _ line: Int) -> Symbol {
         var name = name
-		if name.count() == 2 && name[0] == "\"" {
+		if name.count == 2 && name[0] == "\"" {
 			parser!.SemErr("empty token not allowed"); name = "???"
 		}
 		let sym = Symbol(typ, name, line)
@@ -400,7 +400,7 @@ open class Tab {
 		var len: Int
 		for sym in terminals {
 			if s[sym.n] {
-				len = sym.name.count()
+				len = sym.name.count
 				if col + len >= 80 {
 					trace?.WriteLine();
 					if indent >= 1 {
@@ -506,11 +506,11 @@ open class Tab {
 	}
 	
 	open func StrToGraph(_ str: String) -> Graph {
-		let s = Unescape(str.substring(1, str.count()-2))
-		if s.count() == 0 { parser!.SemErr("empty token not allowed") }
+		let s = Unescape(str.substring(1, str.count-2))
+		if s.count == 0 { parser!.SemErr("empty token not allowed") }
 		let g = Graph()
 		g.r = dummyNode
-		for i in 0..<s.count() {
+		for i in 0..<s.count {
 			let p = NewNode(Node.chr, val: s[i].unicodeValue, line: 0)
 			g.r!.next = p; g.r = p
 		}
@@ -932,7 +932,7 @@ open class Tab {
 	
 	func Hex2Char(_ s: String) -> Character {
 		var val = 0
-		for i in 0..<s.count() {
+		for i in 0..<s.count {
 			let ch = s[i]
 			if "0" <= ch && ch <= "9" { val = 16 * val + (ch - Character("0")) }
 			else if "a" <= ch && ch <= "f" { val = 16 * val + (10 + (ch - Character("a"))) }
@@ -954,7 +954,7 @@ open class Tab {
 		/* replaces escape sequences in s by their Unicode values. */
 		var buf = ""
 		var i = 0
-		while i < s.count() {
+		while i < s.count {
 			if s[i] == "\\" {
 				switch s[i+1] {
 				case "\\": buf += "\\"; i += 2
@@ -969,11 +969,11 @@ open class Tab {
 				case "f": buf += "\u{0c}"; i += 2
 				case "v": buf += "\u{0b}"; i += 2
 				case "u", "x":
-					if i+6 <= s.count() {
+					if i+6 <= s.count {
 						let sn : NSString = s as NSString
 						buf.append(Hex2Char(sn.substring(with: NSMakeRange(i+2, 4)))); i += 6
 					} else {
-						parser?.SemErr("bad escape sequence in string or character"); i = s.count()
+						parser?.SemErr("bad escape sequence in string or character"); i = s.count
 					}
 				default: parser?.SemErr("bad escape sequence in string or character"); i += 2
 				}

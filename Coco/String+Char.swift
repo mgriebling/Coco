@@ -47,7 +47,7 @@ public extension String {
 		}
 	}
 	
-    func count() -> Int { return self.count }
+//    func count() -> Int { return self.count }
 	
     func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
 		if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
@@ -61,10 +61,9 @@ public extension String {
         return str.substring(with: NSMakeRange(from, length))
     }
     
-    func contains (_ s: String) -> Bool {
-        let str = self as NSString
-        return str.contains(s)
-    }
+//    func contains2 (_ s: String) -> Bool {
+//        return self.contains(s)
+//    }
     
     func trim() -> String {
         return self.trimmingCharacters(in: CharacterSet.whitespaces)

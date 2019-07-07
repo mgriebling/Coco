@@ -399,7 +399,7 @@ class Generator {
         
         if !stop.isEmpty {
             startCh = stop[0].unicodeValue
-            endOfStopString = stop.count() - 1
+            endOfStopString = stop.count - 1
         }
         
         var ch = framRead()
@@ -683,8 +683,8 @@ open class DFA {
     // match string against current automaton; store it either as a fixedToken or as a litToken
     open func MatchLiteral(_ s: String, _ sym: Symbol) {
         var s = s
-        s = tab.Unescape(s.substring(1, s.count()-2))
-        let len = s.count()
+        s = tab.Unescape(s.substring(1, s.count-2))
+        let len = s.count
         var state = firstState
         var a : Action? = nil
         var i: Int = 0
@@ -953,7 +953,7 @@ open class DFA {
             } else { parser.SemErr("comment delimiters may not be structured") }
             p = np.next
         }
-        if s.count() == 0 || s.count() > 2 {
+        if s.count == 0 || s.count > 2 {
             parser.SemErr("comment delimiters must be 1 or 2 characters long")
             s = "?"
         }
@@ -971,7 +971,7 @@ open class DFA {
     func GenComBody(_ com: Comment) {
         gen?.WriteLine(  "\t\t\twhile true {")
         gen?.Write    (  "\t\t\t\tif \(ChCond(com.stop[0])) "); gen?.WriteLine("{")
-        if com.stop.count() == 1 {
+        if com.stop.count == 1 {
             gen?.WriteLine("\t\t\t\t\tlevel -= 1")
             gen?.WriteLine("\t\t\t\t\tif level == 0 { oldEols = line - line0; NextCh(); return true }")
             gen?.WriteLine("\t\t\t\t\tNextCh()")
@@ -985,7 +985,7 @@ open class DFA {
         }
         if com.nested {
             gen?.Write    ("\t\t\t\t}"); gen?.Write(" else if \(ChCond(com.start[0])) "); gen?.WriteLine("{")
-            if com.start.count() == 1 {
+            if com.start.count == 1 {
                 gen?.WriteLine("\t\t\t\t\tlevel += 1; NextCh()")
             } else {
                 gen?.WriteLine("\t\t\t\t\tNextCh()");
@@ -1003,7 +1003,7 @@ open class DFA {
         gen?.WriteLine();
         gen?.Write    ("\tfunc Comment\(i)() -> Bool "); gen?.WriteLine("{");
         gen?.WriteLine("\t\tvar level = 1; let pos0 = pos; let line0 = line; let col0 = col; let charPos0 = charPos")
-        if com.start.count() == 1 {
+        if com.start.count == 1 {
             gen?.WriteLine("\t\tNextCh()")
             GenComBody(com);
         } else {
