@@ -135,7 +135,7 @@
 		476C34481B848C8300EE75C6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1160;
 				ORGANIZATIONNAME = "Computer Inspirations";
 				TargetAttributes = {
 					476C344F1B848C8300EE75C6 = {
@@ -285,6 +285,7 @@
 		476C34581B848C8300EE75C6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CURRENT_PROJECT_VERSION = V1.0.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -294,6 +295,7 @@
 		476C34591B848C8300EE75C6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CURRENT_PROJECT_VERSION = V1.0.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
