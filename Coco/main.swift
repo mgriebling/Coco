@@ -27,5 +27,6 @@
     Coco/R itself) does not fall under the GNU General Public License.
 -------------------------------------------------------------------------*/
 
-Coco.Main(CommandLine.arguments)
+
+Coco.main()
 

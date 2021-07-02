@@ -43,84 +43,129 @@
 -------------------------------------------------------------------------*/
 
 import Foundation
+import ArgumentParser
 
-open class Coco {
+struct Coco : ParsableCommand {
     
-    public static func Main (_ arg: [String]) {
-        print("Coco/R (April 7, 2016)")
-        var srcName : NSString = ""
-        var nsName = ""
-        var frameDir = ""
-        var ddtString = ""
+    static let configuration = CommandConfiguration(
+        commandName: "Coco",
+        abstract: "Coco/R is a compiler/compiler generator producing Swift source",
+        version: "(2 July 2021)",
+        shouldDisplay: true
+    )
+    
+    @Argument(help: "File containing the attributed grammar to be parsed (e.g., grammar.atg)")
+    var srcName : String
+    
+    @Option(name: [.short, .customLong("input", withSingleDash: true)],
+            help: "Directory containing <src-name> input file and, by default, Scanner.frame and Parser.frame files")
+    var inputDir = ""
+    
+    @Option(name: .customLong("namespace", withSingleDash: true), help: "Name defining the namespace to be parsed")
+    var nsName = ""
+    
+    @Option(name: .customLong("frames", withSingleDash: true),
+            help: "Directory containing the ATG frame files (possibly also Scanner.frame and Parser.frame files)")
+    var frameDir = ""
+    
+    @Option(name: .customLong("trace", withSingleDash: true),
+            help:
+        """
+        String whose characters can be:
+           A  trace automaton
+           F  list first/follow sets
+           G  print syntax graph
+           I  trace computation of first sets
+           J  list ANY and SYNC sets
+           P  print statistics
+           S  list symbol table
+           X  list cross reference table
+         Output filename is 'trace.txt'
+        """
+    )
+    var ddtString = ""
+    
+    @Option(name: [.short, .customLong("output", withSingleDash: true)], help: "<outputDir> directory for the files")
+    var outputDir = ""
+    
+    @Flag(name: .customLong("lines", withSingleDash: true), help: "-lines emits output lines")
+    var emitLines = false
+    
+    mutating func run() throws {
+        print("\(Coco.configuration.commandName!)/R \(Coco.configuration.version)")
+//        var srcName : NSString = ""
+//        var nsName = ""
+//        var frameDir = ""
+//        var ddtString = ""
+//        var traceFileName = ""
+//        var outDir = ""
+//        var emitLines = false
+//        var i = 0
+//        while i < arg.count {
+//            if (arg[i] == "-namespace" && i < arg.count - 1) { i += 1; nsName = arg[i].trim() }
+//            else if (arg[i] == "-frames" && i < arg.count - 1) { i += 1; frameDir = arg[i].trim() }
+//            else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].trim() }
+//            else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].trim() }
+//            else if (arg[i] == "-lines") { emitLines = true }
+//            else { srcName = arg[i] as NSString }
+//            i += 1
+//        }
+//
+//        if arg.count > 1 && srcName.length != 0 {
         var traceFileName = ""
-        var outDir = ""
-        var emitLines = false
-        var i = 0
-        while i < arg.count {
-            if (arg[i] == "-namespace" && i < arg.count - 1) { i += 1; nsName = arg[i].trim() }
-            else if (arg[i] == "-frames" && i < arg.count - 1) { i += 1; frameDir = arg[i].trim() }
-            else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].trim() }
-            else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].trim() }
-            else if (arg[i] == "-lines") { emitLines = true }
-            else { srcName = arg[i] as NSString }
-            i += 1
+        do {
+            let srcDir = inputDir
+            let scanner = Scanner(fileName: srcName)
+            let parser = Parser(scanner: scanner)
+            
+            traceFileName = NSString(string: srcDir).appendingPathComponent("trace.txt")
+            parser.trace = OutputStream(toFileAtPath: traceFileName, append: false)
+            parser.trace?.open()
+            parser.tab = Tab(parser: parser)
+            parser.dfa = DFA(parser: parser)
+            parser.pgen = ParserGen(parser: parser)
+            
+            parser.tab.srcName = srcName
+            parser.tab.srcDir = srcDir
+            parser.tab.nsName = nsName
+            parser.tab.frameDir = frameDir
+            parser.tab.outDir = !outputDir.isEmpty ? outputDir : srcDir
+            parser.tab.emitLines = emitLines
+            if !ddtString.isEmpty { parser.tab.SetDDT(ddtString) }
+            
+            parser.Parse()
+            
+            parser.trace?.close()
+            let fs = FileManager.default
+            let f = try fs.attributesOfItem(atPath: traceFileName)
+            if f[.size] as? NSNumber == 0 { try fs.removeItem(atPath: traceFileName) }
+            else { print("trace output is in " + traceFileName) }
+            print("\(parser.errors.count) errors detected")
+        } catch _ {
+            print("-- could not open " + traceFileName)
+            //            } catch (FatalError e) {
+            //                print("-- " + e.Message)
         }
-        
-        if arg.count > 1 && srcName.length != 0 {
-            do {
-                let srcDir = srcName.deletingLastPathComponent
-                
-                let scanner = Scanner(fileName: String(srcName))
-                let parser = Parser(scanner: scanner)
-                
-                traceFileName = (srcDir as NSString).appendingPathComponent("trace.txt")
-                parser.trace = OutputStream(toFileAtPath: traceFileName, append: false)
-                parser.trace?.open()
-                parser.tab = Tab(parser: parser)
-                parser.dfa = DFA(parser: parser)
-                parser.pgen = ParserGen(parser: parser)
-                
-                parser.tab.srcName = srcName as String
-                parser.tab.srcDir = srcDir
-                parser.tab.nsName = nsName
-                parser.tab.frameDir = frameDir
-                parser.tab.outDir = !outDir.isEmpty ? outDir : srcDir
-                parser.tab.emitLines = emitLines
-                if !ddtString.isEmpty { parser.tab.SetDDT(ddtString) }
-                
-                parser.Parse()
-                
-                parser.trace?.close()
-                let fs = FileManager.default
-                let f = try fs.attributesOfItem(atPath: traceFileName)
-                if f[.size] as? NSNumber == 0 { try fs.removeItem(atPath: traceFileName) }
-                else { print("trace output is in " + traceFileName) }
-                print("\(parser.errors.count) errors detected")
-            } catch _ {
-                print("-- could not open " + traceFileName)
-                //            } catch (FatalError e) {
-                //                print("-- " + e.Message)
-            }
-        } else {
-            print("Usage: Coco Grammar.atg {{Option}}\n"
-                + "Options:\n"
-                + "  -namespace <namespaceName>\n"
-                + "  -frames    <frameFilesDirectory>\n"
-                + "  -trace     <traceString>\n"
-                + "  -o         <outputDirectory>\n"
-                + "  -lines\n"
-                + "Valid characters in the trace string:\n"
-                + "  A  trace automaton\n"
-                + "  F  list first/follow sets\n"
-                + "  G  print syntax graph\n"
-                + "  I  trace computation of first sets\n"
-                + "  J  list ANY and SYNC sets\n"
-                + "  P  print statistics\n"
-                + "  S  list symbol table\n"
-                + "  X  list cross reference table\n"
-                + "Scanner.frame and Parser.frame files needed in ATG directory\n"
-                + "or in a directory specified in the -frames option.")
-        }
+//        } else {
+//            print("Usage: Coco Grammar.atg {{Option}}\n"
+//                + "Options:\n"
+//                + "  -namespace <namespaceName>\n"
+//                + "  -frames    <frameFilesDirectory>\n"
+//                + "  -trace     <traceString>\n"
+//                + "  -o         <outputDirectory>\n"
+//                + "  -lines\n"
+//                + "Valid characters in the trace string:\n"
+//                + "  A  trace automaton\n"
+//                + "  F  list first/follow sets\n"
+//                + "  G  print syntax graph\n"
+//                + "  I  trace computation of first sets\n"
+//                + "  J  list ANY and SYNC sets\n"
+//                + "  P  print statistics\n"
+//                + "  S  list symbol table\n"
+//                + "  X  list cross reference table\n"
+//                + "Scanner.frame and Parser.frame files needed in ATG directory\n"
+//                + "or in a directory specified in the -frames option.")
+//        }
     }
     
 } // end Coco
