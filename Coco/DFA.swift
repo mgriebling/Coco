@@ -411,7 +411,7 @@ class Generator {
                     ch = framRead(); i += 1
                 } while ch == stop[i].unicodeValue
                 // stop[0..i-1] found; continue with last read character
-                if generateOutput { gen!.Write((stop as NSString).substring(to: i)) }
+                if generateOutput { gen!.Write(stop.substring(to: i)) }
             } else {
                 if generateOutput { gen!.Write(String(Character(ch))) }
                 ch = framRead()
@@ -1020,7 +1020,7 @@ open class DFA {
     }
     
     func SymName(_ sym: Symbol) -> String {
-        if sym.name[0].isLetter() { // real name value is stored in Tab.literals
+        if sym.name[0].isLetter { // real name value is stored in Tab.literals
             for e in tab.literals {
                 if e.1 === sym { return e.0 }
             }
@@ -1140,7 +1140,7 @@ open class DFA {
         if ignoreCase {
             gen?.WriteLine("\t\tif ch != Character(Buffer.EOF) {")
             gen?.WriteLine("\t\t\tvalCh = ch")
-            gen?.WriteLine("\t\t\tch = ch.lowercase")
+            gen?.WriteLine("\t\t\tch = ch.lowercased")
             gen?.WriteLine("\t\t}")
         }
         g.CopyFramePart("-->casing2")

@@ -208,7 +208,7 @@ SimSet<_ s: inout CharSet>        (. var n1 = 0; var n2 = 0 .)
 | string                        (.	var name = t.val
 									name = tab.Unescape(name.substring(1, name.count-2))
 									for ch in name {
-									     if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue) }
+									     if dfa!.ignoreCase { s.Set(ch.lowercased.unicodeValue) }
 									     else { s.Set(ch.unicodeValue) }
 									} .)
 | Char<&n1>						(. s.Set(n1) .)

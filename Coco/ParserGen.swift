@@ -156,14 +156,14 @@ open class ParserGen {
     func isValidName (_ sym: Symbol) -> Bool {
         let name = sym.name.replacingOccurrences(of: "\"", with: "")
         for (num, ch) in name.enumerated() {
-            if num == 0 && !ch.isLetter() { return false }
-            else if !ch.isAlphanumeric() { return false }
+            if num == 0 && !ch.isLetter { return false }
+            else if !ch.isAlphanumeric { return false }
         }
         return true
     }
     
     func GenToken (_ sym: Symbol) {
-        if sym.name[0].isLetter() { gen?.Write("_" + sym.name) }
+        if sym.name[0].isLetter { gen?.Write("_" + sym.name) }
         else if isValidName(sym) { gen?.Write("_" + sym.name.replacingOccurrences(of: "\"", with: "")) }
         else { gen?.Write("\(sym.n) /* \(sym.name) */") }
     }
@@ -320,7 +320,7 @@ open class ParserGen {
 
     func GenTokens() {
         for sym in tab.terminals {
-            if sym.name[0].isLetter() {
+            if sym.name[0].isLetter {
                 gen?.WriteLine("\tpublic let _\(sym.name) = \(sym.n)")
             } else if isValidName(sym) {
                 gen?.WriteLine("\tpublic let _" + sym.name.replacingOccurrences(of: "\"", with: "") + " = \(sym.n)")

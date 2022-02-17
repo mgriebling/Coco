@@ -31,43 +31,30 @@ public extension String {
 	// Extensions to make it easier to work with C-style strings
 	
     subscript (n: Int) -> Character {
-		get {
-			let s = self.index(self.startIndex, offsetBy: n)
-			if s < self.endIndex {
-				return self[s]
-			}
-			return "\0"
-		}
-		set {
-            let len = self.count
-			if n < len {
-                let lastCharacters = String(self.dropFirst(n))
-                self = self.dropLast(len-n) + [newValue] + lastCharacters
-			}
-		}
-	}
-	
-//    func count() -> Int { return self.count }
-	
-    func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
-		if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
-			return String(self[...rangeOfLastWantedCharacter.upperBound])
-		}
-		return ""
-	}
-    
-    func substring (_ from: Int, _ length: Int) -> String {
-        let str = self as NSString
-        return str.substring(with: NSMakeRange(from, length))
+        get {
+            let s = Array(self)
+            guard n < s.count else { return "\0" }
+            return s[n]
+        }
+        set {
+            var s = Array(self)
+            if n < s.count {
+                s[n] = newValue
+                self = String(s)
+            }
+        }
     }
     
-//    func contains2 (_ s: String) -> Bool {
-//        return self.contains(s)
-//    }
-    
-    func trim() -> String {
-        return self.trimmingCharacters(in: CharacterSet.whitespaces)
+    func trimmingTrailingCharacters (in characterSet: CharacterSet) -> String {
+        if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
+            return String(self[...rangeOfLastWantedCharacter.upperBound])
+        }
+        return ""
     }
+    
+    func substring (_ from: Int, _ length: Int) -> String { (self as NSString).substring(with: NSMakeRange(from, length)) }
+    func substring(to: Int) -> String { (self as NSString).substring(to: to) }
+    func trim() -> String { self.trimmingCharacters(in: .whitespaces) }
 	
 }
 
@@ -75,16 +62,8 @@ public extension Character {
 
     var unicodeValue : Int { return Int(unicodeScalar.value) }
     var unicodeScalar : UnicodeScalar { return String(self).unicodeScalars.first ?? "\0" }
-    
-    func isLetter() -> Bool { return CharacterSet.letters.contains(unicodeScalar) }
-    func isAscii() -> Bool { return unicodeScalar.isASCII }
-    
-    func isAlphanumeric() -> Bool { return CharacterSet.alphanumerics.contains(unicodeScalar) }
-    
-    var lowercase : Character {
-        let s = String(self).lowercased(with: Locale.current)
-        return s.first ?? self
-    }
+    var isAlphanumeric : Bool { isNumber || isLetter }
+    var lowercased : Character { isLowercase ? self : lowercased().first! }
 	
 	init(_ int: Int) { self = Character(UnicodeScalar(int)!) }
 	
