@@ -444,7 +444,7 @@ public class Parser {
 		} else if la.kind == _string {
 			Get()
 			var name = t.val
-			name = tab.Unescape(name.substring(1, name.count()-2))
+			name = tab.Unescape(name.substring(1, name.count-2))
 			for ch in name {
 			if dfa!.ignoreCase { s.Set(ch.lowercase.unicodeValue) }
 			else { s.Set(ch.unicodeValue) }
@@ -466,8 +466,8 @@ public class Parser {
 	func Char(_ n: inout Int) {
 		Expect(_char)
 		var name = t.val; n = 0
-		name = tab.Unescape(name.substring(1, name.count()-2))
-		if name.count() == 1 { n = name[0].unicodeValue }
+		name = tab.Unescape(name.substring(1, name.count-2))
+		if name.count == 1 { n = name[0].unicodeValue }
 		else { SemErr("unacceptable character value") }
 		if dfa!.ignoreCase && Character(n) >= "A" && Character(n) <= "Z" { n += 32 } 
 	}
@@ -483,7 +483,7 @@ public class Parser {
 				name = t.val 
 			} else {
 				Get()
-				name = "\"" + t.val.substring(1, t.val.count()-2) + "\"" 
+				name = "\"" + t.val.substring(1, t.val.count-2) + "\"" 
 			}
 			kind = str
 			if dfa!.ignoreCase { name = name.lowercased() }
