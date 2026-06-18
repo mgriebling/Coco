@@ -10,6 +10,7 @@ xcuserdata/
 
 # Xcode Server com.apple.dt.XCTest.IDERunner temporary files
 *.xcresult
+*.xcuserstate
 
 # Objective-C / Swift specific
 *.hmap
