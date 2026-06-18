@@ -28,9 +28,7 @@
 
 -->begin
 import Foundation
-
 -->namespace
-
 public class Parser {
 -->constants
 	static let _T = true

@@ -31,8 +31,6 @@
 
 import Foundation
 
-
-
 public class Token {
 	public var kind = 0		 // token kind
 	public var pos = 0		 // token position in bytes in the source text (starting at 0)
@@ -44,7 +42,7 @@ public class Token {
 }
 
 extension InputStream {
-	var CanSeek: Bool { return false }
+	var CanSeek: Bool { false }
 }
 
 //-----------------------------------------------------------------------------------
@@ -85,7 +83,8 @@ public class Buffer {
 		else { bufPos = 0 } // index 0 is already after the file, thus Pos = 0 is invalid
 	}
 	
-	fileprivate init (b: Buffer) { // called in UTF8Buffer constructor
+	fileprivate init (b: Buffer) {
+		// called in UTF8Buffer constructor
 		buf = b.buf
 		bufStart = b.bufStart
 		bufLen = b.bufLen
@@ -120,16 +119,16 @@ public class Buffer {
 	// end .. end, zero-based, exclusive, in byte
 	public func GetString (_ beg: Int, end: Int) -> String {
 		var len = 0
-		var buf = [CChar](repeating: 0, count: end-beg+1)
+		var buf = ""
 		let oldPos = Pos
 		Pos = beg
-        while Pos < end { buf[len] = CChar(Read()); len += 1 }
+		while Pos < end { buf.append(Character(Read())); len += 1 }
 		Pos = oldPos
-		return String(cString: buf)
+		return buf
 	}
 	
 	public var Pos: Int {
-		get { return bufPos + bufStart }
+		get { bufPos + bufStart }
 		set {
 			if newValue >= fileLen && !stream.CanSeek {
 				// Wanted position is after buffer and the stream
@@ -140,15 +139,12 @@ public class Buffer {
 			}
 			
 			if newValue < 0 || newValue > fileLen {
-				assert(true, "buffer out of bounds access, position: \(newValue)")
+				assertionFailure("buffer out of bounds access, position: \(newValue)")
 			}
 			
-			if (newValue >= bufStart && newValue < bufStart + bufLen) { // already in buffer
+			if newValue >= bufStart && newValue < bufStart + bufLen {
+				// already in buffer
 				bufPos = newValue - bufStart
-				//			} else if (stream != null) { // must be swapped in
-				//				stream.Seek(value, SeekOrigin.Begin);
-				//				bufLen = stream.Read(buf, 0, buf.Length);
-				//				bufStart = newValue; bufPos = 0;
 			} else {
 				// set the position to the end of the file, Pos will return fileLen.
 				bufPos = fileLen - bufStart
@@ -280,10 +276,10 @@ public class Scanner {
 			if stream.hasBytesAvailable {
                 buffer = UTF8Buffer(s:stream, isUserStream: false)
 			} else {
-				assert(false, "Cannot open file " + fileName)
+				assertionFailure("Cannot open file " + fileName)
 			}
 		} else {
-			assert(false, "Cannot open file " + fileName)
+			assertionFailure("Cannot open file " + fileName)
 		}
 		Init()
 	}
@@ -293,7 +289,7 @@ public class Scanner {
         if s.hasBytesAvailable {
             buffer = UTF8Buffer(s:s, isUserStream: true)
 		} else {
-			assert(false, "Cannot open user stream")
+			assertionFailure("Cannot open user stream")
 		}
 		Init()
 	}
@@ -306,7 +302,7 @@ public class Scanner {
 			NextCh(); let ch1 = ch
 			NextCh(); let ch2 = ch
 			if ch1 != "\u{0BB}" || ch2 != "\u{0BF}" {
-				assert(false, "illegal byte order mark: EF \(ch1) \(ch2)")
+				assertionFailure("illegal byte order mark: EF \(ch1) \(ch2)")
 			}
 			buffer = UTF8Buffer(b: buffer!); col = 0; charPos = -1
 			NextCh()

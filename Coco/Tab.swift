@@ -191,7 +191,6 @@ open class BitArray : Collection {
     var array: [Bool]
     
     // CollectionType protocol conformance
-//    public typealias `Type` = Int
     open var startIndex: Int { return 0 }
     open var endIndex: Int { return array.count }
     

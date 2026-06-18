@@ -13,3 +13,15 @@ Support for other languages and grammar examples are available from the Universi
 Coco/R is distributed under the terms of the GNU General Public License (slightly extended).
 
 Swift port by Michael Griebling, 2015.
+
+## Testing the Coco/R Compiler Generator
+
+1) Produce a new Coco executable by compiling Coco with Xcode.
+2) Copy the files from the support directory to wherever the Coco executable resides.
+3) Run Coco from the command line with: "./Coco Coco.atg"
+4) New versions of the Parser.swift and Scanner.swift will be generated that
+   implement the supplied Coco.atg grammar.
+5) Copy the new parser/scanner swift files to the Coco Xcode project, replacing
+   the original files.
+6) Recompile and run Coco with the new files. The resultant Swift parser/scanner
+   files should be identical to the original.

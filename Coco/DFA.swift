@@ -343,7 +343,7 @@ class Generator {
     func OpenFrame(_ frame: String) -> InputStream {
         if !tab.frameDir.isEmpty { frameFile = (tab.frameDir as NSString).appendingPathComponent(frame) }
         if frameFile.isEmpty || !fileExists(frameFile) { frameFile = (tab.srcDir as NSString).appendingPathComponent(frame) }
-        if frameFile.isEmpty || !fileExists(frameFile) { assert(false, "Cannot find : " + frame) }
+        if frameFile.isEmpty || !fileExists(frameFile) { assertionFailure("Cannot find : " + frame) }
         
         let fram = InputStream(fileAtPath: frameFile)
 		fram?.open()
@@ -362,7 +362,7 @@ class Generator {
             gen = OutputStream(toFileAtPath: fn, append: false)
 			gen?.open()
         } catch _ {
-            assert(false, "Cannot generate file: " + fn)
+			assertionFailure("Cannot generate file: " + fn)
         }
         return gen
     }
@@ -380,7 +380,7 @@ class Generator {
             CopyFramePart("")
             fram = scannerFram
         } else {
-            assert(false, "Cannot open Copyright.frame")
+			assertionFailure("Cannot open Copyright.frame")
         }
     }
     
@@ -427,7 +427,6 @@ class Generator {
             return Int(buffer[0])
         } else {
 			return EOF
-            // assert(false, "Error reading frame file: " + frameFile)
         }
     }
 }
@@ -924,7 +923,8 @@ open class DFA {
         while m != nil {
             if m!.state!.nr == nr { return m!.set } else { m = m!.next }
         }
-        assert(false, "compiler error in Melted.Set")
+		assertionFailure("compiler error in Melted.Set")
+		return BitArray(0)
     }
     
     func StateWithSet(_ s: BitArray) -> Melted?  {

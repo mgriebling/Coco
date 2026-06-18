@@ -31,8 +31,6 @@
 
 import Foundation
 
-
-
 public class Parser {
 	public let _EOF = 0
 	public let _ident = 1

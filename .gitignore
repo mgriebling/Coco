@@ -1,0 +1,37 @@
+# Xcode
+#
+# User settings
+xcuserdata/
+
+# Compatibility with built-in Xcode source control
+*.mode1v3
+*.mode2v3
+*.storyboardCWorkspaceState
+
+# Xcode Server com.apple.dt.XCTest.IDERunner temporary files
+*.xcresult
+
+# Objective-C / Swift specific
+*.hmap
+
+# App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
+# *.xcodeproj
+.swiftpm
+.build/
+
+# macOS Finder files
+.DS_Store

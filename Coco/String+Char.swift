@@ -60,22 +60,22 @@ public extension String {
 
 public extension Character {
 
-    var unicodeValue : Int { return Int(unicodeScalar.value) }
-    var unicodeScalar : UnicodeScalar { return String(self).unicodeScalars.first ?? "\0" }
+    var unicodeValue : Int { Int(unicodeScalar.value) }
+    var unicodeScalar : UnicodeScalar { String(self).unicodeScalars.first ?? "\0" }
     var isAlphanumeric : Bool { isNumber || isLetter }
     var lowercased : Character { isLowercase ? self : lowercased().first! }
 	
 	init(_ int: Int) { self = Character(UnicodeScalar(int)!) }
 	
-	func add (_ n: Int) -> Character { return Character(self.unicodeValue + n) }
+	func add (_ n: Int) -> Character { Character(self.unicodeValue + n) }
 
-    static func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue }
-    static func == (l: Character, r: Int) -> Bool { return r == l }
-    static func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue }
-    static func != (l: Character, r: Int) -> Bool { return r != l }
-    static func + (c: Character, inc: Int) -> Character { return c.add(inc) }
-    static func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
-    static func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue).unicodeValue }
+    static func == (l: Int, r: Character) -> Bool { l == r.unicodeValue }
+    static func == (l: Character, r: Int) -> Bool { r == l }
+    static func != (l: Int, r: Character) -> Bool { l != r.unicodeValue }
+    static func != (l: Character, r: Int) -> Bool { r != l }
+    static func + (c: Character, inc: Int) -> Character { c.add(inc) }
+    static func - (c: Character, inc: Int) -> Character { c.add(-inc) }
+    static func - (c: Character, inc: Character) -> Int { c.add(-inc.unicodeValue).unicodeValue }
     static func += (c: inout Character, inc: Int) { c = c + inc }
     static func -= (c: inout Character, inc: Int) { c = c - inc }
     

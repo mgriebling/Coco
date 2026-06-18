@@ -45,12 +45,12 @@
 import Foundation
 import ArgumentParser
 
-struct Coco : ParsableCommand {
+struct Coco : @MainActor ParsableCommand {
     
-    static let configuration = CommandConfiguration(
+	@MainActor static let configuration = CommandConfiguration(
         commandName: "Coco",
         abstract: "Coco/R is a compiler/compiler generator producing Swift source",
-        version: "(2 July 2021)",
+        version: "(18 June 2026)",
         shouldDisplay: true
     )
     
@@ -58,14 +58,21 @@ struct Coco : ParsableCommand {
     var srcName : String
     
     @Option(name: [.short, .customLong("input", withSingleDash: true)],
-            help: "Directory containing <src-name> input file and, by default, Scanner.frame and Parser.frame files")
+            help: """
+		Directory containing <src-name> input file and, \
+		by default, Scanner.frame and Parser.frame files
+		""")
     var inputDir = ""
     
-    @Option(name: .customLong("namespace", withSingleDash: true), help: "Name defining the namespace to be parsed")
+    @Option(name: .customLong("namespace", withSingleDash: true),
+			help: "Name defining the namespace to be parsed")
     var nsName = ""
     
     @Option(name: .customLong("frames", withSingleDash: true),
-            help: "Directory containing the ATG frame files (possibly also Scanner.frame and Parser.frame files)")
+            help: """
+		Directory containing the ATG frame files (possibly also \
+		Scanner.frame and Parser.frame files)
+		""")
     var frameDir = ""
     
     @Option(name: .customLong("trace", withSingleDash: true),
@@ -85,33 +92,17 @@ struct Coco : ParsableCommand {
     )
     var ddtString = ""
     
-    @Option(name: [.short, .customLong("output", withSingleDash: true)], help: "<outputDir> directory for the files")
+    @Option(name: [.short, .customLong("output", withSingleDash: true)],
+			help: "<outputDir> directory for the files")
     var outputDir = ""
     
-    @Flag(name: .customLong("lines", withSingleDash: true), help: "-lines emits output lines")
+    @Flag(name: .customLong("lines", withSingleDash: true),
+		  help: "-lines emits output lines")
     var emitLines = false
     
-    mutating func run() throws {
+	@MainActor mutating func run() throws {
         print("\(Coco.configuration.commandName!)/R \(Coco.configuration.version)")
-//        var srcName : NSString = ""
-//        var nsName = ""
-//        var frameDir = ""
-//        var ddtString = ""
-//        var traceFileName = ""
-//        var outDir = ""
-//        var emitLines = false
-//        var i = 0
-//        while i < arg.count {
-//            if (arg[i] == "-namespace" && i < arg.count - 1) { i += 1; nsName = arg[i].trim() }
-//            else if (arg[i] == "-frames" && i < arg.count - 1) { i += 1; frameDir = arg[i].trim() }
-//            else if (arg[i] == "-trace" && i < arg.count - 1) { i += 1; ddtString = arg[i].trim() }
-//            else if (arg[i] == "-o" && i < arg.count - 1) { i += 1; outDir = arg[i].trim() }
-//            else if (arg[i] == "-lines") { emitLines = true }
-//            else { srcName = arg[i] as NSString }
-//            i += 1
-//        }
-//
-//        if arg.count > 1 && srcName.length != 0 {
+
         var traceFileName = ""
         do {
             let srcDir = inputDir
@@ -143,29 +134,7 @@ struct Coco : ParsableCommand {
             print("\(parser.errors.count) errors detected")
         } catch _ {
             print("-- could not open " + traceFileName)
-            //            } catch (FatalError e) {
-            //                print("-- " + e.Message)
         }
-//        } else {
-//            print("Usage: Coco Grammar.atg {{Option}}\n"
-//                + "Options:\n"
-//                + "  -namespace <namespaceName>\n"
-//                + "  -frames    <frameFilesDirectory>\n"
-//                + "  -trace     <traceString>\n"
-//                + "  -o         <outputDirectory>\n"
-//                + "  -lines\n"
-//                + "Valid characters in the trace string:\n"
-//                + "  A  trace automaton\n"
-//                + "  F  list first/follow sets\n"
-//                + "  G  print syntax graph\n"
-//                + "  I  trace computation of first sets\n"
-//                + "  J  list ANY and SYNC sets\n"
-//                + "  P  print statistics\n"
-//                + "  S  list symbol table\n"
-//                + "  X  list cross reference table\n"
-//                + "Scanner.frame and Parser.frame files needed in ATG directory\n"
-//                + "or in a directory specified in the -frames option.")
-//        }
     }
     
 } // end Coco
